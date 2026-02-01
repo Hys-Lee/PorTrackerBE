@@ -40,3 +40,4 @@ out/
 ### secrets ###
 google-key.json
 .env
+application.properties
