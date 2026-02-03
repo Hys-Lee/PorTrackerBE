@@ -1,11 +1,13 @@
 package com.PorTracker.PorTrackerBE.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import com.PorTracker.PorTrackerBE.dto.AnonymizedStatsDto;
 import com.PorTracker.PorTrackerBE.dto.TransactionDto;
+import com.PorTracker.PorTrackerBE.repository.SupabaseRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ public class FinanceService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final StatisticsService statisticsService;
     private final ObjectMapper objectMapper;
+    private final SupabaseRepository supabaseRepository;
 
 
     // 데이터 가져오고, 익명 통계 처리하기
@@ -54,7 +57,10 @@ public class FinanceService {
         }
         // 익명 통계 처리
         try {
-            List<AnonymizedStatsDto> stats = statisticsService.anonymized(userId, transactions);
+            Map<String, Object> profile = supabaseRepository.getUserProfile(userId);
+
+            List<AnonymizedStatsDto> stats =
+                    statisticsService.anonymized(userId, transactions, profile);
             log.info("익명 통계 생성 완료, 제공 데이터 수:{}", stats.size());
 
             // supabase에 저장
