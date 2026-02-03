@@ -9,11 +9,15 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import com.PorTracker.PorTrackerBE.dto.UserSheetResopnse;
+import com.PorTracker.PorTrackerBE.service.RedisService;
+
+
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class OnboardingService {
+
     private final GoogleDriveService googleDriveService;
     private final GoogleSheetService googleSheetService;
 
@@ -23,13 +27,19 @@ public class OnboardingService {
     @Value("${supabase.key}")
     private String supabaseKey;
 
+    private final RedisService redisService;
 
     public String processOnboarding(String accessToken, String userId, String userEmail) {
-        // log.info("온보딩 시작 - 유저:{} 이메일:{}", userId, userEmail);
-        // log.info("토큰: {}", accessToken);
+        String cacheKey = "user:sheet" + userId;
 
-        // test
-        log.info("키: ", supabaseKey);
+        // 레디스에서 먼저 찾기
+        String cachedId = redisService.getValues(cacheKey);
+        if (cachedId != null) {
+            log.info("레디스 캐시 히트 - id: {}", cachedId);
+            return "캐시된 id: " + cachedId;
+        }
+
+
 
         try {
 
@@ -46,14 +56,20 @@ public class OnboardingService {
                     .block();
 
             if (existingSheets != null && !existingSheets.isEmpty()) {
-                String existingId = (String) existingSheets.get(0).spreadsheetId();
-                log.info("이미 존재하는 시트 발견: {}", existingId);
-                return "기존 시트를 사용합니다 - id: " + existingId;
+                String spreadsheetId = (String) existingSheets.get(0).spreadsheetId();
+                // log.info("이미 존재하는 시트 발견: {}", existingId);
+                // return "기존 시트를 사용합니다 - id: " + existingId;
+
+                redisService.setValues(cacheKey, spreadsheetId, 60);
+
+                return "DB 조회 후 캐시저장 완료" + spreadsheetId;
             }
 
 
             String spreadsheetId = googleDriveService.createFinanceSheet(accessToken, userEmail);
             log.info("시트 생성! {}", spreadsheetId);
+            // 새로 만든 후에도 redis에 저장
+            redisService.setValues((cacheKey), spreadsheetId, 60);
 
             googleSheetService.setupHeaders(accessToken, spreadsheetId);
             log.info("헤더 설정 완료");

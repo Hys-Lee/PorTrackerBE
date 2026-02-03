@@ -1,0 +1,13 @@
+# version: "3.8"
+services:
+  redis:
+    image: redis:latest
+    container_name: portracker-redis
+    ports:
+      - "6379:6379" # [내컴퓨터포트]:[컨테이너내부포트]
+    volumes:
+      - redis_data:/data
+    command: redis-server --save 60 1 --loglevel warning # 60초 안에 1번이라도 변경되면 저장
+
+volumes:
+  redis_data:
