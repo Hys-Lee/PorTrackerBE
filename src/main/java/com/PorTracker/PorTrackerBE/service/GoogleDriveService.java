@@ -1,9 +1,5 @@
 package com.PorTracker.PorTrackerBE.service;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-
-import org.springframework.stereotype.Service;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.Drive;
@@ -11,8 +7,9 @@ import com.google.api.services.drive.model.File;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
-
-
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import org.springframework.stereotype.Service;
 
 @Service
 public class GoogleDriveService {
@@ -23,9 +20,13 @@ public class GoogleDriveService {
         GoogleCredentials credentials = GoogleCredentials.create(token);
 
         // 드라이브 서비스
-        Drive service = new Drive.Builder(GoogleNetHttpTransport.newTrustedTransport(),
-                GsonFactory.getDefaultInstance(), new HttpCredentialsAdapter(credentials))
-                        .setApplicationName("PorTracker").build();
+        Drive service =
+                new Drive.Builder(
+                                GoogleNetHttpTransport.newTrustedTransport(),
+                                GsonFactory.getDefaultInstance(),
+                                new HttpCredentialsAdapter(credentials))
+                        .setApplicationName("PorTracker")
+                        .build();
 
         // 파일 설정
         File fileMetadata = new File();
@@ -35,6 +36,5 @@ public class GoogleDriveService {
         // 생성 및 id반환
         File file = service.files().create(fileMetadata).setFields("id").execute();
         return file.getId();
-
     }
 }

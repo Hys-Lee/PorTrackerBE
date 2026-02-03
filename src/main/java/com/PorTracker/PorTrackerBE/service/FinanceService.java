@@ -1,17 +1,22 @@
 package com.PorTracker.PorTrackerBE.service;
 
+import com.PorTracker.PorTrackerBE.constant.ProfileSchema;
+import com.PorTracker.PorTrackerBE.dto.AnonymizedStatsDto;
+import com.PorTracker.PorTrackerBE.dto.ComparisonDto;
+import com.PorTracker.PorTrackerBE.dto.GroupAverageResponse;
+import com.PorTracker.PorTrackerBE.dto.TransactionDto;
+import com.PorTracker.PorTrackerBE.repository.SupabaseRepository;
+import com.PorTracker.PorTrackerBE.util.DateUtil;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Service;
-import com.PorTracker.PorTrackerBE.dto.AnonymizedStatsDto;
-import com.PorTracker.PorTrackerBE.dto.TransactionDto;
-import com.PorTracker.PorTrackerBE.repository.SupabaseRepository;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
@@ -23,10 +28,10 @@ public class FinanceService {
     private final ObjectMapper objectMapper;
     private final SupabaseRepository supabaseRepository;
 
-
     // 데이터 가져오고, 익명 통계 처리하기
-    public List<TransactionDto> getAndContributeStats(String accessToken, String userId,
-            String spreadsheetId) {
+    public List<TransactionDto> getAndContributeStats(
+            String accessToken, String userId, String spreadsheetId) {
+
         String cacheKey = "user:data:" + userId;
 
         // Redis 캐시 확인
@@ -35,8 +40,9 @@ public class FinanceService {
 
         if (rawData != null) {
             log.info("Redis 캐시에서 금융 데이터 로드");
-            transactions = objectMapper.convertValue(rawData,
-                    new TypeReference<List<TransactionDto>>() {});
+            transactions =
+                    objectMapper.convertValue(
+                            rawData, new TypeReference<List<TransactionDto>>() {});
         } else {
             log.info("구글 시트엥서 원본 로드");
             try {
@@ -71,5 +77,39 @@ public class FinanceService {
             log.warn("통계 처리 중 오류", e);
         }
         return transactions;
+    }
+
+    public List<ComparisonDto> getComparison(
+            String accessToken, String userId, String spreadsheetId) {
+        List<TransactionDto> myData = getAndContributeStats(accessToken, userId, spreadsheetId);
+
+        Map<String, Long> myStats =
+                myData.stream()
+                        .collect(
+                                Collectors.groupingBy(
+                                        TransactionDto::category,
+                                        Collectors.summingLong(TransactionDto::amount)));
+
+        Map<String, Object> profile = supabaseRepository.getUserProfile(userId);
+        String ageGroup =
+                (String) profile.getOrDefault(ProfileSchema.AGE_GROUP, ProfileSchema.UNKNOWN);
+        String jobType =
+                (String) profile.getOrDefault(ProfileSchema.JOB_TYPE, ProfileSchema.UNKNOWN);
+        String period = DateUtil.getCurrentPeriod();
+
+        List<GroupAverageResponse> groupAvgs =
+                supabaseRepository.getGroupAverages(ageGroup, jobType, period);
+
+        return groupAvgs.stream()
+                .map(
+                        avg -> {
+                            long myAcount = myStats.getOrDefault(avg.category(), 0L);
+                            return new ComparisonDto(
+                                    avg.category(),
+                                    myAcount,
+                                    avg.avgAmount(),
+                                    myAcount - avg.avgAmount());
+                        })
+                .collect(Collectors.toList());
     }
 }
