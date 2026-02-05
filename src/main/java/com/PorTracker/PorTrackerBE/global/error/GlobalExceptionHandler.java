@@ -20,6 +20,24 @@ public class GlobalExceptionHandler {
                 org.springframework.http.HttpStatus.valueOf(errorCode.getStatus()));
     }
 
+    // Validation 예외 처리
+    @ExceptionHandler(jakarta.validation.ConstraintViolationException.class)
+    protected ResponseEntity<ErrorResponse> handleConstraintVaiolationException(
+            jakarta.validation.ConstraintViolationException e) {
+
+        log.error("ConstraintViolationException: {}", e.getMessage());
+
+        // 첫번째 에러 메시지
+        String errorMessage = e.getConstraintViolations().iterator().next().getMessage();
+
+
+        ErrorResponse response =
+                ErrorResponse.builder().status(400).code("C001").message(errorMessage).build();
+
+
+        return new ResponseEntity<>(response, org.springframework.http.HttpStatus.BAD_REQUEST);
+    }
+
     // 다른 모든 예외 처리
     @ExceptionHandler(Exception.class)
     protected ResponseEntity<ErrorResponse> handleException(Exception e) {
