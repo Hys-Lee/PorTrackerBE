@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -29,44 +30,18 @@ public class StatisticsService {
 
         private final SupabaseRepository supabaseRepository;
 
+        @Async("statsExecutor")
         public void contributeStats(List<AnonymizedStatsDto> statsList) {
                 if (statsList == null || statsList.isEmpty())
                         return;
 
-                // WebClient webClient =
-                // WebClient.builder().baseUrl(supabaseUrl).defaultHeader("apikey", supabaseKey)
-                // .defaultHeader("Authorization", "Bearer " + supabaseKey)
-                // .defaultHeader("Content-Type", "application/json")
-                // // 중복 데이터 발생 시 업데이트 수행이라는데.
-                // .defaultHeader(("Prefer"), "resolution=merge-duplicates").build();
-
-                // try {
-                // webClient.post().uri("/rest/v1/category_stats").bodyValue(statsList).retrieve()
-                // .toBodilessEntity().block(); // 성고할 때까지 대기
-
-                // log.info("supabase category_Stats ssaving complete! listSize:{}",
-                // statsList.size());
-                // } catch (Exception e) {
-                // log.error("supabase statics saving error:{} ", e.getMessage());
-                // }
-
-
-                // [추가] 실제로 날아가는 JSON 모양을 로그로 찍어봅니다.
-                // try {
-                // ObjectMapper mapper = new ObjectMapper();
-                // // 전역 설정과 동일하게 Snake Case로 변환해서 출력해봅니다.
-                // mapper.setPropertyNamingStrategy(
-                // com.fasterxml.jackson.databind.PropertyNamingStrategies.SNAKE_CASE);
-                // String json = mapper.writeValueAsString(statsList);
-                // log.info("Supabase로 전송할 데이터: {}", json);
-                // } catch (Exception e) {
-                // log.error("JSON 변환 실패");
-                // }
-
-
-                // Repository 통해 저장
-                supabaseRepository.upsertCategoryStats(statsList);
-                log.info("supabase contribute success: {}", statsList.size());
+                try {
+                        // Repository 통해 저장
+                        supabaseRepository.upsertCategoryStats(statsList);
+                        log.info("supabase contribute success: {}", statsList.size());
+                } catch (Exception e) {
+                        log.error("Error while saving stats (async): {}", e.getMessage());
+                }
         }
 
         private Map<String, Long> aggregate(List<TransactionDto> transactions) {
