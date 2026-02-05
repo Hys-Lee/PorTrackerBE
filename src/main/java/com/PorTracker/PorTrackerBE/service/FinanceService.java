@@ -30,31 +30,38 @@ public class FinanceService {
 
         // 데이터 가져오고, 익명 통계 처리하기
         public List<TransactionDto> getAndContributeStats(String accessToken, String userId,
-                        String spreadsheetId) {
+                        String spreadsheetId, boolean refresh) {
 
-                String cacheKey = "user:data:" + userId;
+                // String cacheKey = "user:data:" + userId;
+                String cacheKey = "finance:data:" + userId + ":" + spreadsheetId; // 유저, 시트 별 고유하도록
+
+                // refresh 수동 갱신에 대해 기존 캐시 삭제처리
+                if (refresh) {
+                        log.info("cache forcefully remove req - key:{}", cacheKey);
+                        redisTemplate.delete(cacheKey);
+                }
 
                 // Redis 캐시 확인
                 Object rawData = redisTemplate.opsForValue().get(cacheKey);
                 List<TransactionDto> transactions;
 
                 if (rawData != null) {
-                        log.info("Redis 캐시에서 금융 데이터 로드");
+                        log.info("Redis cache hit! - finance data");
                         transactions = objectMapper.convertValue(rawData,
                                         new TypeReference<List<TransactionDto>>() {});
                 } else {
-                        log.info("구글 시트엥서 원본 로드");
+                        log.info("redis cache miss! - using sheet api");
                         try {
                                 // 임시 범위
                                 transactions = googleSheetService.getTransactions(accessToken,
                                                 spreadsheetId, "A1:E100");
 
                                 // redis 에 10분 저장
-                                redisTemplate.opsForValue().set(cacheKey, transactions, 10,
-                                                TimeUnit.MINUTES);
+                                redisTemplate.opsForValue().set(cacheKey, transactions, 1,
+                                                TimeUnit.HOURS);
 
                         } catch (Exception e) {
-                                log.error("데이터 로드 실패", e);
+                                log.error("data load failed", e);
                                 return List.of();
                         }
                 }
@@ -67,22 +74,22 @@ public class FinanceService {
 
                         List<AnonymizedStatsDto> stats =
                                         statisticsService.anonymized(userId, transactions, profile);
-                        log.info("익명 통계 생성 완료, 제공 데이터 수:{}", stats.size());
+                        log.info("created anonymous stats, data counts:{}", stats.size());
 
                         // supabase에 저장 -> 비동기 처리
                         statisticsService.contributeStats(stats);
 
                 } catch (Exception e) {
                         // 통계 처리 실패해도 데이터 넘기는 메인 로직은 중단 안되도록
-                        log.warn("통계 처리 중 오류", e);
+                        log.warn("Error At Stats Processing", e);
                 }
                 return transactions;
         }
 
         public List<ComparisonDto> getComparison(String accessToken, String userId,
-                        String spreadsheetId) {
+                        String spreadsheetId, boolean refresh) {
                 List<TransactionDto> myData =
-                                getAndContributeStats(accessToken, userId, spreadsheetId);
+                                getAndContributeStats(accessToken, userId, spreadsheetId, refresh);
 
                 Map<String, Long> myStats = myData.stream()
                                 .collect(Collectors.groupingBy(TransactionDto::category,

@@ -16,55 +16,70 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Repository
 @RequiredArgsConstructor
 public class SupabaseRepository {
-    @Value("${supabase.url}")
-    private String supabaseUrl;
+        @Value("${supabase.url}")
+        private String supabaseUrl;
 
-    @Value("${supabase.key}")
-    private String supabaseKey;
+        @Value("${supabase.key}")
+        private String supabaseKey;
 
-    private final WebClient.Builder webClientBuilder;
+        private final WebClient.Builder webClientBuilder;
 
-    // 공용 WebClient 빌더
-    private WebClient getWebClient() {
-        // return WebClient.builder()
-        return webClientBuilder.baseUrl(supabaseUrl).defaultHeader("apikey", supabaseKey)
-                .defaultHeader("Authorization", "Bearer " + supabaseKey)
-                .defaultHeader("Content-Type", "application/json").build();
-    }
+        // 공용 WebClient 빌더
+        private WebClient getWebClient() {
+                // return WebClient.builder()
+                return webClientBuilder.baseUrl(supabaseUrl).defaultHeader("apikey", supabaseKey)
+                                .defaultHeader("Authorization", "Bearer " + supabaseKey)
+                                .defaultHeader("Content-Type", "application/json").build();
+        }
 
-    // 통계 데이터 upsert
-    public void upsertCategoryStats(List<?> statsList) {
-        getWebClient().post().uri("/rest/v1/" + StatsSchema.TABLE_NAME)
-                .header("Prefer", "resolution=merge-duplicates").bodyValue(statsList).retrieve()
-                .onStatus(HttpStatusCode::is4xxClientError,
-                        response -> response.bodyToMono(String.class).flatMap(body -> {
-                            System.err.println("Supabase error msg: " + body);
-                            return Mono.error(new RuntimeException("Supabase API Error: " + body));
-                        }))
-                .toBodilessEntity().block();
-    }
+        // 통계 데이터 upsert
+        public void upsertCategoryStats(List<?> statsList) {
 
-    // 유저 프로필에서 그룹 정보 저회
-    public Map<String, Object> getUserProfile(String userId) {
-        List<Map<String, Object>> response = getWebClient().get()
-                .uri(uriBuilder -> uriBuilder.path("/rest/v1/user_profiles")
-                        .queryParam(ProfileSchema.USER_ID, "eq." + userId).build())
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {}).block();
+                String onConflictColumns = String.join(",", StatsSchema.HASHED_ID,
+                                StatsSchema.YEAR_MONTH, StatsSchema.CATEGORY, StatsSchema.AGE_GROUP,
+                                StatsSchema.JOB_TYPE);
 
-        return ((response != null) && !response.isEmpty()) ? response.get(0) : Map.of();
-    }
+                getWebClient().post()
+                                .uri(uriBuilder -> uriBuilder
+                                                .path("/rest/v1/" + StatsSchema.TABLE_NAME)
+                                                .queryParam("on_conflict", onConflictColumns)
+                                                .build())
+                                .header("Prefer", "resolution=merge-duplicates")
+                                .bodyValue(statsList).retrieve()
+                                .onStatus(HttpStatusCode::is4xxClientError, response -> response
+                                                .bodyToMono(String.class).flatMap(body -> {
+                                                        System.err.println("Supabase error msg: "
+                                                                        + body);
+                                                        return Mono.error(new RuntimeException(
+                                                                        "Supabase API Error: "
+                                                                                        + body));
+                                                }))
+                                .toBodilessEntity().block();
+        }
 
-    // 특정 그룹의 카테고리별 평균 데이터 가져오기
-    public List<GroupAverageResponse> getGroupAverages(String ageGroup, String jobType,
-            String period) {
-        return getWebClient().get()
-                .uri(uriBuilder -> uriBuilder.path("/rest/v1/group_averages")
-                        .queryParam(ProfileSchema.AGE_GROUP, "eq." + ageGroup)
-                        .queryParam(ProfileSchema.JOB_TYPE, "eq." + jobType)
-                        .queryParam(StatsSchema.YEAR_MONTH, "eq." + period).build())
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<GroupAverageResponse>>() {})
-                .block();
-    }
+        // 유저 프로필에서 그룹 정보 저회
+        public Map<String, Object> getUserProfile(String userId) {
+                List<Map<String, Object>> response = getWebClient().get()
+                                .uri(uriBuilder -> uriBuilder.path("/rest/v1/user_profiles")
+                                                .queryParam(ProfileSchema.USER_ID, "eq." + userId)
+                                                .build())
+                                .retrieve()
+                                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
+                                .block();
+
+                return ((response != null) && !response.isEmpty()) ? response.get(0) : Map.of();
+        }
+
+        // 특정 그룹의 카테고리별 평균 데이터 가져오기
+        public List<GroupAverageResponse> getGroupAverages(String ageGroup, String jobType,
+                        String period) {
+                return getWebClient().get().uri(uriBuilder -> uriBuilder
+                                .path("/rest/v1/group_averages")
+                                .queryParam(ProfileSchema.AGE_GROUP, "eq." + ageGroup)
+                                .queryParam(ProfileSchema.JOB_TYPE, "eq." + jobType)
+                                .queryParam(StatsSchema.YEAR_MONTH, "eq." + period).build())
+                                .retrieve()
+                                .bodyToMono(new ParameterizedTypeReference<List<GroupAverageResponse>>() {})
+                                .block();
+        }
 }

@@ -20,31 +20,39 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @Validated // RequestParams 검증
 public class FinanceController {
-    private final FinanceService financeService;
+        private final FinanceService financeService;
 
-    /** 내역 조회 GET /api/v1/finance/data?userId=~~&spreadsheetId=~~ */
-    @GetMapping("/data")
-    public List<TransactionDto> getFinanceData(
-            @RequestHeader(value = "Authorization") @NotBlank(
-                    message = "인증 토큰이 누락되었습니다.") String authHeader,
+        /** 내역 조회 GET /api/v1/finance/data?userId=~~&spreadsheetId=~~ */
+        @GetMapping("/data")
+        public List<TransactionDto> getFinanceData(
+                        @RequestHeader(value = "Authorization") @NotBlank(
+                                        message = "인증 토큰이 누락되었습니다.") String authHeader,
 
-            @RequestParam(value = "userId") @NotBlank(message = "유저 ID는 필수입니다.") String userId,
+                        @RequestParam(value = "userId") @NotBlank(
+                                        message = "유저 ID는 필수입니다.") String userId,
 
-            @RequestParam(value = "spreadsheetId") @NotBlank(
-                    message = "시트 ID는 필수입니다.") String spreadsheetId) {
+                        @RequestParam(value = "spreadsheetId") @NotBlank(
+                                        message = "시트 ID는 필수입니다.") String spreadsheetId,
 
-        String accessToken = authHeader.replace("Bearer ", "");
+                        @RequestParam(value = "refresh", defaultValue = "false") boolean refresh) {
 
-        return financeService.getAndContributeStats(accessToken, userId, spreadsheetId);
-    }
+                String accessToken = authHeader.replace("Bearer ", "");
 
-    @GetMapping("/comparison")
-    public List<ComparisonDto> getComparison(
-            @RequestHeader("Authorization") @NotBlank(message = "인증 토큰이 누락되었습니다.") String auth,
-            @RequestParam(value = "userId") @NotBlank(message = "유저 ID는 필수입니다.") String userId,
-            @RequestParam(value = "spreadsheetId") @NotBlank(
-                    message = "시트 ID는 필수입니다.") String spreadsheetId) {
+                return financeService.getAndContributeStats(accessToken, userId, spreadsheetId,
+                                refresh);
+        }
 
-        return financeService.getComparison(auth.replace("Bearer ", ""), userId, spreadsheetId);
-    }
+        @GetMapping("/comparison")
+        public List<ComparisonDto> getComparison(
+                        @RequestHeader("Authorization") @NotBlank(
+                                        message = "인증 토큰이 누락되었습니다.") String auth,
+                        @RequestParam(value = "userId") @NotBlank(
+                                        message = "유저 ID는 필수입니다.") String userId,
+                        @RequestParam(value = "spreadsheetId") @NotBlank(
+                                        message = "시트 ID는 필수입니다.") String spreadsheetId,
+                        @RequestParam(value = "refresh", defaultValue = "false") boolean refresh) {
+
+                return financeService.getComparison(auth.replace("Bearer ", ""), userId,
+                                spreadsheetId, refresh);
+        }
 }
