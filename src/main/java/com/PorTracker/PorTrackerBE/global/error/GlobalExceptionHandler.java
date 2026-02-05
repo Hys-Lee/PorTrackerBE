@@ -1,13 +1,31 @@
 package com.PorTracker.PorTrackerBE.global.error;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 
 @Slf4j
 @RestControllerAdvice // 모든 Controller 에러 여기서 가로챔
 public class GlobalExceptionHandler {
+
+    // 필수 파라미터 누락 시 발생하느ㅏㄴ 예외 처리
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    protected ResponseEntity<ErrorResponse> handleMissingServletRequestParameterException(
+            MissingServletRequestParameterException e) {
+        log.error("MissingServletRequestParameterException Occur!: {}", e.getMessage());
+
+        ErrorCode errorCode = ErrorCode.INVALID_INPUT_VALUE;
+
+        ErrorResponse response = ErrorResponse.builder().status(errorCode.getStatus())
+                .code(errorCode.getCode())
+                .message(String.format("%s parameter required, but no.", e.getParameterName()))
+                .build();
+
+        return new ResponseEntity<>(response, org.springframework.http.HttpStatus.BAD_REQUEST);
+
+    }
 
     // 직접 정의한 BusinessException 에러 핸들링
     @ExceptionHandler(BusinessException.class)
@@ -30,10 +48,8 @@ public class GlobalExceptionHandler {
         // 첫번째 에러 메시지
         String errorMessage = e.getConstraintViolations().iterator().next().getMessage();
 
-
         ErrorResponse response =
                 ErrorResponse.builder().status(400).code("C001").message(errorMessage).build();
-
 
         return new ResponseEntity<>(response, org.springframework.http.HttpStatus.BAD_REQUEST);
     }
@@ -47,6 +63,4 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response,
                 org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
-
 }
