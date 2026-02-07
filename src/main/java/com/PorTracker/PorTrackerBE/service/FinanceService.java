@@ -5,6 +5,7 @@ import com.PorTracker.PorTrackerBE.dto.AnonymizedStatsDto;
 import com.PorTracker.PorTrackerBE.dto.ComparisonDto;
 import com.PorTracker.PorTrackerBE.dto.GroupAverageResponse;
 import com.PorTracker.PorTrackerBE.dto.TransactionDto;
+import com.PorTracker.PorTrackerBE.global.aspect.DistributedLock;
 import com.PorTracker.PorTrackerBE.global.error.BusinessException;
 import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
 import com.PorTracker.PorTrackerBE.repository.SupabaseRepository;
@@ -30,79 +31,80 @@ public class FinanceService {
         private final ObjectMapper objectMapper;
         private final SupabaseRepository supabaseRepository;
 
+
         // 데이터 가져오고, 익명 통계 처리하기
+        @DistributedLock(key = "#userId")
         public List<TransactionDto> getAndContributeStats(String accessToken, String userId,
                         String spreadsheetId, boolean refresh) {
 
-                // Locking - redis의 SETNX
-                String lockKey = "lock:finance:" + userId;
+                // // Locking - redis의 SETNX
+                // String lockKey = "lock:finance:" + userId;
 
-                Boolean isLocked = redisTemplate.opsForValue().setIfAbsent(lockKey, "LOCKED", 10,
-                                TimeUnit.SECONDS);
-                if (Boolean.FALSE.equals(isLocked)) {
-                        throw new BusinessException(ErrorCode.TOO_MANY_REQUESTS);
+                // Boolean isLocked = redisTemplate.opsForValue().setIfAbsent(lockKey, "LOCKED", 10,
+                // TimeUnit.SECONDS);
+                // if (Boolean.FALSE.equals(isLocked)) {
+                // throw new BusinessException(ErrorCode.TOO_MANY_REQUESTS);
+                // }
+
+                // try {
+
+                // 데이터 가져오기
+                String cacheKey = "finance:data:" + userId + ":" + spreadsheetId; // 유저, 시트
+                                                                                  // 별 고유하도록
+
+                // refresh 수동 갱신에 대해 기존 캐시 삭제처리
+                if (refresh) {
+                        log.info("cache forcefully remove req - key:{}", cacheKey);
+                        redisTemplate.delete(cacheKey);
                 }
 
-                try {
+                // Redis 캐시 확인
+                Object rawData = redisTemplate.opsForValue().get(cacheKey);
+                List<TransactionDto> transactions;
 
-                        // 데이터 가져오기
-                        String cacheKey = "finance:data:" + userId + ":" + spreadsheetId; // 유저, 시트
-                                                                                          // 별 고유하도록
-
-                        // refresh 수동 갱신에 대해 기존 캐시 삭제처리
-                        if (refresh) {
-                                log.info("cache forcefully remove req - key:{}", cacheKey);
-                                redisTemplate.delete(cacheKey);
-                        }
-
-                        // Redis 캐시 확인
-                        Object rawData = redisTemplate.opsForValue().get(cacheKey);
-                        List<TransactionDto> transactions;
-
-                        if (rawData != null) {
-                                log.info("Redis cache hit! - finance data");
-                                transactions = objectMapper.convertValue(rawData,
-                                                new TypeReference<List<TransactionDto>>() {});
-                        } else {
-                                log.info("redis cache miss! - using sheet api");
-                                try {
-                                        // 임시 범위
-                                        transactions = googleSheetService.getTransactions(
-                                                        accessToken, spreadsheetId, "A1:E100");
-
-                                        // redis 에 10분 저장
-                                        redisTemplate.opsForValue().set(cacheKey, transactions, 1,
-                                                        TimeUnit.HOURS);
-
-                                } catch (Exception e) {
-                                        log.error("data load failed", e);
-                                        return List.of();
-                                }
-                        }
-                        if (transactions.isEmpty()) {
-                                return transactions;
-                        }
-                        // 익명 통계 처리
+                if (rawData != null) {
+                        log.info("Redis cache hit! - finance data");
+                        transactions = objectMapper.convertValue(rawData,
+                                        new TypeReference<List<TransactionDto>>() {});
+                } else {
+                        log.info("redis cache miss! - using sheet api");
                         try {
-                                Map<String, Object> profile =
-                                                supabaseRepository.getUserProfile(userId);
+                                // 임시 범위
+                                transactions = googleSheetService.getTransactions(accessToken,
+                                                spreadsheetId, "A1:E100");
 
-                                List<AnonymizedStatsDto> stats = statisticsService
-                                                .anonymized(userId, transactions, profile);
-                                log.info("created anonymous stats, data counts:{}", stats.size());
-
-                                // supabase에 저장 -> 비동기 처리
-                                statisticsService.contributeStats(stats);
+                                // redis 에 10분 저장
+                                redisTemplate.opsForValue().set(cacheKey, transactions, 1,
+                                                TimeUnit.HOURS);
 
                         } catch (Exception e) {
-                                // 통계 처리 실패해도 데이터 넘기는 메인 로직은 중단 안되도록
-                                log.warn("Error At Stats Processing", e);
+                                log.error("data load failed", e);
+                                return List.of();
                         }
-                        return transactions;
-
-                } finally {
-                        redisTemplate.delete(lockKey);
                 }
+                if (transactions.isEmpty()) {
+                        return transactions;
+                }
+                // 익명 통계 처리
+                try {
+                        Map<String, Object> profile = supabaseRepository.getUserProfile(userId);
+
+                        List<AnonymizedStatsDto> stats =
+                                        statisticsService.anonymized(userId, transactions, profile);
+                        log.info("created anonymous stats, data counts:{}", stats.size());
+
+                        // supabase에 저장 -> 비동기 처리
+                        statisticsService.contributeStats(stats);
+
+                } catch (Exception e) {
+                        // 통계 처리 실패해도 데이터 넘기는 메인 로직은 중단 안되도록
+                        log.warn("Error At Stats Processing", e);
+                }
+                return transactions;
+
+                // } finally {
+                // redisTemplate.delete(lockKey);
+                // }
         }
 
         public List<ComparisonDto> getComparison(String accessToken, String userId,

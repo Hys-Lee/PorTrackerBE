@@ -61,6 +61,7 @@ dependencies {
 	implementation 'org.flywaydb:flyway-database-postgresql'
 	runtimeOnly 'org.postgresql:postgresql'
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+	implementation 'org.redisson:redisson-spring-boot-starter:3.27.0'
 }
 
 tasks.named('test') {
