@@ -8,6 +8,7 @@ import com.PorTracker.PorTrackerBE.dto.TransactionDto;
 import com.PorTracker.PorTrackerBE.global.aspect.DistributedLock;
 import com.PorTracker.PorTrackerBE.global.error.BusinessException;
 import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
+import com.PorTracker.PorTrackerBE.repository.SqliteRepository;
 import com.PorTracker.PorTrackerBE.repository.SupabaseRepository;
 import com.PorTracker.PorTrackerBE.util.DateUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -35,7 +37,7 @@ public class FinanceService {
         // 데이터 가져오고, 익명 통계 처리하기
         @DistributedLock(key = "#userId")
         public List<TransactionDto> getAndContributeStats(String accessToken, String userId,
-                        String spreadsheetId, boolean refresh) {
+                        String fileId, boolean refresh) {
 
                 // // Locking - redis의 SETNX
                 // String lockKey = "lock:finance:" + userId;
@@ -49,8 +51,8 @@ public class FinanceService {
                 // try {
 
                 // 데이터 가져오기
-                String cacheKey = "finance:data:" + userId + ":" + spreadsheetId; // 유저, 시트
-                                                                                  // 별 고유하도록
+                String cacheKey = "finance:data:" + userId + ":" + fileId; // 유저, 시트
+                                                                           // 별 고유하도록
 
                 // refresh 수동 갱신에 대해 기존 캐시 삭제처리
                 if (refresh) {
@@ -67,13 +69,17 @@ public class FinanceService {
                         transactions = objectMapper.convertValue(rawData,
                                         new TypeReference<List<TransactionDto>>() {});
                 } else {
-                        log.info("redis cache miss! - using sheet api");
+                        log.info("redis cache miss! - start downloading SQLite file");
                         try {
                                 // 임시 범위
-                                transactions = googleSheetService.getTransactions(accessToken,
-                                                spreadsheetId, "A1:E100");
+                                // transactions = googleSheetService.getTransactions(accessToken,
+                                // spreadsheetId, "A1:E100");
 
-                                // redis 에 10분 저장
+                                DataSource userDs = dbManager.getDataSourceForUser(userId, fileId);
+
+                                transactions = sqliteRepository.findAllTransactions(userDs);
+
+                                // redis 에 1시간 저장
                                 redisTemplate.opsForValue().set(cacheKey, transactions, 1,
                                                 TimeUnit.HOURS);
 
@@ -131,5 +137,17 @@ public class FinanceService {
                         return new ComparisonDto(avg.category(), myAcount, avg.avgAmount(),
                                         myAcount - avg.avgAmount());
                 }).collect(Collectors.toList());
+        }
+
+        /// 다른 버전
+        private final SqliteDatabaseManager dbManager;
+        private final SqliteRepository sqliteRepository;
+
+        public List<TransactionDto> getUserTransactions(String userId, String fileId) {
+                // 유저 db연결
+                DataSource userDataSource = dbManager.getDataSourceForUser(userId, fileId);
+
+                // 데이터 조회
+                return sqliteRepository.findAllTransactions(userDataSource);
         }
 }

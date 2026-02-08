@@ -9,6 +9,7 @@ import com.google.api.services.sheets.v4.model.ValueRange;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
+import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
@@ -21,20 +22,17 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class GoogleSheetService {
     // 구글 시트에서 데이터 읽어와 dto리스트로 변환
-    public List<TransactionDto> getTransactions(
-            String accessTokenValue, String spreadsheetId, String range) throws Exception {
+    public List<TransactionDto> getTransactions(String accessTokenValue, String spreadsheetId,
+            String range) throws Exception {
         AccessToken token = new AccessToken(accessTokenValue, null);
         GoogleCredentials credentials = GoogleCredentials.create((token));
 
-        Sheets service =
-                new Sheets.Builder(
-                                GoogleNetHttpTransport.newTrustedTransport(),
-                                GsonFactory.getDefaultInstance(),
-                                new HttpCredentialsAdapter(credentials))
-                        .setApplicationName("PorTracker")
-                        .build();
+        Sheets service = new Sheets.Builder(GoogleNetHttpTransport.newTrustedTransport(),
+                GsonFactory.getDefaultInstance(), new HttpCredentialsAdapter(credentials))
+                        .setApplicationName("PorTracker").build();
 
         ValueRange response = service.spreadsheets().values().get(spreadsheetId, range).execute();
 
@@ -92,16 +90,16 @@ public class GoogleSheetService {
     }
 
     private TransactionDto parseRow(List<Object> row, Map<SheetSchema, Integer> colMap) {
-        return new TransactionDto(
-                getSafeValue(row, colMap.get(SheetSchema.DATE)),
+        return new TransactionDto(getSafeValue(row, colMap.get(SheetSchema.DATE)),
                 getSafeValue(row, colMap.get(SheetSchema.CATEGORY)),
-                getSafeValue(row, colMap.get(SheetSchema.ITEM)),
+                // getSafeValue(row, colMap.get(SheetSchema.ITEM)),
                 parseAmount(getSafeValue(row, colMap.get(SheetSchema.AMOUNT))),
                 getSafeValue(row, colMap.get(SheetSchema.MEMO)));
     }
 
     private long parseAmount(String val) {
-        if (val == null || val.isEmpty()) return 0L;
+        if (val == null || val.isEmpty())
+            return 0L;
 
         String sanitized = val.replace("[^0-9]", "");
         return sanitized.isEmpty() ? 0L : Long.parseLong(sanitized);
@@ -121,27 +119,41 @@ public class GoogleSheetService {
         AccessToken token = new AccessToken(accessTokenValue, null);
         GoogleCredentials credentials = GoogleCredentials.create(token);
 
-        Sheets service =
-                new Sheets.Builder(
-                                GoogleNetHttpTransport.newTrustedTransport(),
-                                GsonFactory.getDefaultInstance(),
-                                new HttpCredentialsAdapter(credentials))
-                        .setApplicationName(("PorTracker"))
-                        .build();
+        Sheets service = new Sheets.Builder(GoogleNetHttpTransport.newTrustedTransport(),
+                GsonFactory.getDefaultInstance(), new HttpCredentialsAdapter(credentials))
+                        .setApplicationName(("PorTracker")).build();
 
         // 첫 줄 헤더 작성 - 스키마 참고하기
-        List<Object> headerNames =
-                Arrays.stream(SheetSchema.values())
-                        .map(SheetSchema::getHeaderName)
-                        .collect(Collectors.toList());
+        List<Object> headerNames = Arrays.stream(SheetSchema.values())
+                .map(SheetSchema::getHeaderName).collect(Collectors.toList());
         List<List<Object>> values = Collections.singletonList(headerNames);
 
         ValueRange body = new ValueRange().setValues(values);
 
-        service.spreadsheets()
-                .values()
-                .update(spreadsheetId, "A1", body)
-                .setValueInputOption("RAW")
+        service.spreadsheets().values().update(spreadsheetId, "A1", body).setValueInputOption("RAW")
                 .execute();
+    }
+
+    // 구조 변경 이후
+
+    // 구글 드라이브의 파일 수정시간 체크
+    public boolean isNewerVersionAvailable(String userId, String localFilePath) {
+        try {
+            // 임시
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    // 구글 드라이브에서 db파일 다운로드
+    public void downloadDatabaseFile(String fileId, String localPath) {
+        try {
+            // 임시
+            log.info("file download from google drive succeed!: " + localPath);
+
+        } catch (Exception e) {
+            throw new RuntimeException("file download failed", e);
+        }
     }
 }

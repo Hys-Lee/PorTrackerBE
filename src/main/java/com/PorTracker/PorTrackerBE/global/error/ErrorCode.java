@@ -14,9 +14,12 @@ public enum ErrorCode {
             " 유효하지 않은 구글 엑세스 토큰입니다."),
 
     // Supabase / DB
-    DATS_SAVE_FAILED(500, "D001", " 데이터 저장 중 오류가 발생했습니다.");
+    DATS_SAVE_FAILED(500, "D001", " 데이터 저장 중 오류가 발생했습니다."),
 
+    // Google Drive File
+    FILE_DOWNLOAD_FAILED(500, "F001", "구글 드라이브 파일 다운로드에 실패했습니다."),
 
+    DB_SYNC_FAILED(500, "F002", "DB 동기화 중 오류가 발생했습니다");
 
     private final int status;
     private final String code;
