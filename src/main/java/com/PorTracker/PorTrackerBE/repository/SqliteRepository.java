@@ -17,7 +17,7 @@ public class SqliteRepository {
         return jdbcTemplate.query(sql,
                 (rs, rowNum) -> new TransactionDto(rs.getString(SheetSchema.DATE.getHeaderName()),
                         rs.getString(SheetSchema.CATEGORY.getHeaderName()),
-                        // rs.getString(SheetSchema.ITEM.getHeaderName()),
+                        rs.getString(SheetSchema.ITEM.getHeaderName()),
                         rs.getLong(SheetSchema.AMOUNT.getHeaderName()),
                         rs.getString(SheetSchema.MEMO.getHeaderName())));
     }

@@ -92,7 +92,7 @@ public class GoogleSheetService {
     private TransactionDto parseRow(List<Object> row, Map<SheetSchema, Integer> colMap) {
         return new TransactionDto(getSafeValue(row, colMap.get(SheetSchema.DATE)),
                 getSafeValue(row, colMap.get(SheetSchema.CATEGORY)),
-                // getSafeValue(row, colMap.get(SheetSchema.ITEM)),
+                getSafeValue(row, colMap.get(SheetSchema.ITEM)),
                 parseAmount(getSafeValue(row, colMap.get(SheetSchema.AMOUNT))),
                 getSafeValue(row, colMap.get(SheetSchema.MEMO)));
     }
