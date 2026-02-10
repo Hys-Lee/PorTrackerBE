@@ -1,16 +1,16 @@
 package com.PorTracker.PorTrackerBE.global.aspect;
 
+import com.PorTracker.PorTrackerBE.global.error.BusinessException;
+import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
 import java.util.concurrent.TimeUnit;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
-import com.PorTracker.PorTrackerBE.global.error.BusinessException;
-import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Aspect
 @Component
@@ -22,12 +22,15 @@ public class DistributedLockAspect {
     @Around("@annotation(distributedLock)")
     public Object lock(ProceedingJoinPoint joinPoint, DistributedLock distributedLock)
             throws Throwable {
-        String key = "lock:" + joinPoint.getArgs()[1];// 임시
+        String key = "lock:" + joinPoint.getArgs()[1]; // 임시
         RLock lock = redissonClient.getLock(key);
 
         try {
-            boolean available = lock.tryLock(distributedLock.waitTime(),
-                    distributedLock.leaseTime(), TimeUnit.SECONDS);
+            boolean available =
+                    lock.tryLock(
+                            distributedLock.waitTime(),
+                            distributedLock.leaseTime(),
+                            TimeUnit.SECONDS);
 
             if (!available) {
                 throw new BusinessException(ErrorCode.TOO_MANY_REQUESTS);

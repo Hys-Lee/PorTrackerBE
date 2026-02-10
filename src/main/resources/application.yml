@@ -4,11 +4,13 @@ spring:
     username: postgres.rllybwrgpaajludglaih
     password: ${SUPABASE_DATABASE_PW}
     driver-class-name: org.postgresql.Driver
+
   flyway:
     enabled: true
-    locations: classpath:db/migration
+    locations: classpath:db/migration/supabase
     baseline-on-migrate: true # 중요: 기존에 테이블이 있는 상태에서 도입할 때 필요
-
+  jmx:
+    enabled: false
 logging:
   level:
     org.flywaydb: DEBUG
