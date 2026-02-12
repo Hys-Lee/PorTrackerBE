@@ -11,6 +11,7 @@ import com.PorTracker.PorTrackerBE.global.error.BusinessException;
 import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
 import com.PorTracker.PorTrackerBE.repository.SqliteRepository;
 import com.PorTracker.PorTrackerBE.repository.SupabaseRepository;
+import com.PorTracker.PorTrackerBE.service.sqlite.SqliteDatabaseManager;
 import com.PorTracker.PorTrackerBE.util.DateUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -51,6 +52,7 @@ public class FinanceService {
         String tempPath = FileConstants.DB_STORAGE_ROOT + userId + "_init.db"; // 임시 파일 위치
         sqliteManager.createInitialFile(tempPath); // 파일 생성 및 스키마 주입
 
+        // google drive에 옮기기
         String newFileId = googleDriveService.uploadFile(fileName, tempPath, accessToken);
 
         new java.io.File((tempPath)).delete(); // 임시 파일 제거
@@ -158,7 +160,7 @@ public class FinanceService {
             String userBaseCurrency = (String) profile.get("base_currency"); // 예: 'KRW'
             // 유저 db연결
             DataSource userDataSource =
-                    dbManager.getDataSourceForUser(userId, fileId, userBaseCurrency, token);
+                    dbManager.getJdbcTemplateOfDataSource(userId, userBaseCurrency).getDataSource();
 
             // 데이터 조회
             return sqliteRepository.findAllTransactions(userDataSource);
@@ -188,5 +190,15 @@ public class FinanceService {
             // 통계 처리 실패해도 데이터 넘기는 메인 로직은 중단 안되도록
             log.warn("Error At Stats Processing", e);
         }
+    }
+
+    public void saveTransaction(String userId, String fileId, String token, TransactionDto dto) {
+        String dbPath = Paths.get(FileConstants.DB_STORAGE_ROOT, userId + ".db").toString();
+
+        // 임시 currency
+        DataSource ds = sqliteManager.getJdbcTemplateOfDataSource(userId, "KRW").getDataSource();
+
+        sqliteRepository.insertTmpTransaction(ds, dto);
+        log.info("Success to save sqlite data: {}", dto);
     }
 }

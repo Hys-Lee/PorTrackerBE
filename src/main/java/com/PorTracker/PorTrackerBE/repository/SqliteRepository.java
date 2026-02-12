@@ -14,14 +14,21 @@ public class SqliteRepository {
 
         String sql = "SELECT date, category, amount, memo FROM transactions ORDER BY date DESC";
 
-        return jdbcTemplate.query(
-                sql,
-                (rs, rowNum) ->
-                        new TransactionDto(
-                                rs.getString(SheetSchema.DATE.getHeaderName()),
-                                rs.getString(SheetSchema.CATEGORY.getHeaderName()),
-                                rs.getString(SheetSchema.ITEM.getHeaderName()),
-                                rs.getLong(SheetSchema.AMOUNT.getHeaderName()),
-                                rs.getString(SheetSchema.MEMO.getHeaderName())));
+        return jdbcTemplate.query(sql,
+                (rs, rowNum) -> new TransactionDto(rs.getString(SheetSchema.DATE.getHeaderName()),
+                        rs.getString(SheetSchema.CATEGORY.getHeaderName()),
+                        rs.getString(SheetSchema.ITEM.getHeaderName()),
+                        rs.getLong(SheetSchema.AMOUNT.getHeaderName()),
+                        rs.getString(SheetSchema.MEMO.getHeaderName())));
+    }
+
+    public void insertTmpTransaction(DataSource dataSource, TransactionDto dto) {
+        JdbcTemplate jdbc = new JdbcTemplate(dataSource);
+
+        // 이게 된다고? db선에서 막힐 것 같은데
+        String sql = String.format(
+                " INSERT INTO transactions (date, category, item, amount, memo) VALUES (?, ?, ?, ?, ?)");
+
+        jdbc.update(sql, dto.date(), dto.category(), dto.item(), dto.amount(), dto.memo());
     }
 }

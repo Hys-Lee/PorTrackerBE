@@ -1,5 +1,7 @@
 package com.PorTracker.PorTrackerBE.controller;
 
+import com.PorTracker.PorTrackerBE.domain.actual_portfolio.entity.ActualPortfolioRecord;
+import com.PorTracker.PorTrackerBE.domain.actual_portfolio.service.ActualPortfolioTransactionService;
 import com.PorTracker.PorTrackerBE.dto.ComparisonDto;
 import com.PorTracker.PorTrackerBE.dto.TransactionDto;
 import com.PorTracker.PorTrackerBE.service.FinanceService;
@@ -15,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 @RestController
 @RequestMapping("/api/v1/finance")
@@ -23,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class FinanceController {
         private final FinanceService financeService;
+        private final ActualPortfolioTransactionService actualPortfolioTransactionService;
 
         /** 내역 조회 GET /api/v1/finance/data?userId=~~&spreadsheetId=~~ */
         @GetMapping("/data")
@@ -53,6 +58,27 @@ public class FinanceController {
 
                 return ResponseEntity.ok(fileId);
         }
+
+        @PostMapping("/transaction")
+        public ResponseEntity<String> saveTransaction(
+                        @RequestHeader("Authorization") String authHeader,
+                        @RequestParam(value = "userId") String userId,
+                        @RequestParam(value = "fileId") String fileId,
+                        @RequestBody TransactionDto dto
+        // @RequestBody ActualPortfolioRecord record
+
+        ) {
+
+                String token = authHeader.substring(7);
+                financeService.saveTransaction(userId, fileId, token, dto);
+                // financeService.saveTransaction(userId, fileId, token, dto);
+                // actualPortfolioTransactionService.insertTransaction(userId, record);
+
+                return ResponseEntity.ok("saved successfully");
+
+
+        }
+
 
         @GetMapping("/comparison")
         public List<ComparisonDto> getComparison(

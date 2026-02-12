@@ -41,8 +41,8 @@ create table actual_portfolio(
 	updated_at text default (datetime('now')),
 	deleted_at text default null,
 	transaction_type text not null,
-	change_ratio_bp integer, -- %는 소수점 2까지
-	accumulated_ratio_bp integer, -- %는 소수점 2까지
+	change_ratio_bp integer, -- %는 소수점 2까지 어쨌든 소수점 4까지.
+	accumulated_ratio_bp integer, -- %는 소수점 2까지 어쨌든 소수점 4까지.
 	currency_id integer,
 	price_bp integer, -- 일반은 소수점 4까지
 	amount_bp integer, -- 일반은 소수점 4까지, 소수점 거래 대비
