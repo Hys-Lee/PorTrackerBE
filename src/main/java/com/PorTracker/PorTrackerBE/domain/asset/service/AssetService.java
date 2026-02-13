@@ -30,15 +30,32 @@ public class AssetService {
         public List<AssetRecord> getAllAssets(String userId) {
                 JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
-                String sql = String.format("SELECT %s, %s, %s, %s, %s, %s, %s, %s, %s FROM %s",
+                String sqlCurrencyPublicIdName = "currency_type_public_id";
+                String sqlAssetTypePublicIdName = "asset_type_public_id";
+
+
+                String sql = String.format(
+                                "SELECT a.%s, a.%s, a.%s, a.%s, a.%s, a.%s, a.%s, a.%s, a.%s, c.%s as %s, at.%s as %s FROM %s a JOIN %s c ON a.%s=c.%s JOIN %s at ON a.%s=at.%s",
+                                // select
                                 SqliteSchema.COL_ID, SqliteSchema.COL_PUBLIC_ID,
                                 SqliteSchema.COL_CREATED_AT, SqliteSchema.COL_UPDATED_AT,
                                 SqliteSchema.COL_DELETED_AT, SqliteSchema.COL_NAME,
                                 SqliteSchema.COL_DESCRIPTION, SqliteSchema.COL_CURRENCY_ID,
-                                SqliteSchema.COL_TYPE_ID, SqliteSchema.TABLE_ASSET);
+                                SqliteSchema.COL_TYPE_ID, SqliteSchema.COL_PUBLIC_ID,
+                                sqlCurrencyPublicIdName, SqliteSchema.COL_PUBLIC_ID,
+                                sqlAssetTypePublicIdName,
 
-                return jdbcTemplate.query(sql, (rs, rowNum) -> AssetRecord.builder()
-                                .id(rs.getLong(SqliteSchema.COL_ID))
+                                // from
+                                SqliteSchema.TABLE_ASSET, SqliteSchema.TABLE_CURRENCY_TYPE,
+                                SqliteSchema.COL_CURRENCY_ID, SqliteSchema.COL_ID,
+                                SqliteSchema.TABLE_ASSET_TYPE, SqliteSchema.COL_TYPE_ID,
+                                SqliteSchema.COL_ID
+
+                );
+
+                // return jdbcTemplate.query(sql, (rs, rowNum) -> AssetRecord.builder()
+                List<AssetRecord> res = jdbcTemplate.query(sql, (rs, rowNum) -> AssetRecord
+                                .builder().id(rs.getLong(SqliteSchema.COL_ID))
                                 .publicId(rs.getString(SqliteSchema.COL_PUBLIC_ID))
                                 .createdAt(rs.getString(SqliteSchema.COL_CREATED_AT))
                                 .updatedAt(rs.getString(SqliteSchema.COL_UPDATED_AT))
@@ -46,7 +63,12 @@ public class AssetService {
                                 .name(rs.getString(SqliteSchema.COL_NAME))
                                 .description(rs.getString(SqliteSchema.COL_DESCRIPTION))
                                 .currencyId(rs.getLong(SqliteSchema.COL_CURRENCY_ID))
-                                .typeId(rs.getLong(SqliteSchema.COL_TYPE_ID)).build());
+                                .typeId(rs.getLong(SqliteSchema.COL_TYPE_ID))
+                                .typePublicId(rs.getString(sqlAssetTypePublicIdName))
+                                .currencyPublicId(rs.getString(sqlCurrencyPublicIdName)).build());
+
+
+                return res;
         }
 
         // NPE 버그 수정된 메서드

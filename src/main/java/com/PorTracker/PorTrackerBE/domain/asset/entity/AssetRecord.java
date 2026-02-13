@@ -15,5 +15,7 @@ public class AssetRecord {
     private final String name;
     private final String description;
     private final Long currencyId;
+    private final String currencyPublicId;
     private final Long typeId;
+    private final String typePublicId;
 }
