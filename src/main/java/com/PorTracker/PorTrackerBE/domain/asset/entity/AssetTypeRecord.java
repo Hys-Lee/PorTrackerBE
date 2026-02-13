@@ -12,5 +12,4 @@ public class AssetTypeRecord {
     private final String updatedAt;
     private final String deletedAt;
     private final String name;
-
 }

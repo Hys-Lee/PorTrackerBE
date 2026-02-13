@@ -1,0 +1,12 @@
+{
+  "agents": {
+    "custom": [
+      {
+        "name": "omo",
+        "module": "oh-my-opencode",
+        "description": "Oh My OpenCode Agent"
+      }
+    ]
+  },
+  "defaultAgent": "omo"
+}

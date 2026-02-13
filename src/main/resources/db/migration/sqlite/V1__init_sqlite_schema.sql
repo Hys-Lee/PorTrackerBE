@@ -128,4 +128,4 @@ CREATE INDEX idx_memo_actual_id ON memo(actual_id) WHERE actual_id IS NOT NULL;
 CREATE INDEX idx_memo_target_id ON memo(target_id) WHERE target_id IS NOT NULL;
 
 -- 테이블에 데이터 기본 삽입
-insert or ignore into currency_type(code) values ('USD');
+insert or ignore into currency_type(code) values ('USD'); -- public_id 추가했는디..

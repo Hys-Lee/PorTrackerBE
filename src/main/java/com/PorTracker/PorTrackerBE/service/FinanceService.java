@@ -45,12 +45,15 @@ public class FinanceService {
 
         String fileId = googleDriveService.findFileIdByName(fileName, accessToken);
 
-        if (fileId != null)
-            return fileId;
+        if (fileId != null) return fileId;
+
+        Map<String, Object> profile = supabaseRepository.getUserProfile(userId);
+
+        String userBaseCurrency = (String) profile.get("base_currency"); // 예: 'KRW'
 
         // 없으면 데이터 담긴 파일 생성
         String tempPath = FileConstants.DB_STORAGE_ROOT + userId + "_init.db"; // 임시 파일 위치
-        sqliteManager.createInitialFile(tempPath); // 파일 생성 및 스키마 주입
+        sqliteManager.createInitialFile(tempPath, userBaseCurrency); // 파일 생성 및 스키마 주입
 
         // google drive에 옮기기
         String newFileId = googleDriveService.uploadFile(fileName, tempPath, accessToken);
@@ -61,8 +64,8 @@ public class FinanceService {
 
     // 데이터 가져오고, 익명 통계 처리하기
     @DistributedLock(key = "#userId")
-    public List<TransactionDto> getAndContributeStats(String accessToken, String userId,
-            String fileId, boolean refresh) {
+    public List<TransactionDto> getAndContributeStats(
+            String accessToken, String userId, String fileId, boolean refresh) {
 
         // 데이터 가져오기
         String cacheKey = "finance:data:" + userId + ":" + fileId; // 유저, 시트
@@ -80,8 +83,9 @@ public class FinanceService {
 
         if (rawData != null) {
             log.info("Redis cache hit! - finance data");
-            transactions = objectMapper.convertValue(rawData,
-                    new TypeReference<List<TransactionDto>>() {});
+            transactions =
+                    objectMapper.convertValue(
+                            rawData, new TypeReference<List<TransactionDto>>() {});
         } else {
             log.info("redis cache miss! - start downloading SQLite file");
 
@@ -103,14 +107,17 @@ public class FinanceService {
         // }
     }
 
-    public List<ComparisonDto> getComparison(String accessToken, String userId,
-            String spreadsheetId, boolean refresh) {
+    public List<ComparisonDto> getComparison(
+            String accessToken, String userId, String spreadsheetId, boolean refresh) {
         List<TransactionDto> myData =
                 getAndContributeStats(accessToken, userId, spreadsheetId, refresh);
 
         Map<String, Long> myStats =
-                myData.stream().collect(Collectors.groupingBy(TransactionDto::category,
-                        Collectors.summingLong(TransactionDto::amount)));
+                myData.stream()
+                        .collect(
+                                Collectors.groupingBy(
+                                        TransactionDto::category,
+                                        Collectors.summingLong(TransactionDto::amount)));
 
         Map<String, Object> profile = supabaseRepository.getUserProfile(userId);
         String ageGroup =
@@ -122,11 +129,17 @@ public class FinanceService {
         List<GroupAverageResponse> groupAvgs =
                 supabaseRepository.getGroupAverages(ageGroup, jobType, period);
 
-        return groupAvgs.stream().map(avg -> {
-            long myAcount = myStats.getOrDefault(avg.category(), 0L);
-            return new ComparisonDto(avg.category(), myAcount, avg.avgAmount(),
-                    myAcount - avg.avgAmount());
-        }).collect(Collectors.toList());
+        return groupAvgs.stream()
+                .map(
+                        avg -> {
+                            long myAcount = myStats.getOrDefault(avg.category(), 0L);
+                            return new ComparisonDto(
+                                    avg.category(),
+                                    myAcount,
+                                    avg.avgAmount(),
+                                    myAcount - avg.avgAmount());
+                        })
+                .collect(Collectors.toList());
     }
 
     /// 다른 버전
@@ -155,12 +168,12 @@ public class FinanceService {
             // 1. Supabase에서 유저 프로필(base_currency 포함) 조회
             Map<String, Object> profile = supabaseRepository.getUserProfile(userId);
 
-
-
             String userBaseCurrency = (String) profile.get("base_currency"); // 예: 'KRW'
             // 유저 db연결
             DataSource userDataSource =
-                    dbManager.getJdbcTemplateOfDataSource(userId, userBaseCurrency).getDataSource();
+                    // dbManager.getJdbcTemplateOfDataSource(userId,
+                    // userBaseCurrency).getDataSource();
+                    dbManager.getJdbcTemplateOfDataSource(userId).getDataSource();
 
             // 데이터 조회
             return sqliteRepository.findAllTransactions(userDataSource);
@@ -196,7 +209,8 @@ public class FinanceService {
         String dbPath = Paths.get(FileConstants.DB_STORAGE_ROOT, userId + ".db").toString();
 
         // 임시 currency
-        DataSource ds = sqliteManager.getJdbcTemplateOfDataSource(userId, "KRW").getDataSource();
+        // DataSource ds = sqliteManager.getJdbcTemplateOfDataSource(userId, "KRW").getDataSource();
+        DataSource ds = sqliteManager.getJdbcTemplateOfDataSource(userId).getDataSource();
 
         sqliteRepository.insertTmpTransaction(ds, dto);
         log.info("Success to save sqlite data: {}", dto);

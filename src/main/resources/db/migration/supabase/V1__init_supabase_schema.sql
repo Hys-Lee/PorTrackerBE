@@ -1,69 +1,82 @@
--- 마스터 테이블
-create table currency_type( 
-	id integer primary key autoincrement,
-	code text(3), -- locale 3글자
-	-- 나머지 데이터는 뭐 나중에 추가하든가
+-- supabase용 사용자 메타 + 통계 데이터 스키마 V1  -> 참고로 제대로 migration하려면 supabase cli를 사용해야 한다는데, 일단 귀찮아서 저장용으로 여기 둠.
+
+-- 1. 마스터 테이블 (currency_type)
+CREATE TABLE IF NOT EXISTS public.currency_type (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    code VARCHAR(3) UNIQUE NOT NULL -- KRW, USD 등
 );
 
--- 일반
-create table public.profile(
-	id uuid unique primary key not null on delete cascade,
-	email text unique not null,
-	role text not null default 'USER', -- admin, user 등등
-	nickname text not null, -- 닉네임은 겹쳐도 뭐.. 상관 없지 않나?
-	base_currency_id integer not null, 
-	created_at timestamptz default now(),
-	updated_at timestamptz default now(),
-	-- deleted_at은 프로파일에선 필요 없을 듯. 걍 삭제 시키면 될 듯.
-	
-	foreign key (id) references auth.user(id), 
-	foreign key (base_currency_id) references currency_type(id),
-	
-	
+-- 초기 데이터 삽입 (profile 생성을 위해 필요)
+INSERT INTO public.currency_type (code) VALUES ('KRW'), ('USD') ON CONFLICT DO NOTHING;
+
+-- 2. 사용자 프로필 테이블 (public.profile)
+CREATE TABLE IF NOT EXISTS public.profile (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    email TEXT UNIQUE NOT NULL,
+    role TEXT NOT NULL DEFAULT 'USER',
+    nickname TEXT NOT NULL,
+    base_currency_id BIGINT DEFAULT 1, -- 기본값 KRW(1)로 설정 (Trigger 에러 방지)
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    
+    FOREIGN KEY (base_currency_id) REFERENCES public.currency_type(id)
 );
 
-create table public.credential(
-	id uuid unique primary key not null on delete cascade,
-	provider text not null,
-	refresh_token text unique not null,
-	encrypted_at timestamptz,
-	
-	foreign key (id) references auth.user(id), 
+-- 3. 인증 정보 테이블 (public.credential)
+CREATE TABLE IF NOT EXISTS public.credential (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    provider TEXT NOT NULL,
+    refresh_token TEXT UNIQUE NOT NULL,
+    encrypted_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-create table public.group_statistic(
-	id bigserial primary key , -- 더 큰수 가능+자동증가
-	stat_type text not null, --enum느낌으로 서버에서 종류  내려주기
-	period text not null, -- 애도 기간에 대해 일정한 형식.. 2024-02 등
-	sample_count integer not null,
-    sum_amount)bp bigint default 0, -- view 테스트 위해 임시로 일단 넣음.
-	last_updated_at timestamptz default now(),
-	
-	unique(stat_type, period), -- 이 데이터는 유니크
-	
+-- 4. 그룹 통계 테이블 (public.group_statistic)
+CREATE TABLE IF NOT EXISTS public.group_statistic (
+    id BIGSERIAL PRIMARY KEY,
+    stat_type TEXT NOT NULL, -- 예: 'ASSET_RATIO'
+    period TEXT NOT NULL,    -- 예: '2024-02'
+    sample_count INTEGER NOT NULL DEFAULT 0,
+    sum_amount_bp BIGINT DEFAULT 0, -- 오타 수정: sum_amount)bp -> sum_amount_bp
+    last_updated_at TIMESTAMPTZ DEFAULT NOW(),
+    
+    UNIQUE(stat_type, period)
 );
 
-create table public.stat_contribution( -- 중복 기여 방지
-	contribution_key text unique not null, // userId+period+stat_type 의 해시
-	updated_at timestamptz
+-- 5. 통계 기여 확인 테이블 (public.stat_contribution)
+CREATE TABLE IF NOT EXISTS public.stat_contribution (
+    contribution_key TEXT PRIMARY KEY, -- userId+period+stat_type 의 해시
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- View
-create or replace view public.v_group_averages as 
-select 
-    id, stat_type, period, sample_count, (sum_amount_bp - nullif(sample_count,0)) as avg_amount_bp,last_updated_at
-from public.group_statistic;
+-- 6. View 생성 (평균 계산)
+CREATE OR REPLACE VIEW public.v_group_averages AS 
+SELECT 
+    id, 
+    stat_type, 
+    period, 
+    sample_count, 
+    -- 평균 계산: 합계 / 샘플수 (0 나누기 방지)
+    CAST(sum_amount_bp AS FLOAT) / NULLIF(sample_count, 0) AS avg_amount_bp,
+    last_updated_at
+FROM public.group_statistic;
 
--- Trigger
-create or replace function public.handle_new_user()
-returns trigger as $$
-begin
-    insert into public.profile (id, email, nickname)
-    values (new.id, new.email, new.raw_user_meta_data ->> 'full_name');
-    return new;
-end;
-$$ language plpgsql security definer;
+-- 7. Trigger 함수 (신규 유저 생성 시 profile 자동 생성)
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO public.profile (id, email, nickname, base_currency_id)
+    VALUES (
+        NEW.id, 
+        NEW.email, 
+        COALESCE(NEW.raw_user_meta_data ->> 'full_name', 'New User'),
+        1 -- 기본 통화 ID (KRW)
+    );
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
-create trigger on_auth_user_created
-    after insert on auth.users
-    for each row execute procedure public.handle_new_user();
+-- 8. Trigger 등록 (기존 트리거가 있으면 삭제 후 재생성)
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();

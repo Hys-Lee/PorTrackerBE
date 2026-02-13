@@ -10,5 +10,4 @@ public class TargetPortfolioItemRecord {
     private final Long snapshotId;
     private final Long currencRateBp;
     private final Long ratioDeltaBp;
-
 }

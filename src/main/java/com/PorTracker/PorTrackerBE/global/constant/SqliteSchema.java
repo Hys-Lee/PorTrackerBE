@@ -22,7 +22,7 @@ public class SqliteSchema {
     public static final String COL_PUBLIC_ID = "public_id";
     public static final String COL_CREATED_AT = "created_at";
     public static final String COL_UPDATED_AT = "updated_at";
-    public static final String COL_DELETED_ID = "deleted_at";
+    public static final String COL_DELETED_AT = "deleted_at";
     public static final String COL_NAME = "name";
     public static final String COL_DESCRIPTION = "description";
     public static final String COL_CURRENCY_ID = "currency_id";

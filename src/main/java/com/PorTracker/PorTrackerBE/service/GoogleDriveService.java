@@ -36,17 +36,24 @@ public class GoogleDriveService {
     private final JsonFactory jsonFactory;
 
     private Drive getService(String token) {
-        return new Drive.Builder(transport, jsonFactory,
-                r -> r.getHeaders().setAuthorization("Bearer " + token))
-                        .setApplicationName("PorTracker").build();
+        return new Drive.Builder(
+                        transport,
+                        jsonFactory,
+                        r -> r.getHeaders().setAuthorization("Bearer " + token))
+                .setApplicationName("PorTracker")
+                .build();
     }
 
     public String findFileIdByName(String fileName, String token) {
         try {
             // FileList result = googleDriveClient.files().list()
             // .setQ("name = '" + fileName + "' and trashed = false").execute();
-            FileList result = getService(token).files().list()
-                    .setQ("name = '" + fileName + "' and trashed = false").execute();
+            FileList result =
+                    getService(token)
+                            .files()
+                            .list()
+                            .setQ("name = '" + fileName + "' and trashed = false")
+                            .execute();
             return result.getFiles().isEmpty() ? null : result.getFiles().get(0).getId();
 
         } catch (Exception e) {
@@ -149,9 +156,13 @@ public class GoogleDriveService {
         GoogleCredentials credentials = GoogleCredentials.create(token);
 
         // 드라이브 서비스
-        Drive service = new Drive.Builder(GoogleNetHttpTransport.newTrustedTransport(),
-                GsonFactory.getDefaultInstance(), new HttpCredentialsAdapter(credentials))
-                        .setApplicationName("PorTracker").build();
+        Drive service =
+                new Drive.Builder(
+                                GoogleNetHttpTransport.newTrustedTransport(),
+                                GsonFactory.getDefaultInstance(),
+                                new HttpCredentialsAdapter(credentials))
+                        .setApplicationName("PorTracker")
+                        .build();
 
         // 파일 설정
         File fileMetadata = new File();

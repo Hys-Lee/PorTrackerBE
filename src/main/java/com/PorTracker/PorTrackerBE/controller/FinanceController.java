@@ -1,6 +1,5 @@
 package com.PorTracker.PorTrackerBE.controller;
 
-import com.PorTracker.PorTrackerBE.domain.actual_portfolio.entity.ActualPortfolioRecord;
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.service.ActualPortfolioTransactionService;
 import com.PorTracker.PorTrackerBE.dto.ComparisonDto;
 import com.PorTracker.PorTrackerBE.dto.TransactionDto;
@@ -13,12 +12,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestBody;
-
 
 @RestController
 @RequestMapping("/api/v1/finance")
@@ -26,71 +24,64 @@ import org.springframework.web.bind.annotation.RequestBody;
 @Validated // RequestParams 검증
 @Slf4j
 public class FinanceController {
-        private final FinanceService financeService;
-        private final ActualPortfolioTransactionService actualPortfolioTransactionService;
+    private final FinanceService financeService;
+    private final ActualPortfolioTransactionService actualPortfolioTransactionService;
 
-        /** 내역 조회 GET /api/v1/finance/data?userId=~~&spreadsheetId=~~ */
-        @GetMapping("/data")
-        public List<TransactionDto> getFinanceData(
-                        @RequestHeader(value = "Authorization") @NotBlank(
-                                        message = "인증 토큰이 누락되었습니다.") String authHeader,
-                        @RequestParam(value = "userId") @NotBlank(
-                                        message = "유저 ID는 필수입니다.") String userId,
-                        @RequestParam(value = "spreadsheetId") @NotBlank(
-                                        message = "시트 ID는 필수입니다.") String spreadsheetId,
-                        @RequestParam(value = "refresh", defaultValue = "false") boolean refresh) {
+    /** 내역 조회 GET /api/v1/finance/data?userId=~~&spreadsheetId=~~ */
+    @GetMapping("/data")
+    public List<TransactionDto> getFinanceData(
+            @RequestHeader(value = "Authorization") @NotBlank(message = "인증 토큰이 누락되었습니다.")
+                    String authHeader,
+            @RequestParam(value = "userId") @NotBlank(message = "유저 ID는 필수입니다.") String userId,
+            @RequestParam(value = "spreadsheetId") @NotBlank(message = "시트 ID는 필수입니다.")
+                    String spreadsheetId,
+            @RequestParam(value = "refresh", defaultValue = "false") boolean refresh) {
 
-                String accessToken = authHeader.replace("Bearer ", "");
+        String accessToken = authHeader.replace("Bearer ", "");
 
-                return financeService.getAndContributeStats(accessToken, userId, spreadsheetId,
-                                refresh);
-        }
+        return financeService.getAndContributeStats(accessToken, userId, spreadsheetId, refresh);
+    }
 
-        @PostMapping("/setup")
-        public ResponseEntity<String> setupUserStorage(
-                        @RequestHeader("Authorization") String accessToken,
-                        @RequestParam(value = "userId") String userId) {
-                log.info("init db setting for user:{} ", userId);
+    @PostMapping("/setup")
+    public ResponseEntity<String> setupUserStorage(
+            @RequestHeader("Authorization") String accessToken,
+            @RequestParam(value = "userId") String userId) {
+        log.info("init db setting for user:{} ", userId);
 
-                String token = accessToken.replace("Bearer ", "");
+        String token = accessToken.replace("Bearer ", "");
 
-                String fileId = financeService.initializeUserStorage(token, userId);
+        String fileId = financeService.initializeUserStorage(token, userId);
 
-                return ResponseEntity.ok(fileId);
-        }
+        return ResponseEntity.ok(fileId);
+    }
 
-        @PostMapping("/transaction")
-        public ResponseEntity<String> saveTransaction(
-                        @RequestHeader("Authorization") String authHeader,
-                        @RequestParam(value = "userId") String userId,
-                        @RequestParam(value = "fileId") String fileId,
-                        @RequestBody TransactionDto dto
-        // @RequestBody ActualPortfolioRecord record
+    @PostMapping("/transaction")
+    public ResponseEntity<String> saveTransaction(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestParam(value = "userId") String userId,
+            @RequestParam(value = "fileId") String fileId,
+            @RequestBody TransactionDto dto
+            // @RequestBody ActualPortfolioRecord record
 
-        ) {
+            ) {
 
-                String token = authHeader.substring(7);
-                financeService.saveTransaction(userId, fileId, token, dto);
-                // financeService.saveTransaction(userId, fileId, token, dto);
-                // actualPortfolioTransactionService.insertTransaction(userId, record);
+        String token = authHeader.substring(7);
+        financeService.saveTransaction(userId, fileId, token, dto);
+        // financeService.saveTransaction(userId, fileId, token, dto);
+        // actualPortfolioTransactionService.insertTransaction(userId, record);
 
-                return ResponseEntity.ok("saved successfully");
+        return ResponseEntity.ok("saved successfully");
+    }
 
+    @GetMapping("/comparison")
+    public List<ComparisonDto> getComparison(
+            @RequestHeader("Authorization") @NotBlank(message = "인증 토큰이 누락되었습니다.") String auth,
+            @RequestParam(value = "userId") @NotBlank(message = "유저 ID는 필수입니다.") String userId,
+            @RequestParam(value = "spreadsheetId") @NotBlank(message = "시트 ID는 필수입니다.")
+                    String spreadsheetId,
+            @RequestParam(value = "refresh", defaultValue = "false") boolean refresh) {
 
-        }
-
-
-        @GetMapping("/comparison")
-        public List<ComparisonDto> getComparison(
-                        @RequestHeader("Authorization") @NotBlank(
-                                        message = "인증 토큰이 누락되었습니다.") String auth,
-                        @RequestParam(value = "userId") @NotBlank(
-                                        message = "유저 ID는 필수입니다.") String userId,
-                        @RequestParam(value = "spreadsheetId") @NotBlank(
-                                        message = "시트 ID는 필수입니다.") String spreadsheetId,
-                        @RequestParam(value = "refresh", defaultValue = "false") boolean refresh) {
-
-                return financeService.getComparison(auth.replace("Bearer ", ""), userId,
-                                spreadsheetId, refresh);
-        }
+        return financeService.getComparison(
+                auth.replace("Bearer ", ""), userId, spreadsheetId, refresh);
+    }
 }
