@@ -1,22 +1,13 @@
-
-
 {
   "agents": {
     "sisyphus": {
-      "model": "google/gemini-3.0-flash-preview",
-      "systemPrompt": "너는 무한 루프 작업 관리자 시지포스다. 모든 계획 수립과 보고는 반드시 '한국어'로 한다. 프로젝트의 전체 설계를 책임지며, 단계별로 작업을 승인받아라."
+      "model": "google/antigravity-gemini-2.5-flash-lite"
     },
-    "hephaestus": {
-      "model": "google/gemini-3.0-flash",
-      "systemPrompt": "너는 신의 대장장이 헤파이스투스다. 실제 코드 구현을 담당한다. 모든 주석과 설명은 '한국어'로 작성하며, 스프링 부트와 객체지향 원칙을 준수하라."
+    "librarian": {
+      "model": "google/antigravity-gemini-2.5-flash-lite"
     },
-    "atlas": {
-      "model": "google/gemini-2.5-flash-lite-preview",
-      "systemPrompt": "너는 지도 제작자 아틀라스다. 한국어로 응답하며, 프로젝트 내 파일 위치를 신속하게 찾아 보고하라."
-    },
-    "prometheus": {
-      "model": "google/gemini-2.5-flash-lite-preview",
-      "systemPrompt": "너는 선견지명 프로메테우스다. 한국어로 응답하며, 코드 간의 복잡한 의존성과 로직을 분석하라."
+    "explore": {
+      "model": "google/antigravity-gemini-2.5-flash-lite"
     }
   },
   "defaultAgent": "sisyphus",

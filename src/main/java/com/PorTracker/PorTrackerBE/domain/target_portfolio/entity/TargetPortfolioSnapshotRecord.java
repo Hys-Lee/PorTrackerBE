@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class TargetPortfolioSnapshot {
+public class TargetPortfolioSnapshotRecord {
     private final Long id;
     private final Long portfolioId;
     private final String createdAt;

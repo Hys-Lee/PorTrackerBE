@@ -1,0 +1,19 @@
+
+
+{
+
+  "agents": {
+    "Sisyphus": {
+      "model": "opencode/glm-4.7-free"
+    },
+    "librarian": {
+      "model": "opencode/glm-4.7-free"
+    },
+    "explore": {
+      "model": "google/antigravity-gemini-2.5-flash"
+    }
+  },
+  
+  "defaultAgent": "sisyphus",
+  "language": "ko"
+}

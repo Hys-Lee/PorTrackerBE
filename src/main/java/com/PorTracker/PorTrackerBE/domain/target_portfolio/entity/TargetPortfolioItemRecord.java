@@ -7,7 +7,8 @@ import lombok.Getter;
 @Builder
 public class TargetPortfolioItemRecord {
     private final Long assetId;
+    private final String assetPublicId;
     private final Long snapshotId;
-    private final Long currencRateBp;
+    private final Long currentRatioBp;
     private final Long ratioDeltaBp;
 }
