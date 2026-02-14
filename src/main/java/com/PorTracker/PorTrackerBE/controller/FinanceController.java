@@ -1,6 +1,7 @@
 package com.PorTracker.PorTrackerBE.controller;
 
-import com.PorTracker.PorTrackerBE.domain.actual_portfolio.service.ActualPortfolioTransactionService;
+// import
+// com.PorTracker.PorTrackerBE.domain.actual_portfolio.service.ActualPortfolioTransactionService;
 import com.PorTracker.PorTrackerBE.dto.ComparisonDto;
 import com.PorTracker.PorTrackerBE.dto.TransactionDto;
 import com.PorTracker.PorTrackerBE.service.FinanceService;
@@ -25,7 +26,8 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class FinanceController {
     private final FinanceService financeService;
-    private final ActualPortfolioTransactionService actualPortfolioTransactionService;
+
+    // private final ActualPortfolioTransactionService actualPortfolioTransactionService;
 
     /** 내역 조회 GET /api/v1/finance/data?userId=~~&spreadsheetId=~~ */
     @GetMapping("/data")

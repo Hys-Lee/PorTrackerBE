@@ -1,4 +1,3 @@
-
 package com.PorTracker.PorTrackerBE.domain.asset.service;
 
 import com.PorTracker.PorTrackerBE.domain.asset.dto.AssetTypeRequest;
@@ -71,7 +70,7 @@ public class AssetTypeService {
                         return results.get(0);
 
                 } catch (EmptyResultDataAccessException e) {
-                        throw new BusinessException(ErrorCode.NO_DATA);
+                        throw new BusinessException(ErrorCode.NO_DATA, "asset-types");
                 }
         }
 

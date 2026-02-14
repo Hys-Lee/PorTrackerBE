@@ -3,13 +3,22 @@ package com.PorTracker.PorTrackerBE.domain.asset.dto;
 import com.PorTracker.PorTrackerBE.domain.asset.entity.AssetRecord;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record AssetResponse(@JsonProperty("id") String publicId, String name, String description,
+public record AssetResponse(
+        @JsonProperty("id") String publicId,
+        String name,
+        String description,
         // String createdAt, Long currencyId, Long typeId) {
-        String createdAt, @JsonProperty("currencyId") String currencyPublicId,
+        String createdAt,
+        @JsonProperty("currencyId") String currencyPublicId,
         @JsonProperty("typeId") String typePublicId) {
 
     public static AssetResponse from(AssetRecord record) {
-        return new AssetResponse(record.getPublicId(), record.getName(), record.getDescription(),
-                record.getCreatedAt(), record.getCurrencyPublicId(), record.getTypePublicId());
+        return new AssetResponse(
+                record.getPublicId(),
+                record.getName(),
+                record.getDescription(),
+                record.getCreatedAt(),
+                record.getCurrencyPublicId(),
+                record.getTypePublicId());
     }
 }

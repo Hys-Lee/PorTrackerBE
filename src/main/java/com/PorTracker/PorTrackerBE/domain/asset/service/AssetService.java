@@ -1,9 +1,9 @@
-
 package com.PorTracker.PorTrackerBE.domain.asset.service;
 
 import com.PorTracker.PorTrackerBE.domain.asset.dto.AssetCreateRequest;
 import com.PorTracker.PorTrackerBE.domain.asset.entity.AssetRecord;
 import com.PorTracker.PorTrackerBE.domain.asset.entity.AssetTypeRecord;
+import com.PorTracker.PorTrackerBE.domain.asset.repository.AssetRepository;
 import com.PorTracker.PorTrackerBE.domain.currency.entity.CurrencyTypeRecord;
 import com.PorTracker.PorTrackerBE.domain.currency.service.CurrencyService;
 import com.PorTracker.PorTrackerBE.global.constant.SqliteSchema;
@@ -26,49 +26,20 @@ public class AssetService {
         private final CurrencyService currencyService;
         private final AssetTypeService assetTypeService;
 
+        private final AssetRepository assetRepository;
+
         // 기존 메서드 유지
         public List<AssetRecord> getAllAssets(String userId) {
                 JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
-                String sqlCurrencyPublicIdName = "currency_type_public_id";
-                String sqlAssetTypePublicIdName = "asset_type_public_id";
+                return assetRepository.findAll(jdbcTemplate);
+        }
 
+        public AssetRecord getAssetByPublicId(String userId, String publicId) {
+                JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
-                String sql = String.format(
-                                "SELECT a.%s, a.%s, a.%s, a.%s, a.%s, a.%s, a.%s, a.%s, a.%s, c.%s as %s, at.%s as %s FROM %s a JOIN %s c ON a.%s=c.%s JOIN %s at ON a.%s=at.%s",
-                                // select
-                                SqliteSchema.COL_ID, SqliteSchema.COL_PUBLIC_ID,
-                                SqliteSchema.COL_CREATED_AT, SqliteSchema.COL_UPDATED_AT,
-                                SqliteSchema.COL_DELETED_AT, SqliteSchema.COL_NAME,
-                                SqliteSchema.COL_DESCRIPTION, SqliteSchema.COL_CURRENCY_ID,
-                                SqliteSchema.COL_TYPE_ID, SqliteSchema.COL_PUBLIC_ID,
-                                sqlCurrencyPublicIdName, SqliteSchema.COL_PUBLIC_ID,
-                                sqlAssetTypePublicIdName,
-
-                                // from
-                                SqliteSchema.TABLE_ASSET, SqliteSchema.TABLE_CURRENCY_TYPE,
-                                SqliteSchema.COL_CURRENCY_ID, SqliteSchema.COL_ID,
-                                SqliteSchema.TABLE_ASSET_TYPE, SqliteSchema.COL_TYPE_ID,
-                                SqliteSchema.COL_ID
-
-                );
-
-                // return jdbcTemplate.query(sql, (rs, rowNum) -> AssetRecord.builder()
-                List<AssetRecord> res = jdbcTemplate.query(sql, (rs, rowNum) -> AssetRecord
-                                .builder().id(rs.getLong(SqliteSchema.COL_ID))
-                                .publicId(rs.getString(SqliteSchema.COL_PUBLIC_ID))
-                                .createdAt(rs.getString(SqliteSchema.COL_CREATED_AT))
-                                .updatedAt(rs.getString(SqliteSchema.COL_UPDATED_AT))
-                                .deletedAt(rs.getString(SqliteSchema.COL_DELETED_AT))
-                                .name(rs.getString(SqliteSchema.COL_NAME))
-                                .description(rs.getString(SqliteSchema.COL_DESCRIPTION))
-                                .currencyId(rs.getLong(SqliteSchema.COL_CURRENCY_ID))
-                                .typeId(rs.getLong(SqliteSchema.COL_TYPE_ID))
-                                .typePublicId(rs.getString(sqlAssetTypePublicIdName))
-                                .currencyPublicId(rs.getString(sqlCurrencyPublicIdName)).build());
-
-
-                return res;
+                return assetRepository.findByPublicId(jdbcTemplate, publicId).orElseThrow(
+                                () -> new BusinessException(ErrorCode.NO_DATA, "assets"));
         }
 
         // NPE 버그 수정된 메서드
@@ -80,8 +51,8 @@ public class AssetService {
                 log.info("Adding asset - currencyPublicId: {}, userId: {},typeid:{}",
                                 request.getCurrencyId(), userId, request.getTypeId());
 
-                CurrencyTypeRecord currency =
-                                currencyService.getCurrencyById(userId, request.getCurrencyId());
+                CurrencyTypeRecord currency = currencyService.getCurrencyByPublicId(userId,
+                                request.getCurrencyId());
                 AssetTypeRecord assetType = assetTypeService.getAssetTypeIdByPublicId(userId,
                                 request.getTypeId());
 

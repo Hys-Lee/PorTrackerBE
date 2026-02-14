@@ -32,8 +32,8 @@ public class AssetController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> addAsset(@RequestHeader("X-USER-ID") String userId,
-            @RequestBody AssetCreateRequest request) {
+    public ResponseEntity<Void> addAsset(
+            @RequestHeader("X-USER-ID") String userId, @RequestBody AssetCreateRequest request) {
 
         assetService.addAsset(userId, request);
         return ResponseEntity.ok().build();

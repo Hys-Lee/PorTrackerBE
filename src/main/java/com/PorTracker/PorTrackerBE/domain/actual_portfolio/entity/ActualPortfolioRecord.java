@@ -1,16 +1,16 @@
 package com.PorTracker.PorTrackerBE.domain.actual_portfolio.entity;
 
-import java.util.UUID;
-import com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioTransactionRequest;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 @Builder
+// private final Long id; // autoincrement 되니 제외
 public class ActualPortfolioRecord {
-    // private final Long id; // autoincrement 되니 제외
     private final String publicId;
     private final Long assetId;
+    private final String assetPublicId;
+
     private final String date;
     // private final String createdAt;
     // private final String updatedAt;
@@ -19,6 +19,8 @@ public class ActualPortfolioRecord {
     private final Long changeRatioBp;
     private final Long accumulatedRatioBp;
     private final Long currencyId;
+    private final String currencyPublicId;
+
     private final Long priceBp;
     private final Long amountBp;
     private final Long exchangeRateBp;

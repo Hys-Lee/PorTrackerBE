@@ -14,7 +14,6 @@ public class AssetCreateRequest {
     private String name;
     private String description;
 
-
     @JsonProperty("currencyId") // JSON의 "currencyId" 키를 이 필드에 매핑
     private String currencyId;
 
