@@ -35,7 +35,14 @@ public class GlobalExceptionHandler {
     protected ResponseEntity<ErrorResponse> handleBusinessException(BusinessException e) {
         log.error("BusinessException: {}", e.getErrorCode().getMessage());
         ErrorCode errorCode = e.getErrorCode();
-        ErrorResponse response = ErrorResponse.of(errorCode);
+        // ErrorResponse response = ErrorResponse.of(errorCode);
+        ErrorResponse response;
+        String detail = e.getDetail();
+        if (detail != null && !detail.isEmpty()) {
+            response = ErrorResponse.of(errorCode, detail);
+        } else {
+            response = ErrorResponse.of(errorCode);
+        }
 
         return new ResponseEntity<>(
                 response, org.springframework.http.HttpStatus.valueOf(errorCode.getStatus()));
