@@ -21,43 +21,89 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class ActualPortfolioService {
-    private final SqliteDatabaseManager sqliteManager;
-    private final ActualPortfolioRepository actualPortfolioRepository;
-    private final AssetService assetService;
-    private final CurrencyService currencyService;
+        private final SqliteDatabaseManager sqliteManager;
+        private final ActualPortfolioRepository actualPortfolioRepository;
+        private final AssetService assetService;
+        private final CurrencyService currencyService;
 
-    public List<ActualPortfolioRecord> getAllActualPortfolios(String userId) {
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        public List<ActualPortfolioRecord> getAllActualPortfolios(String userId) {
+                JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
-        return actualPortfolioRepository.findAll(jdbcTemplate);
-    }
+                return actualPortfolioRepository.findAll(jdbcTemplate);
+        }
 
-    public ActualPortfolioRecord getActualPortfolioById(String userId, String publicId) {
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        public ActualPortfolioRecord getActualPortfolioById(String userId, String publicId) {
+                JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
-        // try {
-        return actualPortfolioRepository
-                .findByPublicId(jdbcTemplate, publicId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
-        // } catch (Exception e) {
-        // log.error("ActualPortfolio 조회 중 에러 발생: {}", e.getMessage());
-        // return null;
-        // }
-    }
+                // try {
+                return actualPortfolioRepository.findByPublicId(jdbcTemplate, publicId)
+                                .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
+                // } catch (Exception e) {
+                // log.error("ActualPortfolio 조회 중 에러 발생: {}", e.getMessage());
+                // return null;
+                // }
+        }
 
-    @Transactional
-    public void addActualPortfolio(String userId, ActualPortfolioCreateRequest request) {
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        @Transactional
+        public void addActualPortfolio(String userId, ActualPortfolioCreateRequest request) {
+                JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
-        // 여기 고쳐야 함. publicId를 실제 id값으로 찾아 넣을 수 있또록
+                // 여기 고쳐야 함. publicId를 실제 id값으로 찾아 넣을 수 있또록
 
-        // assetService.
-        AssetRecord assetRes = assetService.getAssetByPublicId(userId, request.getAssetId());
-        CurrencyTypeRecord currencyRes =
-                currencyService.getCurrencyByPublicId(userId, request.getCurrencyId());
+                // assetService.
+                AssetRecord assetRes =
+                                assetService.getAssetByPublicId(userId, request.getAssetId());
 
-        actualPortfolioRepository.save(jdbcTemplate, request, assetRes.getId(), currencyRes.id());
 
-        log.info("actual portfolio recorded successfully for user: {}", userId);
-    }
+                CurrencyTypeRecord currencyRes = currencyService.getCurrencyByPublicId(userId,
+                                request.getCurrencyId());
+
+
+                actualPortfolioRepository.save(jdbcTemplate, request, assetRes.getId(),
+                                currencyRes.id());
+
+                log.info("actual portfolio recorded successfully for user: {}", userId);
+        }
+
+        @Transactional
+        public void updateActualPortfolio(String userId, String publicId,
+                        ActualPortfolioCreateRequest request) {
+                JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+
+                // Check exists
+                actualPortfolioRepository.findByPublicId(jdbcTemplate, publicId)
+                                .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
+
+                AssetRecord assetRes =
+                                assetService.getAssetByPublicId(userId, request.getAssetId());
+                // if (assetRes == null) {
+                // throw new BusinessException(ErrorCode.NO_DATA, "Asset not found");
+                // }
+
+                CurrencyTypeRecord currencyRes = currencyService.getCurrencyByPublicId(userId,
+                                request.getCurrencyId());
+                // if (currencyRes == null) {
+                // throw new BusinessException(ErrorCode.NO_DATA, "Currency not found");
+                // }
+
+                actualPortfolioRepository.updateByPublicId(jdbcTemplate, publicId, request,
+                                assetRes.getId(), currencyRes.id());
+
+                log.info("actual portfolio updated successfully for user: {}, publicId: {}", userId,
+                                publicId);
+        }
+
+        @Transactional
+        public void deleteActualPortfolio(String userId, String publicId) {
+                JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+
+                // Check exists
+                actualPortfolioRepository.findByPublicId(jdbcTemplate, publicId)
+                                .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
+
+                actualPortfolioRepository.deleteByPublicId(jdbcTemplate, publicId);
+
+                log.info("actual portfolio deleted successfully for user: {}, publicId: {}", userId,
+                                publicId);
+        }
 }

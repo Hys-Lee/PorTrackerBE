@@ -52,22 +52,27 @@ public class ActualPortfolioController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> addActualPortfolio(
-            @RequestHeader("X-USER-ID") String userId,
+    public ResponseEntity<Void> addActualPortfolio(@RequestHeader("X-USER-ID") String userId,
             @RequestBody ActualPortfolioCreateRequest request) {
 
         actualPortfolioService.addActualPortfolio(userId, request);
         return ResponseEntity.ok().build();
     }
 
-    // ===== 기존 코드 (주석 처리) =====
-    // @PostMapping("/transaction")
-    // public ResponseEntity<String> addTransaction(
-    // @RequestHeader("X-USER-ID") String userId,
-    // @RequestBody ActualPortfolioTransactionRequest request) {
-    //
-    // actualPortfolioTransactionService.insertTransaction(userId, request);
-    //
-    // return ResponseEntity.ok("Transaction Insert succuess!");
-    // }
+    @org.springframework.web.bind.annotation.PutMapping("/{publicId}")
+    public ResponseEntity<Void> updateActualPortfolio(@RequestHeader("X-USER-ID") String userId,
+            @PathVariable("publicId") String publicId,
+            @RequestBody ActualPortfolioCreateRequest request) {
+
+        actualPortfolioService.updateActualPortfolio(userId, publicId, request);
+        return ResponseEntity.ok().build();
+    }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/{publicId}")
+    public ResponseEntity<Void> deleteActualPortfolio(@RequestHeader("X-USER-ID") String userId,
+            @PathVariable("publicId") String publicId) {
+
+        actualPortfolioService.deleteActualPortfolio(userId, publicId);
+        return ResponseEntity.ok().build();
+    }
 }

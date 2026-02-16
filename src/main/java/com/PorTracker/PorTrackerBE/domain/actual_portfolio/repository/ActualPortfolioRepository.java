@@ -172,4 +172,36 @@ public class ActualPortfolioRepository {
                         ps.setLong(8, request.getExchangeRateBp());
                 });
         }
+
+        public void updateByPublicId(JdbcTemplate jdbcTemplate, String publicId,
+                        ActualPortfolioCreateRequest request, Long assetId, Long currencyId) {
+                String sql = String.format(
+                                "UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=datetime('now') WHERE %s=? AND %s IS NULL",
+                                SqliteSchema.TABLE_ACTUAL_PORTFOLIO, SqliteSchema.COL_ASSET_ID,
+                                SqliteSchema.COL_DATE, SqliteSchema.COL_TRANSACTION_TYPE,
+                                SqliteSchema.COL_CURRENCY_ID, SqliteSchema.COL_PRICE_BP,
+                                SqliteSchema.COL_AMOUNT_BP, SqliteSchema.COL_EXCHANGE_RATE_BP,
+                                SqliteSchema.COL_UPDATED_AT, SqliteSchema.COL_PUBLIC_ID,
+                                SqliteSchema.COL_DELETED_AT);
+
+                jdbcTemplate.update(sql, ps -> {
+                        ps.setLong(1, assetId);
+                        ps.setString(2, request.getDate());
+                        ps.setString(3, request.getTransactionType());
+                        ps.setLong(4, currencyId);
+                        ps.setLong(5, request.getPriceBp());
+                        ps.setLong(6, request.getAmountBp());
+                        ps.setLong(7, request.getExchangeRateBp());
+                        ps.setString(8, publicId);
+                });
+        }
+
+        public void deleteByPublicId(JdbcTemplate jdbcTemplate, String publicId) {
+                String sql = String.format(
+                                "UPDATE %s SET %s=datetime('now') WHERE %s=? AND %s IS NULL",
+                                SqliteSchema.TABLE_ACTUAL_PORTFOLIO, SqliteSchema.COL_DELETED_AT,
+                                SqliteSchema.COL_PUBLIC_ID, SqliteSchema.COL_DELETED_AT);
+
+                jdbcTemplate.update(sql, ps -> ps.setString(1, publicId));
+        }
 }

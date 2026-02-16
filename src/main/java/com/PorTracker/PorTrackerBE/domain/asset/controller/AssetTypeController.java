@@ -8,6 +8,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -30,9 +31,23 @@ public class AssetTypeController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> addAssetType(
-            @RequestHeader("X-USER-ID") String userId, @RequestBody AssetTypeRequest request) {
+    public ResponseEntity<Void> addAssetType(@RequestHeader("X-USER-ID") String userId,
+            @RequestBody AssetTypeRequest request) {
         assetTypeService.addAssetType(userId, request);
+        return ResponseEntity.ok().build();
+    }
+
+    @org.springframework.web.bind.annotation.PutMapping("/{publicId}")
+    public ResponseEntity<Void> updateAssetType(@RequestHeader("X-USER-ID") String userId,
+            @PathVariable("publicId") String publicId, @RequestBody AssetTypeRequest request) {
+        assetTypeService.updateAssetType(userId, publicId, request);
+        return ResponseEntity.ok().build();
+    }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/{publicId}")
+    public ResponseEntity<Void> deleteAssetType(@RequestHeader("X-USER-ID") String userId,
+            @PathVariable("publicId") String publicId) {
+        assetTypeService.deleteAssetType(userId, publicId);
         return ResponseEntity.ok().build();
     }
 }

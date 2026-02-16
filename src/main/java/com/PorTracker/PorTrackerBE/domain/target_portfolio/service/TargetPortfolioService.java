@@ -141,6 +141,35 @@ public class TargetPortfolioService {
                                 publicId);
         }
 
+        @Transactional
+        public void updateTargetPortfolio(String userId, String publicId,
+                        TargetPortfolioCreateRequest request) {
+                JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+
+                // Check exists
+                targetPortfolioRepository.findByPublicId(jdbcTemplate, publicId).orElseThrow(
+                                () -> new BusinessException(ErrorCode.NO_DATA, "target_portfolio"));
+
+                // Update name and date in target_portfolio table
+                targetPortfolioRepository.updateByPublicId(jdbcTemplate, publicId,
+                                request.getName(), request.getDate());
+
+                // For items, logically a "PUT" on a portfolio might mean updating the current
+                // items.
+                // However, the existing logic uses snapshots. Updating the "current" items implies
+                // creating a NEW snapshot
+                // or updating the latest snapshot?
+                // Given the instructions, we'll assume updating the portfolio METADATA (name/date).
+                // If items need update, existing addSnapshot logic handles it or we might need
+                // another strategy.
+                // But usually PUT /portfolios/:id updates the portfolio entity itself.
+                // If the user wants to update items, they might use the snapshot endpoint or we
+                // trigger a snapshot?
+                // Let's assume updating metadata for now as per repository method availability.
+
+                log.info("target portfolio updated for user: {}, portfolio: {}", userId, publicId);
+        }
+
         /** 타겟 포트폴리오 소프트 삭제 */
         @Transactional
         public void deleteTargetPortfolio(String userId, String publicId) {

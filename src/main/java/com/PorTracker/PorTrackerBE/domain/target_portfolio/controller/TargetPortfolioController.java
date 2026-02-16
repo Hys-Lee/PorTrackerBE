@@ -29,10 +29,9 @@ public class TargetPortfolioController {
             @RequestHeader("X-USER-ID") String userId) {
 
         // Service에서 이미 모든 데이터가 조립되어 반환됨 (N+1 해결)
-        return ResponseEntity.ok(
-                targetPortfolioService.getAllTargetPortfoliosFullData(userId).stream()
-                        .map(data -> TargetPortfolioResponse.from(data.portfolio(), data.items()))
-                        .toList());
+        return ResponseEntity.ok(targetPortfolioService.getAllTargetPortfoliosFullData(userId)
+                .stream().map(data -> TargetPortfolioResponse.from(data.portfolio(), data.items()))
+                .toList());
     }
 
     @GetMapping("/{publicId}")
@@ -55,9 +54,17 @@ public class TargetPortfolioController {
         return ResponseEntity.ok(java.util.Map.of("id", publicId));
     }
 
+    @org.springframework.web.bind.annotation.PutMapping("/{publicId}")
+    public ResponseEntity<Void> updateTargetPortfolio(@RequestHeader("X-USER-ID") String userId,
+            @PathVariable("publicId") String publicId,
+            @RequestBody TargetPortfolioCreateRequest request) {
+
+        targetPortfolioService.updateTargetPortfolio(userId, publicId, request);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/{publicId}/snapshots")
-    public ResponseEntity<Void> addSnapshot(
-            @RequestHeader("X-USER-ID") String userId,
+    public ResponseEntity<Void> addSnapshot(@RequestHeader("X-USER-ID") String userId,
             @PathVariable("publicId") String publicId,
             @RequestBody TargetPortfolioSnapshotUpdateRequest request) {
 
@@ -66,8 +73,8 @@ public class TargetPortfolioController {
     }
 
     @DeleteMapping("/{publicId}")
-    public ResponseEntity<Void> deleteTargetPortfolio(
-            @RequestHeader("X-USER-ID") String userId, @PathVariable("publicId") String publicId) {
+    public ResponseEntity<Void> deleteTargetPortfolio(@RequestHeader("X-USER-ID") String userId,
+            @PathVariable("publicId") String publicId) {
 
         targetPortfolioService.deleteTargetPortfolio(userId, publicId);
         return ResponseEntity.ok().build();

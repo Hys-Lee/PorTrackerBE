@@ -7,6 +7,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -33,6 +34,20 @@ public class CurrencyController {
         // currencyService.addCurrency(userId, code);
         currencyService.addCurrency(userId, request);
 
+        return ResponseEntity.ok().build();
+    }
+
+    @org.springframework.web.bind.annotation.PutMapping("/{publicId}")
+    public ResponseEntity<Void> updateCurrency(@RequestHeader("X-USER-ID") String userId,
+            @PathVariable("publicId") String publicId, @RequestBody CurrencyTypeRequest request) {
+        currencyService.updateCurrency(userId, publicId, request);
+        return ResponseEntity.ok().build();
+    }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/{publicId}")
+    public ResponseEntity<Void> deleteCurrency(@RequestHeader("X-USER-ID") String userId,
+            @PathVariable("publicId") String publicId) {
+        currencyService.deleteCurrency(userId, publicId);
         return ResponseEntity.ok().build();
     }
 }

@@ -78,13 +78,22 @@ public class MemoService {
         memoRepository.findByPublicId(jdbcTemplate, publicId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
 
-        // Long actualId = resolveActualPortfolioId(jdbcTemplate, request.getActualId());
-        // Long targetId = resolveTargetPortfolioId(jdbcTemplate, request.getTargetId());
+        Long actualId = null;
+        if (request.getActualId() != null) {
+            actualId = actualPortfolioService.getActualPortfolioById(userId, request.getActualId())
+                    .getId();
+        }
 
-        Long actualId = actualPortfolioService.getActualPortfolioById(userId, request.getActualId())
-                .getId();
-        Long targetId = targetPortfolioService
-                .getTargetPortfolioDetail(userId, request.getTargetId()).portfolio().getId();
+        Long targetId = null;
+        if (request.getTargetId() != null) {
+            // Null check for the result of getTargetPortfolioDetail might be needed if it can
+            // return null
+            var detail =
+                    targetPortfolioService.getTargetPortfolioDetail(userId, request.getTargetId());
+            if (detail != null && detail.portfolio() != null) {
+                targetId = detail.portfolio().getId();
+            }
+        }
 
         memoRepository.updateByPublicId(jdbcTemplate, publicId, request, actualId, targetId);
 
