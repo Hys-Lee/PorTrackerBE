@@ -7,6 +7,7 @@ import lombok.Getter;
 @Builder
 // private final Long id; // autoincrement 되니 제외
 public class ActualPortfolioRecord {
+    private final Long id;
     private final String publicId;
     private final Long assetId;
     private final String assetPublicId;

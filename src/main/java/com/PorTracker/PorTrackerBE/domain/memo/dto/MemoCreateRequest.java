@@ -14,6 +14,8 @@ public class MemoCreateRequest {
     private String importance;
     private String evaluation;
     private String date;
+
+    @JsonProperty("memoType")
     private String memoType;
 
     @JsonProperty("actualId") // JSON의 "actualId" 키를 이 필드에 매핑

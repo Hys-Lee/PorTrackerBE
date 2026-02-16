@@ -10,5 +10,5 @@ public class TargetPortfolioItemRecord {
     private final String assetPublicId;
     private final Long snapshotId;
     private final Long currentRatioBp;
-    private final Long ratioDeltaBp;
+    // private final Long ratioDeltaBp;
 }

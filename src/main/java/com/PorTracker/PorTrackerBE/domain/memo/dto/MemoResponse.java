@@ -12,8 +12,8 @@ public record MemoResponse(
         String evaluation,
         String date,
         String memoType,
-        @JsonProperty("actualId") Long actualPublicId,
-        @JsonProperty("targetId") Long targetPublicId) {
+        @JsonProperty("actualId") String actualPublicId,
+        @JsonProperty("targetId") String targetPublicId) {
 
     public static MemoResponse from(MemoRecord record) {
         return new MemoResponse(
@@ -25,7 +25,7 @@ public record MemoResponse(
                 record.getEvaluation(),
                 record.getDate(),
                 record.getMemoType(),
-                record.getActualId(),
-                record.getTargetId());
+                record.getActualPublicId(),
+                record.getTargetPublicId());
     }
 }

@@ -17,6 +17,6 @@ public class TargetPortfolioItemRequest {
     @JsonProperty("currentRatioBp")
     private Long currentRatioBp;
 
-    @JsonProperty("ratioDeltaBp")
-    private Long ratioDeltaBp;
+    // @JsonProperty("ratioDeltaBp")
+    // private Long ratioDeltaBp;
 }

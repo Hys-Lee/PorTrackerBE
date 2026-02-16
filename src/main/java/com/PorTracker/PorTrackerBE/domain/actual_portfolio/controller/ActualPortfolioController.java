@@ -52,7 +52,8 @@ public class ActualPortfolioController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> addActualPortfolio(@RequestHeader("X-USER-ID") String userId,
+    public ResponseEntity<Void> addActualPortfolio(
+            @RequestHeader("X-USER-ID") String userId,
             @RequestBody ActualPortfolioCreateRequest request) {
 
         actualPortfolioService.addActualPortfolio(userId, request);

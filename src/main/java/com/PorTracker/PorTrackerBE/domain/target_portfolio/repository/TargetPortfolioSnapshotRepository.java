@@ -15,18 +15,22 @@ import org.springframework.stereotype.Repository;
 public class TargetPortfolioSnapshotRepository {
 
     public Long save(JdbcTemplate jdbcTemplate, Long portfolioId) {
-        String sql = String.format("INSERT INTO %s (%s) VALUES (?)",
-                SqliteSchema.TABLE_TARGET_PORTFOLIO_SNAPSHOT, SqliteSchema.COL_PORTFOLIO_ID);
+        String sql =
+                String.format(
+                        "INSERT INTO %s (%s) VALUES (?)",
+                        SqliteSchema.TABLE_TARGET_PORTFOLIO_SNAPSHOT,
+                        SqliteSchema.COL_PORTFOLIO_ID);
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
-
         // jdbcTemplate.update(sql, ps -> ps.setLong(1, portfolioId));
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, new String[] {"id"});
-            ps.setLong(1, portfolioId);
-            return ps;
-        }, keyHolder);
+        jdbcTemplate.update(
+                connection -> {
+                    PreparedStatement ps = connection.prepareStatement(sql, new String[] {"id"});
+                    ps.setLong(1, portfolioId);
+                    return ps;
+                },
+                keyHolder);
         return keyHolder.getKey().longValue();
         // return jdbcTemplate.queryForObject("SELECT last_insert_rowid()", Long.class);
     }
@@ -34,17 +38,26 @@ public class TargetPortfolioSnapshotRepository {
     public Optional<TargetPortfolioSnapshotRecord> findLatestByPortfolioId(
             JdbcTemplate jdbcTemplate, Long portfolioId) {
         String sql =
-                String.format("SELECT %s, %s, %s FROM %s WHERE %s = ? ORDER BY %s DESC LIMIT 1",
-                        SqliteSchema.COL_ID, SqliteSchema.COL_PORTFOLIO_ID,
-                        SqliteSchema.COL_CREATED_AT, SqliteSchema.TABLE_TARGET_PORTFOLIO_SNAPSHOT,
-                        SqliteSchema.COL_PORTFOLIO_ID, SqliteSchema.COL_ID);
+                String.format(
+                        "SELECT %s, %s, %s FROM %s WHERE %s = ? ORDER BY %s DESC LIMIT 1",
+                        SqliteSchema.COL_ID,
+                        SqliteSchema.COL_PORTFOLIO_ID,
+                        SqliteSchema.COL_CREATED_AT,
+                        SqliteSchema.TABLE_TARGET_PORTFOLIO_SNAPSHOT,
+                        SqliteSchema.COL_PORTFOLIO_ID,
+                        SqliteSchema.COL_ID);
 
         return jdbcTemplate
-                .query(sql, ps -> ps.setLong(1, portfolioId),
-                        (rs, rowNum) -> TargetPortfolioSnapshotRecord.builder()
-                                .id(rs.getLong(SqliteSchema.COL_ID))
-                                .portfolioId(rs.getLong(SqliteSchema.COL_PORTFOLIO_ID))
-                                .createdAt(rs.getString(SqliteSchema.COL_CREATED_AT)).build())
-                .stream().findFirst();
+                .query(
+                        sql,
+                        ps -> ps.setLong(1, portfolioId),
+                        (rs, rowNum) ->
+                                TargetPortfolioSnapshotRecord.builder()
+                                        .id(rs.getLong(SqliteSchema.COL_ID))
+                                        .portfolioId(rs.getLong(SqliteSchema.COL_PORTFOLIO_ID))
+                                        .createdAt(rs.getString(SqliteSchema.COL_CREATED_AT))
+                                        .build())
+                .stream()
+                .findFirst();
     }
 }

@@ -8,9 +8,11 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,7 +26,8 @@ public class MemoController {
     private final MemoService memoService;
 
     @GetMapping
-    public ResponseEntity<List<MemoResponse>> getMemos(@RequestHeader("X-USER-ID") String userId) {
+    public ResponseEntity<List<MemoResponse>> getAllMemos(
+            @RequestHeader("X-USER-ID") String userId) {
         List<MemoRecord> records = memoService.getAllMemos(userId);
         List<MemoResponse> response = records.stream().map(MemoResponse::from).toList();
 
@@ -33,21 +36,32 @@ public class MemoController {
 
     @GetMapping("/{publicId}")
     public ResponseEntity<MemoResponse> getMemo(
-            @RequestHeader("X-USER-ID") String userId, @PathVariable String publicId) {
+            @RequestHeader("X-USER-ID") String userId, @PathVariable("publicId") String publicId) {
         MemoRecord record = memoService.getMemoById(userId, publicId);
-
-        if (record == null) {
-            return ResponseEntity.notFound().build();
-        }
 
         return ResponseEntity.ok(MemoResponse.from(record));
     }
 
     @PostMapping
-    public ResponseEntity<Void> addMemo(
+    public ResponseEntity<java.util.Map<String, String>> addMemo(
             @RequestHeader("X-USER-ID") String userId, @RequestBody MemoCreateRequest request) {
+        String publicId = memoService.addMemo(userId, request);
+        return ResponseEntity.ok(java.util.Map.of("id", publicId));
+    }
 
-        memoService.addMemo(userId, request);
+    @PutMapping("/{publicId}")
+    public ResponseEntity<Void> updateMemo(
+            @RequestHeader("X-USER-ID") String userId,
+            @PathVariable("publicId") String publicId,
+            @RequestBody MemoCreateRequest request) {
+        memoService.updateMemo(userId, publicId, request);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{publicId}")
+    public ResponseEntity<Void> deleteMemo(
+            @RequestHeader("X-USER-ID") String userId, @PathVariable("publicId") String publicId) {
+        memoService.deleteMemo(userId, publicId);
         return ResponseEntity.ok().build();
     }
 }

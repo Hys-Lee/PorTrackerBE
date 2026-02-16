@@ -104,10 +104,10 @@ public class ActualPortfolioRepository {
         private static final String currencyPublicIdName = "currency_type_public_id";
 
         private static final String BASE_SELECT_SQL = String.format(
-                        " SELECT ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, a.%s as %s, c.%s as %s"
+                        " SELECT ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, a.%s as %s, c.%s as %s"
                                         + " FROM %s ap JOIN %s a ON a.%s=ap.%s JOIN %s c ON c.%s=ap.%s",
                         // select
-                        SqliteSchema.COL_PUBLIC_ID, SqliteSchema.COL_ASSET_ID,
+                        SqliteSchema.COL_ID, SqliteSchema.COL_PUBLIC_ID, SqliteSchema.COL_ASSET_ID,
                         SqliteSchema.COL_DATE, SqliteSchema.COL_TRANSACTION_TYPE,
                         SqliteSchema.COL_CURRENCY_ID, SqliteSchema.COL_PRICE_BP,
                         SqliteSchema.COL_AMOUNT_BP, SqliteSchema.COL_EXCHANGE_RATE_BP,
@@ -134,6 +134,7 @@ public class ActualPortfolioRepository {
 
         private final RowMapper<ActualPortfolioRecord> actualPortfolioMapper =
                         (rs, rowNum) -> ActualPortfolioRecord.builder()
+                                        .id(rs.getLong(SqliteSchema.COL_ID))
                                         .publicId(rs.getString(SqliteSchema.COL_PUBLIC_ID))
                                         .assetId(rs.getLong(SqliteSchema.COL_ASSET_ID))
                                         .assetPublicId(rs.getString(assetPublicIdName))

@@ -17,6 +17,7 @@ public class ActualPortfolioCreateRequest {
 
     @JsonProperty("date")
     private String date;
+
     @JsonProperty("transactionType")
     private String transactionType;
 
@@ -26,8 +27,10 @@ public class ActualPortfolioCreateRequest {
 
     @JsonProperty("priceBp")
     private Long priceBp;
+
     @JsonProperty("amountBp")
     private Long amountBp;
+
     @JsonProperty("exchangeRateBp")
     private Long exchangeRateBp;
 }
