@@ -10,6 +10,7 @@ import com.PorTracker.PorTrackerBE.domain.target_portfolio.entity.TargetPortfoli
 import com.PorTracker.PorTrackerBE.domain.target_portfolio.repository.TargetPortfolioItemRepository;
 import com.PorTracker.PorTrackerBE.domain.target_portfolio.repository.TargetPortfolioRepository;
 import com.PorTracker.PorTrackerBE.domain.target_portfolio.repository.TargetPortfolioSnapshotRepository;
+import com.PorTracker.PorTrackerBE.global.common.UserContextHolder;
 import com.PorTracker.PorTrackerBE.global.error.BusinessException;
 import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
 import com.PorTracker.PorTrackerBE.service.sqlite.SqliteDatabaseManager;
@@ -32,7 +33,9 @@ public class TargetPortfolioService {
 
         /** 포트폴리오 목록과 각 포트폴리오의 최신 아이템들을 함께 조회 (N+1 문제 해결) */
         public List<com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioData> getAllTargetPortfoliosFullData(
-                        String userId) {
+                        // String userId) {
+                        ) {
+                                String userId = UserContextHolder.getUserId();
                 JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
                 // 1. 모든 포트폴리오 조회
@@ -62,7 +65,9 @@ public class TargetPortfolioService {
 
         /** 단일 포트폴리오 상세 조회 (Full Data) */
         public com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioData getTargetPortfolioDetail(
-                        String userId, String publicId) {
+                        // String userId, String publicId) {
+                        String publicId) {
+                                String userId = UserContextHolder.getUserId();
                 JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
                 TargetPortfolioRecord portfolio =
@@ -79,8 +84,10 @@ public class TargetPortfolioService {
         }
 
         /** 타겟 포트폴리오의 최신 스냅샷에 등록된 아이템 목록 조회. item 테이블에서 서브쿼리로 최신 snapshot_id를 찾아 JOIN하여 한번에 가져옴. */
-        public List<TargetPortfolioItemRecord> getLatestSnapshotItems(String userId,
+        // public List<TargetPortfolioItemRecord> getLatestSnapshotItems(String userId,
+        public List<TargetPortfolioItemRecord> getLatestSnapshotItems(
                         String publicId) {
+                                String userId = UserContextHolder.getUserId();
                 JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
                 TargetPortfolioRecord portfolio =
@@ -98,7 +105,9 @@ public class TargetPortfolioService {
          * @return 생성된 포트폴리오의 publicId
          */
         @Transactional
-        public String addTargetPortfolio(String userId, TargetPortfolioCreateRequest request) {
+        // public String addTargetPortfolio(String userId, TargetPortfolioCreateRequest request) {
+        public String addTargetPortfolio( TargetPortfolioCreateRequest request) {
+                String userId = UserContextHolder.getUserId();
                 JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
                 String publicId = java.util.UUID.randomUUID().toString();
@@ -111,7 +120,8 @@ public class TargetPortfolioService {
                 Long snapshotId = snapshotRepository.save(jdbcTemplate, portfolioId);
 
                 // 3. 아이템들 저장
-                saveItems(jdbcTemplate, userId, snapshotId, request.getItems());
+                // saveItems(jdbcTemplate, userId, snapshotId, request.getItems());
+                saveItems(jdbcTemplate, snapshotId, request.getItems());
 
                 log.info("target portfolio created successfully for user: {}, publicId: {}", userId,
                                 publicId);
@@ -121,8 +131,11 @@ public class TargetPortfolioService {
 
         /** 기존 타겟 포트폴리오에 새 스냅샷 추가 (비중 업데이트) */
         @Transactional
-        public void addSnapshot(String userId, String publicId,
+        // public void addSnapshot(String userId, String publicId,
+        public void addSnapshot( String publicId,
+                
                         TargetPortfolioSnapshotUpdateRequest request) {
+                                String userId = UserContextHolder.getUserId();
                 JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
                 TargetPortfolioRecord portfolio =
@@ -135,15 +148,19 @@ public class TargetPortfolioService {
                 Long snapshotId = snapshotRepository.save(jdbcTemplate, portfolio.getId());
 
                 // 2. 아이템들 저장
-                saveItems(jdbcTemplate, userId, snapshotId, request.getItems());
+                // saveItems(jdbcTemplate, userId, snapshotId, request.getItems());
+                saveItems(jdbcTemplate,  snapshotId, request.getItems());
 
                 log.info("target portfolio snapshot added for user: {}, portfolio: {}", userId,
                                 publicId);
         }
 
         @Transactional
-        public void updateTargetPortfolio(String userId, String publicId,
+        // public void updateTargetPortfolio(String userId, String publicId,
+        public void updateTargetPortfolio( String publicId,
+
                         TargetPortfolioCreateRequest request) {
+                                String userId = UserContextHolder.getUserId();
                 JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
                 // Check exists
@@ -172,7 +189,9 @@ public class TargetPortfolioService {
 
         /** 타겟 포트폴리오 소프트 삭제 */
         @Transactional
-        public void deleteTargetPortfolio(String userId, String publicId) {
+        // public void deleteTargetPortfolio(String userId, String publicId) {
+        public void deleteTargetPortfolio( String publicId) {
+                String userId = UserContextHolder.getUserId();
                 JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
                 targetPortfolioRepository.findByPublicId(jdbcTemplate, publicId)
@@ -184,14 +203,17 @@ public class TargetPortfolioService {
         }
 
         /** 아이템 리스트 저장 (포트폴리오 생성, 스냅샷 추가 시 공통으로 사용) */
-        private void saveItems(JdbcTemplate jdbcTemplate, String userId, Long snapshotId,
+        // private void saveItems(JdbcTemplate jdbcTemplate, String userId, Long snapshotId,
+        private void saveItems(JdbcTemplate jdbcTemplate, Long snapshotId,
                         List<TargetPortfolioItemRequest> items) {
+                                
                 if (items == null) {
                         return;
                 }
                 for (TargetPortfolioItemRequest item : items) {
                         AssetRecord asset =
-                                        assetService.getAssetByPublicId(userId, item.getAssetId());
+                                        // assetService.getAssetByPublicId(userId, item.getAssetId());
+                                        assetService.getAssetByPublicId( item.getAssetId());
                         itemRepository.save(jdbcTemplate, snapshotId, asset.getId(),
                                         item.getCurrentRatioBp()
                         // item.getRatioDeltaBp()

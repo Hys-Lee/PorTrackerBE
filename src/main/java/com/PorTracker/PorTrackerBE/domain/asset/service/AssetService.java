@@ -6,6 +6,7 @@ import com.PorTracker.PorTrackerBE.domain.asset.entity.AssetTypeRecord;
 import com.PorTracker.PorTrackerBE.domain.asset.repository.AssetRepository;
 import com.PorTracker.PorTrackerBE.domain.currency.entity.CurrencyTypeRecord;
 import com.PorTracker.PorTrackerBE.domain.currency.service.CurrencyService;
+import com.PorTracker.PorTrackerBE.global.common.UserContextHolder;
 import com.PorTracker.PorTrackerBE.global.constant.SqliteSchema;
 import com.PorTracker.PorTrackerBE.global.error.BusinessException;
 import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
@@ -29,13 +30,17 @@ public class AssetService {
         private final AssetRepository assetRepository;
 
         // 기존 메서드 유지
-        public List<AssetRecord> getAllAssets(String userId) {
+        // public List<AssetRecord> getAllAssets(String userId) {
+        public List<AssetRecord> getAllAssets() {
+                String userId = UserContextHolder.getUserId();
                 JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
                 return assetRepository.findAll(jdbcTemplate);
         }
 
-        public AssetRecord getAssetByPublicId(String userId, String publicId) {
+        // public AssetRecord getAssetByPublicId(String userId, String publicId) {
+        public AssetRecord getAssetByPublicId( String publicId) {
+                String userId = UserContextHolder.getUserId();
                 JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
                 return assetRepository.findByPublicId(jdbcTemplate, publicId).orElseThrow(
@@ -44,16 +49,20 @@ public class AssetService {
 
         // NPE 버그 수정된 메서드
         @Transactional
-        public void addAsset(String userId, AssetCreateRequest request) {
+        // public void addAsset(String userId, AssetCreateRequest request) {
+        public void addAsset( AssetCreateRequest request) {
+                String userId = UserContextHolder.getUserId();
                 JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
                 // 로그 출력 수정
                 log.info("Adding asset - currencyPublicId: {}, userId: {},typeid:{}",
                                 request.getCurrencyId(), userId, request.getTypeId());
 
-                CurrencyTypeRecord currency = currencyService.getCurrencyByPublicId(userId,
+                // CurrencyTypeRecord currency = currencyService.getCurrencyByPublicId(userId,
+                CurrencyTypeRecord currency = currencyService.getCurrencyByPublicId(
                                 request.getCurrencyId());
-                AssetTypeRecord assetType = assetTypeService.getAssetTypeIdByPublicId(userId,
+                // AssetTypeRecord assetType = assetTypeService.getAssetTypeIdByPublicId(userId,
+                AssetTypeRecord assetType = assetTypeService.getAssetTypeIdByPublicId(
                                 request.getTypeId());
 
                 if (currency == null || assetType == null) {
@@ -84,16 +93,20 @@ public class AssetService {
         }
 
         @Transactional
-        public void updateAsset(String userId, String publicId, AssetCreateRequest request) {
+        // public void updateAsset(String userId, String publicId, AssetCreateRequest request) {
+        public void updateAsset(String publicId, AssetCreateRequest request) {
+                String userId = UserContextHolder.getUserId();
                 JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
                 // Check exists
                 assetRepository.findByPublicId(jdbcTemplate, publicId).orElseThrow(
                                 () -> new BusinessException(ErrorCode.NO_DATA, "assets"));
 
-                CurrencyTypeRecord currency = currencyService.getCurrencyByPublicId(userId,
+                // CurrencyTypeRecord currency = currencyService.getCurrencyByPublicId(userId,
+                CurrencyTypeRecord currency = currencyService.getCurrencyByPublicId(
                                 request.getCurrencyId());
-                AssetTypeRecord assetType = assetTypeService.getAssetTypeIdByPublicId(userId,
+                // AssetTypeRecord assetType = assetTypeService.getAssetTypeIdByPublicId(userId,
+                AssetTypeRecord assetType = assetTypeService.getAssetTypeIdByPublicId(
                                 request.getTypeId());
 
                 if (currency == null || assetType == null) {
@@ -107,7 +120,9 @@ public class AssetService {
         }
 
         @Transactional
-        public void deleteAsset(String userId, String publicId) {
+        // public void deleteAsset(String userId, String publicId) {
+        public void deleteAsset( String publicId) {
+                String userId = UserContextHolder.getUserId();
                 JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
                 // Check exists

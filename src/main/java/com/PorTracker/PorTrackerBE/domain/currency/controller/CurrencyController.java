@@ -22,32 +22,40 @@ public class CurrencyController {
 
     @GetMapping
     public ResponseEntity<List<CurrencyTypeRecord>> getCurrencies(
-            @RequestHeader("X-USER-ID") String userId) {
+            // @RequestHeader("X-USER-ID") String userId) {
+            ) {
 
-        return ResponseEntity.ok(currencyService.getAllCurrencies(userId));
+        // return ResponseEntity.ok(currencyService.getAllCurrencies(userId));
+        return ResponseEntity.ok(currencyService.getAllCurrencies());
     }
 
     @PostMapping
     public ResponseEntity<Void> addCurrency(
             // @RequestHeader("X-USER-ID") String userId, @RequestBody String code) {
-            @RequestHeader("X-USER-ID") String userId, @RequestBody CurrencyTypeRequest request) {
+            // @RequestHeader("X-USER-ID") String userId, @RequestBody CurrencyTypeRequest request) {
+             @RequestBody CurrencyTypeRequest request) {
         // currencyService.addCurrency(userId, code);
-        currencyService.addCurrency(userId, request);
+        // currencyService.addCurrency(userId, request);
+        currencyService.addCurrency( request);
 
         return ResponseEntity.ok().build();
     }
 
     @org.springframework.web.bind.annotation.PutMapping("/{publicId}")
-    public ResponseEntity<Void> updateCurrency(@RequestHeader("X-USER-ID") String userId,
+    // public ResponseEntity<Void> updateCurrency(@RequestHeader("X-USER-ID") String userId,
+    public ResponseEntity<Void> updateCurrency(
             @PathVariable("publicId") String publicId, @RequestBody CurrencyTypeRequest request) {
-        currencyService.updateCurrency(userId, publicId, request);
+        // currencyService.updateCurrency(userId, publicId, request);
+        currencyService.updateCurrency(publicId, request);
         return ResponseEntity.ok().build();
     }
 
     @org.springframework.web.bind.annotation.DeleteMapping("/{publicId}")
-    public ResponseEntity<Void> deleteCurrency(@RequestHeader("X-USER-ID") String userId,
+    // public ResponseEntity<Void> deleteCurrency(@RequestHeader("X-USER-ID") String userId,
+    public ResponseEntity<Void> deleteCurrency(
             @PathVariable("publicId") String publicId) {
-        currencyService.deleteCurrency(userId, publicId);
+        // currencyService.deleteCurrency(userId, publicId);
+        currencyService.deleteCurrency( publicId);
         return ResponseEntity.ok().build();
     }
 }

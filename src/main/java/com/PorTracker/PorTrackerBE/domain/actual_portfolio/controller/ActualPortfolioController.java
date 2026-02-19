@@ -30,8 +30,10 @@ public class ActualPortfolioController {
 
     @GetMapping
     public ResponseEntity<List<ActualPortfolioResponse>> getActualPortfolios(
-            @RequestHeader("X-USER-ID") String userId) {
-        List<ActualPortfolioRecord> records = actualPortfolioService.getAllActualPortfolios(userId);
+            // @RequestHeader("X-USER-ID") String userId) {
+            ) {
+        // List<ActualPortfolioRecord> records = actualPortfolioService.getAllActualPortfolios(userId);
+        List<ActualPortfolioRecord> records = actualPortfolioService.getAllActualPortfolios();
         List<ActualPortfolioResponse> response =
                 records.stream().map(ActualPortfolioResponse::from).toList();
 
@@ -40,9 +42,11 @@ public class ActualPortfolioController {
 
     @GetMapping("/{publicId}")
     public ResponseEntity<ActualPortfolioResponse> getActualPortfolio(
-            @RequestHeader("X-USER-ID") String userId, @PathVariable("publicId") String publicId) {
+            // @RequestHeader("X-USER-ID") String userId, @PathVariable("publicId") String publicId) {
+             @PathVariable("publicId") String publicId) {
         ActualPortfolioRecord record =
-                actualPortfolioService.getActualPortfolioById(userId, publicId);
+                // actualPortfolioService.getActualPortfolioById(userId, publicId);
+                actualPortfolioService.getActualPortfolioById(publicId);
 
         if (record == null) {
             return ResponseEntity.notFound().build();
@@ -52,27 +56,33 @@ public class ActualPortfolioController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> addActualPortfolio(@RequestHeader("X-USER-ID") String userId,
+    // public ResponseEntity<Void> addActualPortfolio(@RequestHeader("X-USER-ID") String userId,
+    public ResponseEntity<Void> addActualPortfolio(
             @RequestBody ActualPortfolioCreateRequest request) {
 
-        actualPortfolioService.addActualPortfolio(userId, request);
+        // actualPortfolioService.addActualPortfolio(userId, request);
+        actualPortfolioService.addActualPortfolio( request);
         return ResponseEntity.ok().build();
     }
 
     @org.springframework.web.bind.annotation.PutMapping("/{publicId}")
-    public ResponseEntity<Void> updateActualPortfolio(@RequestHeader("X-USER-ID") String userId,
+    // public ResponseEntity<Void> updateActualPortfolio(@RequestHeader("X-USER-ID") String userId,
+    public ResponseEntity<Void> updateActualPortfolio(
             @PathVariable("publicId") String publicId,
             @RequestBody ActualPortfolioCreateRequest request) {
 
-        actualPortfolioService.updateActualPortfolio(userId, publicId, request);
+        // actualPortfolioService.updateActualPortfolio(userId, publicId, request);
+        actualPortfolioService.updateActualPortfolio( publicId, request);
         return ResponseEntity.ok().build();
     }
 
     @org.springframework.web.bind.annotation.DeleteMapping("/{publicId}")
-    public ResponseEntity<Void> deleteActualPortfolio(@RequestHeader("X-USER-ID") String userId,
+    // public ResponseEntity<Void> deleteActualPortfolio(@RequestHeader("X-USER-ID") String userId,
+    public ResponseEntity<Void> deleteActualPortfolio(
             @PathVariable("publicId") String publicId) {
 
-        actualPortfolioService.deleteActualPortfolio(userId, publicId);
+        // actualPortfolioService.deleteActualPortfolio(userId, publicId);
+        actualPortfolioService.deleteActualPortfolio( publicId);
         return ResponseEntity.ok().build();
     }
 }

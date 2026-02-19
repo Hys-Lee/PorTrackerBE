@@ -84,12 +84,12 @@ public class MemoRepository {
         jdbcTemplate.update(conn -> {
             PreparedStatement ps = conn.prepareStatement(sql, new String[] {"id"});
             ps.setString(1, publicId);
-            ps.setString(2, request.getImportance());
+            ps.setString(2, request.getImportance().getValue());
             ps.setString(3, request.getTitle());
             ps.setString(4, request.getContent());
-            ps.setString(5, request.getEvaluation());
+            ps.setString(5, request.getEvaluation().getValue());
             ps.setString(6, request.getDate());
-            ps.setString(7, request.getMemoType());
+            ps.setString(7, request.getMemoType().getValue());
             if (actualId != null) {
                 ps.setLong(8, actualId);
             } else {
@@ -117,12 +117,12 @@ public class MemoRepository {
                 SqliteSchema.COL_DELETED_AT);
 
         jdbcTemplate.update(sql, ps -> {
-            ps.setString(1, request.getImportance());
+            ps.setString(1, request.getImportance().getValue());
             ps.setString(2, request.getTitle());
             ps.setString(3, request.getContent());
-            ps.setString(4, request.getEvaluation());
+            ps.setString(4, request.getEvaluation().getValue());
             ps.setString(5, request.getDate());
-            ps.setString(6, request.getMemoType());
+            ps.setString(6, request.getMemoType().getValue());
             if (actualId != null) {
                 ps.setLong(7, actualId);
             } else {

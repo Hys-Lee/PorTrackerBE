@@ -23,31 +23,39 @@ public class AssetTypeController {
 
     @GetMapping
     public ResponseEntity<List<AssetTypeResponse>> getAssetTypes(
-            @RequestHeader("X-USER-ID") String userId) {
-        List<AssetTypeRecord> records = assetTypeService.getAllAssetTypes(userId);
+            // @RequestHeader("X-USER-ID") String userId) {
+            ) {
+        // List<AssetTypeRecord> records = assetTypeService.getAllAssetTypes(userId);
+        List<AssetTypeRecord> records = assetTypeService.getAllAssetTypes();
         List<AssetTypeResponse> response = records.stream().map(AssetTypeResponse::from).toList();
 
         return ResponseEntity.ok(response);
     }
 
     @PostMapping
-    public ResponseEntity<Void> addAssetType(@RequestHeader("X-USER-ID") String userId,
+    // public ResponseEntity<Void> addAssetType(@RequestHeader("X-USER-ID") String userId,
+    public ResponseEntity<Void> addAssetType(
             @RequestBody AssetTypeRequest request) {
-        assetTypeService.addAssetType(userId, request);
+        // assetTypeService.addAssetType(userId, request);
+        assetTypeService.addAssetType(request);
         return ResponseEntity.ok().build();
     }
 
     @org.springframework.web.bind.annotation.PutMapping("/{publicId}")
-    public ResponseEntity<Void> updateAssetType(@RequestHeader("X-USER-ID") String userId,
+    // public ResponseEntity<Void> updateAssetType(@RequestHeader("X-USER-ID") String userId,
+    public ResponseEntity<Void> updateAssetType(
             @PathVariable("publicId") String publicId, @RequestBody AssetTypeRequest request) {
-        assetTypeService.updateAssetType(userId, publicId, request);
+        // assetTypeService.updateAssetType(userId, publicId, request);
+        assetTypeService.updateAssetType(publicId, request);
         return ResponseEntity.ok().build();
     }
 
     @org.springframework.web.bind.annotation.DeleteMapping("/{publicId}")
-    public ResponseEntity<Void> deleteAssetType(@RequestHeader("X-USER-ID") String userId,
+    // public ResponseEntity<Void> deleteAssetType(@RequestHeader("X-USER-ID") String userId,
+    public ResponseEntity<Void> deleteAssetType(
             @PathVariable("publicId") String publicId) {
-        assetTypeService.deleteAssetType(userId, publicId);
+        // assetTypeService.deleteAssetType(userId, publicId);
+        assetTypeService.deleteAssetType(publicId);
         return ResponseEntity.ok().build();
     }
 }

@@ -27,8 +27,10 @@ public class MemoController {
 
     @GetMapping
     public ResponseEntity<List<MemoResponse>> getAllMemos(
-            @RequestHeader("X-USER-ID") String userId) {
-        List<MemoRecord> records = memoService.getAllMemos(userId);
+            // @RequestHeader("X-USER-ID") String userId) {
+            ) {
+        // List<MemoRecord> records = memoService.getAllMemos(userId);
+        List<MemoRecord> records = memoService.getAllMemos();
         List<MemoResponse> response = records.stream().map(MemoResponse::from).toList();
 
         return ResponseEntity.ok(response);
@@ -36,32 +38,39 @@ public class MemoController {
 
     @GetMapping("/{publicId}")
     public ResponseEntity<MemoResponse> getMemo(
-            @RequestHeader("X-USER-ID") String userId, @PathVariable("publicId") String publicId) {
-        MemoRecord record = memoService.getMemoById(userId, publicId);
+            // @RequestHeader("X-USER-ID") String userId, @PathVariable("publicId") String publicId) {
+             @PathVariable("publicId") String publicId) {
+        // MemoRecord record = memoService.getMemoById(userId, publicId);
+        MemoRecord record = memoService.getMemoById(publicId);
 
         return ResponseEntity.ok(MemoResponse.from(record));
     }
 
     @PostMapping
     public ResponseEntity<java.util.Map<String, String>> addMemo(
-            @RequestHeader("X-USER-ID") String userId, @RequestBody MemoCreateRequest request) {
-        String publicId = memoService.addMemo(userId, request);
+            // @RequestHeader("X-USER-ID") String userId, @RequestBody MemoCreateRequest request) {
+             @RequestBody MemoCreateRequest request) {
+        // String publicId = memoService.addMemo(userId, request);
+        String publicId = memoService.addMemo(request);
         return ResponseEntity.ok(java.util.Map.of("id", publicId));
     }
 
     @PutMapping("/{publicId}")
     public ResponseEntity<Void> updateMemo(
-            @RequestHeader("X-USER-ID") String userId,
+            // @RequestHeader("X-USER-ID") String userId,
             @PathVariable("publicId") String publicId,
             @RequestBody MemoCreateRequest request) {
-        memoService.updateMemo(userId, publicId, request);
+        // memoService.updateMemo(userId, publicId, request);
+        memoService.updateMemo( publicId, request);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{publicId}")
     public ResponseEntity<Void> deleteMemo(
-            @RequestHeader("X-USER-ID") String userId, @PathVariable("publicId") String publicId) {
-        memoService.deleteMemo(userId, publicId);
+            // @RequestHeader("X-USER-ID") String userId, @PathVariable("publicId") String publicId) {
+             @PathVariable("publicId") String publicId) {
+        // memoService.deleteMemo(userId, publicId);
+        memoService.deleteMemo( publicId);
         return ResponseEntity.ok().build();
     }
 }

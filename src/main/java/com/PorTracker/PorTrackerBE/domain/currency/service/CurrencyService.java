@@ -2,6 +2,7 @@ package com.PorTracker.PorTrackerBE.domain.currency.service;
 
 import com.PorTracker.PorTrackerBE.domain.currency.dto.CurrencyTypeRequest;
 import com.PorTracker.PorTrackerBE.domain.currency.entity.CurrencyTypeRecord;
+import com.PorTracker.PorTrackerBE.global.common.UserContextHolder;
 import com.PorTracker.PorTrackerBE.global.constant.SqliteSchema;
 import com.PorTracker.PorTrackerBE.global.error.BusinessException;
 import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
@@ -20,7 +21,9 @@ public class CurrencyService {
         private final SqliteDatabaseManager sqliteManager;
 
         // 기존 메서드 유지
-        public List<CurrencyTypeRecord> getAllCurrencies(String userId) {
+        // public List<CurrencyTypeRecord> getAllCurrencies(String userId) {
+        public List<CurrencyTypeRecord> getAllCurrencies() {
+                String userId = UserContextHolder.getUserId();
                 JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
                 String sql = String.format("SELECT %s, %s, %s FROM %s", SqliteSchema.COL_ID,
@@ -35,7 +38,9 @@ public class CurrencyService {
         }
 
         // NPE 버그 수정된 메서드
-        public CurrencyTypeRecord getCurrencyByPublicId(String userId, String publicId) {
+        // public CurrencyTypeRecord getCurrencyByPublicId(String userId, String publicId) {
+        public CurrencyTypeRecord getCurrencyByPublicId( String publicId) {
+                String userId = UserContextHolder.getUserId();
                 JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
                 String sql = String.format("SELECT %s, %s, %s FROM %s WHERE %s = ?",
@@ -59,7 +64,9 @@ public class CurrencyService {
         }
 
         // public void addCurrency(String userId, String code) {
-        public void addCurrency(String userId, CurrencyTypeRequest request) {
+        // public void addCurrency(String userId, CurrencyTypeRequest request) {
+        public void addCurrency(CurrencyTypeRequest request) {
+                String userId = UserContextHolder.getUserId();
                 JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
                 String sql = String.format("INSERT OR IGNORE INTO %s (%s, %s) VALUES (?, ?)",
@@ -80,7 +87,9 @@ public class CurrencyService {
                                 code, publicId);
         }
 
-        public void updateCurrency(String userId, String publicId, CurrencyTypeRequest request) {
+        // public void updateCurrency(String userId, String publicId, CurrencyTypeRequest request) {
+        public void updateCurrency( String publicId, CurrencyTypeRequest request) {
+                String userId = UserContextHolder.getUserId();
                 JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
                 String sql = String.format("UPDATE %s SET %s = ? WHERE %s = ?",
@@ -100,11 +109,14 @@ public class CurrencyService {
                                 publicId);
         }
 
-        public void deleteCurrency(String userId, String publicId) {
+        // public void deleteCurrency(String userId, String publicId) {
+        public void deleteCurrency( String publicId) {
+                String userId = UserContextHolder.getUserId();
                 JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
                 // Check exists
-                getCurrencyByPublicId(userId, publicId); // This logic might need refinement if get
+                // getCurrencyByPublicId(userId, publicId); // This logic might need refinement if get
+                getCurrencyByPublicId( publicId); // This logic might need refinement if get
                                                          // returns null instead of throwing
                 // Actually getCurrencyByPublicId returns null if not found.
                 // Let's optimize:

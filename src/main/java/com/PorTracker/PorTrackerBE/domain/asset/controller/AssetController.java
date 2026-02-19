@@ -25,34 +25,42 @@ public class AssetController {
 
     @GetMapping
     public ResponseEntity<List<AssetResponse>> getAssets(
-            @RequestHeader("X-USER-ID") String userId) {
-        List<AssetRecord> records = assetService.getAllAssets(userId);
+            // @RequestHeader("X-USER-ID") String userId) {
+            ) {
+        // List<AssetRecord> records = assetService.getAllAssets(userId);
+        List<AssetRecord> records = assetService.getAllAssets();
         List<AssetResponse> response = records.stream().map(AssetResponse::from).toList();
 
         return ResponseEntity.ok(response);
     }
 
     @PostMapping
-    public ResponseEntity<Void> addAsset(@RequestHeader("X-USER-ID") String userId,
+    // public ResponseEntity<Void> addAsset(@RequestHeader("X-USER-ID") String userId,
+    public ResponseEntity<Void> addAsset(
             @RequestBody AssetCreateRequest request) {
 
-        assetService.addAsset(userId, request);
+        // assetService.addAsset(userId, request);
+        assetService.addAsset(request);
         return ResponseEntity.ok().build();
     }
 
     @org.springframework.web.bind.annotation.PutMapping("/{publicId}")
-    public ResponseEntity<Void> updateAsset(@RequestHeader("X-USER-ID") String userId,
+    // public ResponseEntity<Void> updateAsset(@RequestHeader("X-USER-ID") String userId,
+    public ResponseEntity<Void> updateAsset(
             @PathVariable("publicId") String publicId, @RequestBody AssetCreateRequest request) {
 
-        assetService.updateAsset(userId, publicId, request);
+        // assetService.updateAsset(userId, publicId, request);
+        assetService.updateAsset(publicId, request);
         return ResponseEntity.ok().build();
     }
 
     @org.springframework.web.bind.annotation.DeleteMapping("/{publicId}")
-    public ResponseEntity<Void> deleteAsset(@RequestHeader("X-USER-ID") String userId,
+    // public ResponseEntity<Void> deleteAsset(@RequestHeader("X-USER-ID") String userId,
+    public ResponseEntity<Void> deleteAsset(
             @PathVariable("publicId") String publicId) {
 
-        assetService.deleteAsset(userId, publicId);
+        // assetService.deleteAsset(userId, publicId);
+        assetService.deleteAsset(publicId);
         return ResponseEntity.ok().build();
     }
 }

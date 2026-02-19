@@ -2,6 +2,7 @@ package com.PorTracker.PorTrackerBE.domain.asset.service;
 
 import com.PorTracker.PorTrackerBE.domain.asset.dto.AssetTypeRequest;
 import com.PorTracker.PorTrackerBE.domain.asset.entity.AssetTypeRecord;
+import com.PorTracker.PorTrackerBE.global.common.UserContextHolder;
 import com.PorTracker.PorTrackerBE.global.constant.SqliteSchema;
 import com.PorTracker.PorTrackerBE.global.error.BusinessException;
 import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
@@ -21,7 +22,9 @@ public class AssetTypeService {
         private final SqliteDatabaseManager sqliteManager;
 
         // 기존 메서드 유지
-        public List<AssetTypeRecord> getAllAssetTypes(String userId) {
+        // public List<AssetTypeRecord> getAllAssetTypes(String userId) {
+        public List<AssetTypeRecord> getAllAssetTypes() {
+                String userId = UserContextHolder.getUserId();
                 JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
                 String sql = String.format("SELECT %s, %s, %s, %s, %s, %s FROM %s",
@@ -40,7 +43,9 @@ public class AssetTypeService {
         }
 
         // NPE 버그 수정된 메서드
-        public AssetTypeRecord getAssetTypeIdByPublicId(String userId, String publicId) {
+        // public AssetTypeRecord getAssetTypeIdByPublicId(String userId, String publicId) {
+        public AssetTypeRecord getAssetTypeIdByPublicId( String publicId) {
+                String userId = UserContextHolder.getUserId();
                 JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
                 // [DEBUG] 현재 이 유저의 DB에 어떤 데이터가 있는지 먼저 확인
@@ -75,7 +80,9 @@ public class AssetTypeService {
         }
 
         // NPE 버그 수정된 메서드
-        public void addAssetType(String userId, AssetTypeRequest request) {
+        // public void addAssetType(String userId, AssetTypeRequest request) {
+        public void addAssetType(AssetTypeRequest request) {
+                String userId = UserContextHolder.getUserId();
                 JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
                 String sql = String.format("INSERT OR IGNORE INTO %s (%s, %s) VALUES (?, ?)",
@@ -92,7 +99,9 @@ public class AssetTypeService {
                 log.info("asset type recorded successfully for user: {}", userId);
         }
 
-        public void updateAssetType(String userId, String publicId, AssetTypeRequest request) {
+        // public void updateAssetType(String userId, String publicId, AssetTypeRequest request) {
+        public void updateAssetType( String publicId, AssetTypeRequest request) {
+                String userId = UserContextHolder.getUserId();
                 JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
                 String sql = String.format(
@@ -114,7 +123,9 @@ public class AssetTypeService {
                                 publicId);
         }
 
-        public void deleteAssetType(String userId, String publicId) {
+        // public void deleteAssetType(String userId, String publicId) {
+        public void deleteAssetType( String publicId) {
+                String userId = UserContextHolder.getUserId();
                 JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
                 String sql = String.format(
