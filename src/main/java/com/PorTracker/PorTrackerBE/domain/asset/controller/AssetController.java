@@ -4,6 +4,9 @@ import com.PorTracker.PorTrackerBE.domain.asset.dto.AssetCreateRequest;
 import com.PorTracker.PorTrackerBE.domain.asset.dto.AssetResponse;
 import com.PorTracker.PorTrackerBE.domain.asset.entity.AssetRecord;
 import com.PorTracker.PorTrackerBE.domain.asset.service.AssetService;
+
+import jakarta.validation.Valid;
+
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +40,7 @@ public class AssetController {
     @PostMapping
     // public ResponseEntity<Void> addAsset(@RequestHeader("X-USER-ID") String userId,
     public ResponseEntity<Void> addAsset(
-            @RequestBody AssetCreateRequest request) {
+          @Valid  @RequestBody AssetCreateRequest request) {
 
         // assetService.addAsset(userId, request);
         assetService.addAsset(request);
@@ -47,7 +50,7 @@ public class AssetController {
     @org.springframework.web.bind.annotation.PutMapping("/{publicId}")
     // public ResponseEntity<Void> updateAsset(@RequestHeader("X-USER-ID") String userId,
     public ResponseEntity<Void> updateAsset(
-            @PathVariable("publicId") String publicId, @RequestBody AssetCreateRequest request) {
+            @PathVariable("publicId") String publicId, @Valid @RequestBody AssetCreateRequest request) {
 
         // assetService.updateAsset(userId, publicId, request);
         assetService.updateAsset(publicId, request);

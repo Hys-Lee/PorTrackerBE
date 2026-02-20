@@ -1,5 +1,7 @@
 package com.PorTracker.PorTrackerBE.domain.memo.entity;
 
+import com.PorTracker.PorTrackerBE.global.error.BusinessException;
+import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
@@ -22,7 +24,8 @@ public enum Importance {
                 return importance;
             }
         }
-        return NORMAL ; // 기본값
+        // return NORMAL ; // 기본값
+        throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
     }
 
 }

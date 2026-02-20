@@ -165,7 +165,7 @@ public class ActualPortfolioRepository {
                         ps.setString(1, publicId);
                         ps.setLong(2, assetId);
                         ps.setString(3, request.getDate());
-                        ps.setString(4, request.getTransactionType());
+                        ps.setString(4, request.getTransactionType().getValue());
                         ps.setLong(5, currencyId);
                         ps.setLong(6, request.getPriceBp());
                         ps.setLong(7, request.getAmountBp());
@@ -187,7 +187,7 @@ public class ActualPortfolioRepository {
                 jdbcTemplate.update(sql, ps -> {
                         ps.setLong(1, assetId);
                         ps.setString(2, request.getDate());
-                        ps.setString(3, request.getTransactionType());
+                        ps.setString(3, request.getTransactionType().getValue());
                         ps.setLong(4, currencyId);
                         ps.setLong(5, request.getPriceBp());
                         ps.setLong(6, request.getAmountBp());

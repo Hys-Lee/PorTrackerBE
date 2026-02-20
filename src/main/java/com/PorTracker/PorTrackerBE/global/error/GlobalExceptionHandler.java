@@ -1,14 +1,78 @@
 package com.PorTracker.PorTrackerBE.global.error;
 
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Arrays;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+
+import org.springframework.web.bind.MethodArgumentNotValidException;
+
+
 @Slf4j
 @RestControllerAdvice // 모든 Controller 에러 여기서 가로챔
 public class GlobalExceptionHandler {
+    
+    // DTO @Valid처리
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleDtoValidationException(MethodArgumentNotValidException e){
+        String errorMessage = e.getBindingResult().getFieldErrors().stream().map(error->error.getField()+": "+error.getDefaultMessage()).collect(Collectors.joining(", "));
+
+        log.error("Validation failed: {}", errorMessage);
+        
+
+        ErrorCode errorCode = ErrorCode.INVALID_INPUT_VALUE;
+
+        ErrorResponse response =
+                ErrorResponse.builder()
+                        .status(errorCode.getStatus())
+                        .code(errorCode.getCode())
+                        .message(
+                                errorMessage)
+                        .build();
+
+        return new ResponseEntity<>(response, org.springframework.http.HttpStatus.BAD_REQUEST);
+        
+    }
+
+    // JSON 파싱 validation
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleJsonException(HttpMessageNotReadableException e){
+        String detail = "유효하지 않은 형식 및 값입니다.";
+
+        // Enum에러일 경우 구체화
+        if(e.getCause() instanceof InvalidFormatException){
+            InvalidFormatException ife = (InvalidFormatException) e.getCause();
+            if(ife.getTargetType().isEnum()){
+                detail = String.format("유효하지 않은 값입니다: %s, 다음 중 하나여야 합니다: %s", ife.getValue(), Arrays.toString(ife.getTargetType().getEnumConstants()));
+            }
+        }
+
+        log.error("JSON parsing error: {}", e.getMessage());
+        
+                ErrorCode errorCode = ErrorCode.INVALID_INPUT_VALUE;
+
+        ErrorResponse response =
+                ErrorResponse.builder()
+                        .status(errorCode.getStatus())
+                        .code(errorCode.getCode())
+                        .detail(
+                                detail)
+                        .build();
+
+        return new ResponseEntity<>(response, org.springframework.http.HttpStatus.BAD_REQUEST);
+        
+
+    }
+
 
     // 필수 파라미터 누락 시 발생하느ㅏㄴ 예외 처리
     @ExceptionHandler(MissingServletRequestParameterException.class)
@@ -48,7 +112,7 @@ public class GlobalExceptionHandler {
                 response, org.springframework.http.HttpStatus.valueOf(errorCode.getStatus()));
     }
 
-    // Validation 예외 처리
+    // 파라미터Validation 예외 처리
     @ExceptionHandler(jakarta.validation.ConstraintViolationException.class)
     protected ResponseEntity<ErrorResponse> handleConstraintVaiolationException(
             jakarta.validation.ConstraintViolationException e) {

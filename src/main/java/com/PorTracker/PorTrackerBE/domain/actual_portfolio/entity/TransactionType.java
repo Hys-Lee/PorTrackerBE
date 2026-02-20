@@ -1,32 +1,30 @@
-package com.PorTracker.PorTrackerBE.domain.memo.entity;
+package com.PorTracker.PorTrackerBE.domain.actual_portfolio.entity;
 
 import com.PorTracker.PorTrackerBE.global.error.BusinessException;
 import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum Evaluation {
-    BETTER("better"),
-    GOOD("good"),
-    SOSO("soso"),
-    BAD("bad"),
-    WORSE("worse");
+public enum TransactionType {
+    ALLOCATION("allocation"),
+    WITHDRAWAL("withdrawal"),
+    DIVIDEND("dividend"),
+    FEE("fee");
 
     private final String value;
 
-    Evaluation (String value){this.value = value;}
+    TransactionType (String value){this.value = value;}
 
     @JsonValue // json으로 나갈 때 이 값 사용
     public String getValue(){return value;}
 
     @JsonCreator // json에ㅓㅅ 들어올 때
-    public static Evaluation from (String value){
-        for (Evaluation evaluation :Evaluation.values()){
-            if(evaluation.value.equalsIgnoreCase(value)){
-                return evaluation;
+    public static TransactionType from (String value){
+        for (TransactionType transactionType :TransactionType.values()){
+            if(transactionType.value.equalsIgnoreCase(value)){
+                return transactionType;
             }
         }
-        // return SOSO ; // 기본값
         throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
     }
     

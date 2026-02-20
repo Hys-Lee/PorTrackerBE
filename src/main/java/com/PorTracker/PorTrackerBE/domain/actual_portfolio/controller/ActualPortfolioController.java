@@ -5,6 +5,9 @@ import com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioRe
 // import com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioTransactionRequest;
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.entity.ActualPortfolioRecord;
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.service.ActualPortfolioService;
+
+import jakarta.validation.Valid;
+
 // import
 // com.PorTracker.PorTrackerBE.domain.actual_portfolio.service.ActualPortfolioTransactionService;
 import java.util.List;
@@ -58,7 +61,7 @@ public class ActualPortfolioController {
     @PostMapping
     // public ResponseEntity<Void> addActualPortfolio(@RequestHeader("X-USER-ID") String userId,
     public ResponseEntity<Void> addActualPortfolio(
-            @RequestBody ActualPortfolioCreateRequest request) {
+          @Valid  @RequestBody ActualPortfolioCreateRequest request) {
 
         // actualPortfolioService.addActualPortfolio(userId, request);
         actualPortfolioService.addActualPortfolio( request);
@@ -69,7 +72,7 @@ public class ActualPortfolioController {
     // public ResponseEntity<Void> updateActualPortfolio(@RequestHeader("X-USER-ID") String userId,
     public ResponseEntity<Void> updateActualPortfolio(
             @PathVariable("publicId") String publicId,
-            @RequestBody ActualPortfolioCreateRequest request) {
+           @Valid @RequestBody ActualPortfolioCreateRequest request) {
 
         // actualPortfolioService.updateActualPortfolio(userId, publicId, request);
         actualPortfolioService.updateActualPortfolio( publicId, request);
