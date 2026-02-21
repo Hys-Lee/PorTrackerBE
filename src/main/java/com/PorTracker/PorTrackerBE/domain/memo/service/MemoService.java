@@ -36,10 +36,11 @@ public class MemoService {
     }
 
     // public MemoRecord getMemoById(String userId, String publicId) {
-    public MemoRecord getMemoById( String publicId) {
+    public MemoRecord getMemoById(String publicId) {
         String userId = UserContextHolder.getUserId();
         JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
-        return memoRepository.findByPublicId(jdbcTemplate, publicId)
+        return memoRepository
+                .findByPublicId(jdbcTemplate, publicId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
     }
 
@@ -58,9 +59,9 @@ public class MemoService {
         log.info("actualId in addmemo before: {}", request.getActualId());
         if (request.getActualId() != null) {
 
-            // actualId = actualPortfolioService.getActualPortfolioById(userId, request.getActualId())
-            actualId = actualPortfolioService.getActualPortfolioById( request.getActualId())
-                    .getId();
+            // actualId = actualPortfolioService.getActualPortfolioById(userId,
+            // request.getActualId())
+            actualId = actualPortfolioService.getActualPortfolioById(request.getActualId()).getId();
         }
         // tset
         log.info("actualId in addmemo after: {}", actualId);
@@ -68,9 +69,13 @@ public class MemoService {
         Long targetId = null;
         if (request.getTargetId() != null) {
 
-            targetId = targetPortfolioService
-                    // .getTargetPortfolioDetail(userId, request.getTargetId()).portfolio().getId();
-                    .getTargetPortfolioDetail( request.getTargetId()).portfolio().getId();
+            targetId =
+                    targetPortfolioService
+                            // .getTargetPortfolioDetail(userId,
+                            // request.getTargetId()).portfolio().getId();
+                            .getTargetPortfolioDetail(request.getTargetId())
+                            .portfolio()
+                            .getId();
         }
 
         memoRepository.save(jdbcTemplate, request, publicId, actualId, targetId);
@@ -81,19 +86,20 @@ public class MemoService {
 
     @Transactional
     // public void updateMemo(String userId, String publicId, MemoCreateRequest request) {
-    public void updateMemo( String publicId, MemoCreateRequest request) {
+    public void updateMemo(String publicId, MemoCreateRequest request) {
         String userId = UserContextHolder.getUserId();
         JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
         // 메모 존재 여부 확인
-        memoRepository.findByPublicId(jdbcTemplate, publicId)
+        memoRepository
+                .findByPublicId(jdbcTemplate, publicId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
 
         Long actualId = null;
         if (request.getActualId() != null) {
-            // actualId = actualPortfolioService.getActualPortfolioById(userId, request.getActualId())
-            actualId = actualPortfolioService.getActualPortfolioById( request.getActualId())
-                    .getId();
+            // actualId = actualPortfolioService.getActualPortfolioById(userId,
+            // request.getActualId())
+            actualId = actualPortfolioService.getActualPortfolioById(request.getActualId()).getId();
         }
 
         Long targetId = null;
@@ -101,7 +107,8 @@ public class MemoService {
             // Null check for the result of getTargetPortfolioDetail might be needed if it can
             // return null
             var detail =
-                    // targetPortfolioService.getTargetPortfolioDetail(userId, request.getTargetId());
+                    // targetPortfolioService.getTargetPortfolioDetail(userId,
+                    // request.getTargetId());
                     targetPortfolioService.getTargetPortfolioDetail(request.getTargetId());
             if (detail != null && detail.portfolio() != null) {
                 targetId = detail.portfolio().getId();
@@ -115,12 +122,13 @@ public class MemoService {
 
     @Transactional
     // public void deleteMemo(String userId, String publicId) {
-    public void deleteMemo( String publicId) {
+    public void deleteMemo(String publicId) {
         String userId = UserContextHolder.getUserId();
         JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
 
         // 메모 존재 여부 확인
-        memoRepository.findByPublicId(jdbcTemplate, publicId)
+        memoRepository
+                .findByPublicId(jdbcTemplate, publicId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
 
         memoRepository.deleteByPublicId(jdbcTemplate, publicId);

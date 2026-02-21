@@ -3,11 +3,19 @@ plugins {
 	id 'org.springframework.boot' version '3.4.2' 
 	id 'io.spring.dependency-management' version '1.1.7'
 	id 'com.diffplug.spotless' version "6.25.0"
+	id 'io.sentry.jvm.gradle' version "6.1.0"
 }
 
 group = 'com.PorTracker'
 version = '0.0.1-SNAPSHOT'
 description = 'PorTracker BE project for Spring Boot'
+
+sentry {
+	authToken = System.getenv("SENTRY_AUTH_TOKEN") ?: project.findProperty("SENTRY_AUTH_TOKEN")
+	includeSourceContext = true
+	org = "PorTracker"
+	projectName = "PorTrackerBE"
+}
 
 // 포맷터, 린터 공용 설정
 spotless {
@@ -65,6 +73,7 @@ dependencies {
 	implementation 'org.xerial:sqlite-jdbc:3.42.0.0'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.hibernate.orm:hibernate-community-dialects'
+	implementation 'io.sentry:sentry-spring-boot-starter-jakarta:8.33.0'
 }
 
 tasks.named('test') {

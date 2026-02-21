@@ -100,108 +100,146 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class ActualPortfolioRepository {
 
-        private static final String assetPublicIdName = "asset_public_id";
-        private static final String currencyPublicIdName = "currency_type_public_id";
+    private static final String assetPublicIdName = "asset_public_id";
+    private static final String currencyPublicIdName = "currency_type_public_id";
 
-        private static final String BASE_SELECT_SQL = String.format(
-                        " SELECT ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, a.%s as %s, c.%s as %s"
-                                        + " FROM %s ap JOIN %s a ON a.%s=ap.%s JOIN %s c ON c.%s=ap.%s",
-                        // select
-                        SqliteSchema.COL_ID, SqliteSchema.COL_PUBLIC_ID, SqliteSchema.COL_ASSET_ID,
-                        SqliteSchema.COL_DATE, SqliteSchema.COL_TRANSACTION_TYPE,
-                        SqliteSchema.COL_CURRENCY_ID, SqliteSchema.COL_PRICE_BP,
-                        SqliteSchema.COL_AMOUNT_BP, SqliteSchema.COL_EXCHANGE_RATE_BP,
-                        SqliteSchema.COL_PUBLIC_ID, assetPublicIdName, SqliteSchema.COL_PUBLIC_ID,
-                        currencyPublicIdName,
+    private static final String BASE_SELECT_SQL =
+            String.format(
+                    " SELECT ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, a.%s as %s, c.%s as %s"
+                            + " FROM %s ap JOIN %s a ON a.%s=ap.%s JOIN %s c ON c.%s=ap.%s",
+                    // select
+                    SqliteSchema.COL_ID,
+                    SqliteSchema.COL_PUBLIC_ID,
+                    SqliteSchema.COL_ASSET_ID,
+                    SqliteSchema.COL_DATE,
+                    SqliteSchema.COL_TRANSACTION_TYPE,
+                    SqliteSchema.COL_CURRENCY_ID,
+                    SqliteSchema.COL_PRICE_BP,
+                    SqliteSchema.COL_AMOUNT_BP,
+                    SqliteSchema.COL_EXCHANGE_RATE_BP,
+                    SqliteSchema.COL_PUBLIC_ID,
+                    assetPublicIdName,
+                    SqliteSchema.COL_PUBLIC_ID,
+                    currencyPublicIdName,
 
-                        // from
-                        SqliteSchema.TABLE_ACTUAL_PORTFOLIO, SqliteSchema.TABLE_ASSET,
-                        SqliteSchema.COL_ID, SqliteSchema.COL_ASSET_ID,
-                        SqliteSchema.TABLE_CURRENCY_TYPE, SqliteSchema.COL_ID,
-                        SqliteSchema.COL_CURRENCY_ID);
+                    // from
+                    SqliteSchema.TABLE_ACTUAL_PORTFOLIO,
+                    SqliteSchema.TABLE_ASSET,
+                    SqliteSchema.COL_ID,
+                    SqliteSchema.COL_ASSET_ID,
+                    SqliteSchema.TABLE_CURRENCY_TYPE,
+                    SqliteSchema.COL_ID,
+                    SqliteSchema.COL_CURRENCY_ID);
 
-        public List<ActualPortfolioRecord> findAll(JdbcTemplate jdbcTemplate) {
-                return jdbcTemplate.query(BASE_SELECT_SQL, actualPortfolioMapper);
-        }
+    public List<ActualPortfolioRecord> findAll(JdbcTemplate jdbcTemplate) {
+        return jdbcTemplate.query(BASE_SELECT_SQL, actualPortfolioMapper);
+    }
 
-        public Optional<ActualPortfolioRecord> findByPublicId(JdbcTemplate jdbcTemplate,
-                        String publicId) {
-                String sql = BASE_SELECT_SQL + " WHERE ap.public_id=?";
-                return jdbcTemplate
-                                .query(sql, ps -> ps.setString(1, publicId), actualPortfolioMapper)
-                                .stream().findFirst();
-        }
+    public Optional<ActualPortfolioRecord> findByPublicId(
+            JdbcTemplate jdbcTemplate, String publicId) {
+        String sql = BASE_SELECT_SQL + " WHERE ap.public_id=?";
+        return jdbcTemplate
+                .query(sql, ps -> ps.setString(1, publicId), actualPortfolioMapper)
+                .stream()
+                .findFirst();
+    }
 
-        private final RowMapper<ActualPortfolioRecord> actualPortfolioMapper =
-                        (rs, rowNum) -> ActualPortfolioRecord.builder()
-                                        .id(rs.getLong(SqliteSchema.COL_ID))
-                                        .publicId(rs.getString(SqliteSchema.COL_PUBLIC_ID))
-                                        .assetId(rs.getLong(SqliteSchema.COL_ASSET_ID))
-                                        .assetPublicId(rs.getString(assetPublicIdName))
-                                        .date(rs.getString(SqliteSchema.COL_DATE))
-                                        .transactionType(rs.getString(
-                                                        SqliteSchema.COL_TRANSACTION_TYPE))
-                                        .currencyId(rs.getLong(SqliteSchema.COL_CURRENCY_ID))
-                                        .currencyPublicId(rs.getString(currencyPublicIdName))
-                                        .priceBp(rs.getLong(SqliteSchema.COL_PRICE_BP))
-                                        .amountBp(rs.getLong(SqliteSchema.COL_AMOUNT_BP))
-                                        .exchangeRateBp(rs
-                                                        .getLong(SqliteSchema.COL_EXCHANGE_RATE_BP))
-                                        .build();
+    private final RowMapper<ActualPortfolioRecord> actualPortfolioMapper =
+            (rs, rowNum) ->
+                    ActualPortfolioRecord.builder()
+                            .id(rs.getLong(SqliteSchema.COL_ID))
+                            .publicId(rs.getString(SqliteSchema.COL_PUBLIC_ID))
+                            .assetId(rs.getLong(SqliteSchema.COL_ASSET_ID))
+                            .assetPublicId(rs.getString(assetPublicIdName))
+                            .date(rs.getString(SqliteSchema.COL_DATE))
+                            .transactionType(rs.getString(SqliteSchema.COL_TRANSACTION_TYPE))
+                            .currencyId(rs.getLong(SqliteSchema.COL_CURRENCY_ID))
+                            .currencyPublicId(rs.getString(currencyPublicIdName))
+                            .priceBp(rs.getLong(SqliteSchema.COL_PRICE_BP))
+                            .amountBp(rs.getLong(SqliteSchema.COL_AMOUNT_BP))
+                            .exchangeRateBp(rs.getLong(SqliteSchema.COL_EXCHANGE_RATE_BP))
+                            .build();
 
-        public void save(JdbcTemplate jdbcTemplate, ActualPortfolioCreateRequest request,
-                        Long assetId, Long currencyId) {
-                String sql = String.format(
-                                "INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                                SqliteSchema.TABLE_ACTUAL_PORTFOLIO, SqliteSchema.COL_PUBLIC_ID,
-                                SqliteSchema.COL_ASSET_ID, SqliteSchema.COL_DATE,
-                                SqliteSchema.COL_TRANSACTION_TYPE, SqliteSchema.COL_CURRENCY_ID,
-                                SqliteSchema.COL_PRICE_BP, SqliteSchema.COL_AMOUNT_BP,
-                                SqliteSchema.COL_EXCHANGE_RATE_BP);
+    public void save(
+            JdbcTemplate jdbcTemplate,
+            ActualPortfolioCreateRequest request,
+            Long assetId,
+            Long currencyId) {
+        String sql =
+                String.format(
+                        "INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                        SqliteSchema.TABLE_ACTUAL_PORTFOLIO,
+                        SqliteSchema.COL_PUBLIC_ID,
+                        SqliteSchema.COL_ASSET_ID,
+                        SqliteSchema.COL_DATE,
+                        SqliteSchema.COL_TRANSACTION_TYPE,
+                        SqliteSchema.COL_CURRENCY_ID,
+                        SqliteSchema.COL_PRICE_BP,
+                        SqliteSchema.COL_AMOUNT_BP,
+                        SqliteSchema.COL_EXCHANGE_RATE_BP);
 
-                String publicId = UUID.randomUUID().toString();
+        String publicId = UUID.randomUUID().toString();
 
-                jdbcTemplate.update(sql, ps -> {
-                        ps.setString(1, publicId);
-                        ps.setLong(2, assetId);
-                        ps.setString(3, request.getDate());
-                        ps.setString(4, request.getTransactionType().getValue());
-                        ps.setLong(5, currencyId);
-                        ps.setLong(6, request.getPriceBp());
-                        ps.setLong(7, request.getAmountBp());
-                        ps.setLong(8, request.getExchangeRateBp());
+        jdbcTemplate.update(
+                sql,
+                ps -> {
+                    ps.setString(1, publicId);
+                    ps.setLong(2, assetId);
+                    //     ps.setString(3, request.getDate());
+                    ps.setString(3, request.getDate().toString());
+                    ps.setString(4, request.getTransactionType().getValue());
+                    ps.setLong(5, currencyId);
+                    ps.setLong(6, request.getPriceBp());
+                    ps.setLong(7, request.getAmountBp());
+                    ps.setLong(8, request.getExchangeRateBp());
                 });
-        }
+    }
 
-        public void updateByPublicId(JdbcTemplate jdbcTemplate, String publicId,
-                        ActualPortfolioCreateRequest request, Long assetId, Long currencyId) {
-                String sql = String.format(
-                                "UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=datetime('now') WHERE %s=? AND %s IS NULL",
-                                SqliteSchema.TABLE_ACTUAL_PORTFOLIO, SqliteSchema.COL_ASSET_ID,
-                                SqliteSchema.COL_DATE, SqliteSchema.COL_TRANSACTION_TYPE,
-                                SqliteSchema.COL_CURRENCY_ID, SqliteSchema.COL_PRICE_BP,
-                                SqliteSchema.COL_AMOUNT_BP, SqliteSchema.COL_EXCHANGE_RATE_BP,
-                                SqliteSchema.COL_UPDATED_AT, SqliteSchema.COL_PUBLIC_ID,
-                                SqliteSchema.COL_DELETED_AT);
+    public void updateByPublicId(
+            JdbcTemplate jdbcTemplate,
+            String publicId,
+            ActualPortfolioCreateRequest request,
+            Long assetId,
+            Long currencyId) {
+        String sql =
+                String.format(
+                        "UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=datetime('now') WHERE %s=? AND %s IS NULL",
+                        SqliteSchema.TABLE_ACTUAL_PORTFOLIO,
+                        SqliteSchema.COL_ASSET_ID,
+                        SqliteSchema.COL_DATE,
+                        SqliteSchema.COL_TRANSACTION_TYPE,
+                        SqliteSchema.COL_CURRENCY_ID,
+                        SqliteSchema.COL_PRICE_BP,
+                        SqliteSchema.COL_AMOUNT_BP,
+                        SqliteSchema.COL_EXCHANGE_RATE_BP,
+                        SqliteSchema.COL_UPDATED_AT,
+                        SqliteSchema.COL_PUBLIC_ID,
+                        SqliteSchema.COL_DELETED_AT);
 
-                jdbcTemplate.update(sql, ps -> {
-                        ps.setLong(1, assetId);
-                        ps.setString(2, request.getDate());
-                        ps.setString(3, request.getTransactionType().getValue());
-                        ps.setLong(4, currencyId);
-                        ps.setLong(5, request.getPriceBp());
-                        ps.setLong(6, request.getAmountBp());
-                        ps.setLong(7, request.getExchangeRateBp());
-                        ps.setString(8, publicId);
+        jdbcTemplate.update(
+                sql,
+                ps -> {
+                    ps.setLong(1, assetId);
+                    //     ps.setString(2, request.getDate());
+                    ps.setString(2, request.getDate().toString());
+                    ps.setString(3, request.getTransactionType().getValue());
+                    ps.setLong(4, currencyId);
+                    ps.setLong(5, request.getPriceBp());
+                    ps.setLong(6, request.getAmountBp());
+                    ps.setLong(7, request.getExchangeRateBp());
+                    ps.setString(8, publicId);
                 });
-        }
+    }
 
-        public void deleteByPublicId(JdbcTemplate jdbcTemplate, String publicId) {
-                String sql = String.format(
-                                "UPDATE %s SET %s=datetime('now') WHERE %s=? AND %s IS NULL",
-                                SqliteSchema.TABLE_ACTUAL_PORTFOLIO, SqliteSchema.COL_DELETED_AT,
-                                SqliteSchema.COL_PUBLIC_ID, SqliteSchema.COL_DELETED_AT);
+    public void deleteByPublicId(JdbcTemplate jdbcTemplate, String publicId) {
+        String sql =
+                String.format(
+                        "UPDATE %s SET %s=datetime('now') WHERE %s=? AND %s IS NULL",
+                        SqliteSchema.TABLE_ACTUAL_PORTFOLIO,
+                        SqliteSchema.COL_DELETED_AT,
+                        SqliteSchema.COL_PUBLIC_ID,
+                        SqliteSchema.COL_DELETED_AT);
 
-                jdbcTemplate.update(sql, ps -> ps.setString(1, publicId));
-        }
+        jdbcTemplate.update(sql, ps -> ps.setString(1, publicId));
+    }
 }

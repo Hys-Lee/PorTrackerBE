@@ -4,9 +4,7 @@ import com.PorTracker.PorTrackerBE.domain.memo.dto.MemoCreateRequest;
 import com.PorTracker.PorTrackerBE.domain.memo.dto.MemoResponse;
 import com.PorTracker.PorTrackerBE.domain.memo.entity.MemoRecord;
 import com.PorTracker.PorTrackerBE.domain.memo.service.MemoService;
-
 import jakarta.validation.Valid;
-
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +15,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -41,8 +38,9 @@ public class MemoController {
 
     @GetMapping("/{publicId}")
     public ResponseEntity<MemoResponse> getMemo(
-            // @RequestHeader("X-USER-ID") String userId, @PathVariable("publicId") String publicId) {
-             @PathVariable("publicId") String publicId) {
+            // @RequestHeader("X-USER-ID") String userId, @PathVariable("publicId") String publicId)
+            // {
+            @PathVariable("publicId") String publicId) {
         // MemoRecord record = memoService.getMemoById(userId, publicId);
         MemoRecord record = memoService.getMemoById(publicId);
 
@@ -62,18 +60,19 @@ public class MemoController {
     public ResponseEntity<Void> updateMemo(
             // @RequestHeader("X-USER-ID") String userId,
             @PathVariable("publicId") String publicId,
-         @Valid  @RequestBody MemoCreateRequest request) {
+            @Valid @RequestBody MemoCreateRequest request) {
         // memoService.updateMemo(userId, publicId, request);
-        memoService.updateMemo( publicId, request);
+        memoService.updateMemo(publicId, request);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{publicId}")
     public ResponseEntity<Void> deleteMemo(
-            // @RequestHeader("X-USER-ID") String userId, @PathVariable("publicId") String publicId) {
-             @PathVariable("publicId") String publicId) {
+            // @RequestHeader("X-USER-ID") String userId, @PathVariable("publicId") String publicId)
+            // {
+            @PathVariable("publicId") String publicId) {
         // memoService.deleteMemo(userId, publicId);
-        memoService.deleteMemo( publicId);
+        memoService.deleteMemo(publicId);
         return ResponseEntity.ok().build();
     }
 }

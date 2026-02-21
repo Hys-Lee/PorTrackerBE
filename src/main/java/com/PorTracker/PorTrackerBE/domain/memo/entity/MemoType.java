@@ -10,19 +10,25 @@ public enum MemoType {
 
     private final String value;
 
-    MemoType (String value){this.value = value;}
+    MemoType(String value) {
+        this.value = value;
+    }
 
     @JsonValue // json으로 나갈 때 이 값 사용
-    public String getValue(){return value;}
+    public String getValue() {
+        return value;
+    }
 
     @JsonCreator // json에ㅓㅅ 들어올 때
-    public static MemoType from (String value){
-        for (MemoType memoType :MemoType.values()){
-            if(memoType.value.equalsIgnoreCase(value)){
+    public static MemoType from(String value) {
+        for (MemoType memoType : MemoType.values()) {
+            if (memoType.value.equalsIgnoreCase(value)) {
                 return memoType;
             }
         }
-        return EVENT ; // 기본값
+        // return EVENT; // 기본값
+        // throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE,"유효하지 않은 메모 타입입니다.");
+        throw new IllegalArgumentException(value);
+        // return null;
     }
-
 }

@@ -11,7 +11,23 @@ spring:
     baseline-on-migrate: true # 중요: 기존에 테이블이 있는 상태에서 도입할 때 필요
   jmx:
     enabled: false
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: 
+  jackson:
+    deserialization:
+      accept-float-as-int: false
 logging:
   level:
     org.flywaydb: DEBUG
     org.springframework.boot.autoconfigure.flyway: DEBUG
+sentry:
+  dsn: ${SENTRY_DSN}
+  send-default-pii: true
+  traces-sample-rate: 1.0
+  exception-resolver-order: -2147483648
+supabase:
+  url: ${SUPABASE_URL}
+  key: ${SUPABASE_KEY}
