@@ -1,11 +1,10 @@
 package com.PorTracker.PorTrackerBE.domain.profile.dto;
 
 import com.PorTracker.PorTrackerBE.domain.profile.entity.ProfileRecord;
-import lombok.Builder;
-import lombok.Getter;
-
 import java.time.OffsetDateTime;
 import java.util.UUID;
+import lombok.Builder;
+import lombok.Getter;
 
 @Getter
 @Builder

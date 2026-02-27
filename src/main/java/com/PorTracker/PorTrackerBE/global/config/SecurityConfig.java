@@ -19,15 +19,21 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(csrf -> csrf.disable()) // API 서버이므로 CSRF 비활성화
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션 미사용
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/public/**").permitAll() // 공개 API
-                .anyRequest().authenticated() // 나머지는 모두 인증 필요
-            )
-            // 우리가 만든 JWT 필터를 시큐리티 필터 체인에 등록
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        http.csrf(csrf -> csrf.disable()) // API 서버이므로 CSRF 비활성화
+                .sessionManagement(
+                        session ->
+                                session.sessionCreationPolicy(
+                                        SessionCreationPolicy.STATELESS)) // 세션 미사용
+                .authorizeHttpRequests(
+                        auth ->
+                                auth.requestMatchers("/api/v1/public/**")
+                                        .permitAll() // 공개 API
+                                        .anyRequest()
+                                        .authenticated() // 나머지는 모두 인증 필요
+                        )
+                // 우리가 만든 JWT 필터를 시큐리티 필터 체인에 등록
+                .addFilterBefore(
+                        jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

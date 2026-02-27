@@ -6,12 +6,11 @@ import com.PorTracker.PorTrackerBE.domain.profile.repository.ProfileRepository;
 import com.PorTracker.PorTrackerBE.global.common.UserContextHolder;
 import com.PorTracker.PorTrackerBE.global.error.BusinessException;
 import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -26,7 +25,8 @@ public class ProfileService {
         UUID userId = UUID.fromString(userIdStr);
 
         // 2. 조회 및 예외 처리 (기존 스타일 적용)
-        return profileRepository.findById(userId)
+        return profileRepository
+                .findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
     }
 
@@ -36,7 +36,8 @@ public class ProfileService {
         UUID userId = UUID.fromString(userIdStr);
 
         // 1. Check exists
-        profileRepository.findById(userId)
+        profileRepository
+                .findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
 
         // 2. Update

@@ -16,11 +16,16 @@ public class StatisticService {
     private final StatisticRepository statisticRepository;
 
     public GroupStatisticRecord getGroupStatistic(String statType, String period) {
-        
-        return statisticRepository.findGroupStatistic(statType, period)
-                .orElseThrow(() -> {
-                    log.warn("Statistic data not found for type: {}, period: {}", statType, period);
-                    return new BusinessException(ErrorCode.NO_DATA);
-                });
+
+        return statisticRepository
+                .findGroupStatistic(statType, period)
+                .orElseThrow(
+                        () -> {
+                            log.warn(
+                                    "Statistic data not found for type: {}, period: {}",
+                                    statType,
+                                    period);
+                            return new BusinessException(ErrorCode.NO_DATA);
+                        });
     }
 }

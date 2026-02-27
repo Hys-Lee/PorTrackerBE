@@ -3,14 +3,15 @@ package com.PorTracker.PorTrackerBE.global.auth;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import java.nio.charset.StandardCharsets;
+import javax.crypto.SecretKey;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
-import javax.annotation.PostConstruct;
-
 @Component
+@Slf4j
 public class JwtUtils {
 
     @Value("${supabase.jwt-secret}")
@@ -19,7 +20,7 @@ public class JwtUtils {
     private SecretKey cachedKey;
 
     @PostConstruct
-    public void init(){
+    public void init() {
         // 열쇠 객체 만들어두기
         this.cachedKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
@@ -33,16 +34,13 @@ public class JwtUtils {
             getClaims(token);
             return true;
         } catch (Exception e) {
+            log.warn("invalid token: {}", e);
             return false;
         }
     }
 
     private Claims getClaims(String token) {
         
-        return Jwts.parserBuilder()
-                .setSigningKey(cachedKey)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        return Jwts.parser().verifyWith(cachedKey).build().parseSignedClaims(token).getPayload();
     }
 }

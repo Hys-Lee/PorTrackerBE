@@ -19,8 +19,7 @@ public class StatisticController {
 
     @GetMapping("/group")
     public ResponseEntity<GroupStatisticResponse> getGroupStatistic(
-            @RequestParam String statType,
-            @RequestParam String period) {
+            @RequestParam String statType, @RequestParam String period) {
 
         GroupStatisticRecord record = statisticService.getGroupStatistic(statType, period);
         return ResponseEntity.ok(GroupStatisticResponse.from(record));
