@@ -1,6 +1,7 @@
 package com.PorTracker.PorTrackerBE.global.auth;
 
 import com.PorTracker.PorTrackerBE.global.common.UserContextHolder;
+import com.PorTracker.PorTrackerBE.global.service.UserInitializationService;
 
 import io.jsonwebtoken.lang.Collections;
 import jakarta.servlet.FilterChain;
@@ -25,6 +26,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
 
+    private final UserInitializationService userInitializationService;
+
     @Override
     protected void doFilterInternal(
             HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -44,6 +47,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             
             // 핵심: 검증된 진짜 ID를 컨텍스트에 저장
             UserContextHolder.setUserId(userId);
+
+            userInitializationService.initializeUserDatabase(userId);
 
             log.info("Authentication user: {}, SecurityContext updated",userId);
         }

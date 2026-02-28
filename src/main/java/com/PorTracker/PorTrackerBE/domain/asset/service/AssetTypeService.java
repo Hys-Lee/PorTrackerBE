@@ -6,7 +6,9 @@ import com.PorTracker.PorTrackerBE.global.common.UserContextHolder;
 import com.PorTracker.PorTrackerBE.global.constant.SqliteSchema;
 import com.PorTracker.PorTrackerBE.global.error.BusinessException;
 import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
-import com.PorTracker.PorTrackerBE.service.sqlite.SqliteDatabaseManager;
+import com.PorTracker.PorTrackerBE.global.infra.sqlite.SqliteDatabaseManager;
+
+// import com.PorTracker.PorTrackerBE.service.sqlite.SqliteDatabaseManager;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +27,7 @@ public class AssetTypeService {
     // public List<AssetTypeRecord> getAllAssetTypes(String userId) {
     public List<AssetTypeRecord> getAllAssetTypes() {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         String sql =
                 String.format(
@@ -55,7 +57,7 @@ public class AssetTypeService {
     // public AssetTypeRecord getAssetTypeIdByPublicId(String userId, String publicId) {
     public AssetTypeRecord getAssetTypeIdByPublicId(String publicId) {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         // [DEBUG] 현재 이 유저의 DB에 어떤 데이터가 있는지 먼저 확인
         Integer totalCount =
@@ -103,7 +105,7 @@ public class AssetTypeService {
     // public void addAssetType(String userId, AssetTypeRequest request) {
     public void addAssetType(AssetTypeRequest request) {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         String sql =
                 String.format(
@@ -127,7 +129,7 @@ public class AssetTypeService {
     // public void updateAssetType(String userId, String publicId, AssetTypeRequest request) {
     public void updateAssetType(String publicId, AssetTypeRequest request) {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         String sql =
                 String.format(
@@ -156,7 +158,7 @@ public class AssetTypeService {
     // public void deleteAssetType(String userId, String publicId) {
     public void deleteAssetType(String publicId) {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         String sql =
                 String.format(

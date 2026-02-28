@@ -13,7 +13,9 @@ import com.PorTracker.PorTrackerBE.domain.target_portfolio.repository.TargetPort
 import com.PorTracker.PorTrackerBE.global.common.UserContextHolder;
 import com.PorTracker.PorTrackerBE.global.error.BusinessException;
 import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
-import com.PorTracker.PorTrackerBE.service.sqlite.SqliteDatabaseManager;
+import com.PorTracker.PorTrackerBE.global.infra.sqlite.SqliteDatabaseManager;
+
+// import com.PorTracker.PorTrackerBE.service.sqlite.SqliteDatabaseManager;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +39,7 @@ public class TargetPortfolioService {
             // String userId) {
             ) {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         // 1. 모든 포트폴리오 조회
         List<TargetPortfolioRecord> portfolios = targetPortfolioRepository.findAll(jdbcTemplate);
@@ -74,7 +76,7 @@ public class TargetPortfolioService {
                     // String userId, String publicId) {
                     String publicId) {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         TargetPortfolioRecord portfolio =
                 targetPortfolioRepository
@@ -93,7 +95,7 @@ public class TargetPortfolioService {
     // public List<TargetPortfolioItemRecord> getLatestSnapshotItems(String userId,
     public List<TargetPortfolioItemRecord> getLatestSnapshotItems(String publicId) {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         TargetPortfolioRecord portfolio =
                 targetPortfolioRepository
@@ -113,7 +115,7 @@ public class TargetPortfolioService {
     // public String addTargetPortfolio(String userId, TargetPortfolioCreateRequest request) {
     public String addTargetPortfolio(TargetPortfolioCreateRequest request) {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         String publicId = java.util.UUID.randomUUID().toString();
 
@@ -143,7 +145,7 @@ public class TargetPortfolioService {
     public void addSnapshot(String publicId, TargetPortfolioSnapshotUpdateRequest request) {
 
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         TargetPortfolioRecord portfolio =
                 targetPortfolioRepository
@@ -166,7 +168,7 @@ public class TargetPortfolioService {
     public void updateTargetPortfolio(String publicId, TargetPortfolioCreateRequest request) {
 
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         // Check exists
         targetPortfolioRepository
@@ -198,7 +200,7 @@ public class TargetPortfolioService {
     // public void deleteTargetPortfolio(String userId, String publicId) {
     public void deleteTargetPortfolio(String publicId) {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         targetPortfolioRepository
                 .findByPublicId(jdbcTemplate, publicId)

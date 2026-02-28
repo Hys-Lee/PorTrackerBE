@@ -8,7 +8,9 @@ import com.PorTracker.PorTrackerBE.domain.target_portfolio.service.TargetPortfol
 import com.PorTracker.PorTrackerBE.global.common.UserContextHolder;
 import com.PorTracker.PorTrackerBE.global.error.BusinessException;
 import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
-import com.PorTracker.PorTrackerBE.service.sqlite.SqliteDatabaseManager;
+import com.PorTracker.PorTrackerBE.global.infra.sqlite.SqliteDatabaseManager;
+
+// import com.PorTracker.PorTrackerBE.service.sqlite.SqliteDatabaseManager;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -31,14 +33,14 @@ public class MemoService {
     // public List<MemoRecord> getAllMemos(String userId) {
     public List<MemoRecord> getAllMemos() {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
         return memoRepository.findAll(jdbcTemplate);
     }
 
     // public MemoRecord getMemoById(String userId, String publicId) {
     public MemoRecord getMemoById(String publicId) {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
         return memoRepository
                 .findByPublicId(jdbcTemplate, publicId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
@@ -48,7 +50,7 @@ public class MemoService {
     // public String addMemo(String userId, MemoCreateRequest request) {
     public String addMemo(MemoCreateRequest request) {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         // Long actualId = resolveActualPortfolioId(jdbcTemplate, request.getActualId());
         // Long targetId = resolveTargetPortfolioId(jdbcTemplate, request.getTargetId());
@@ -88,7 +90,7 @@ public class MemoService {
     // public void updateMemo(String userId, String publicId, MemoCreateRequest request) {
     public void updateMemo(String publicId, MemoCreateRequest request) {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         // 메모 존재 여부 확인
         memoRepository
@@ -124,7 +126,7 @@ public class MemoService {
     // public void deleteMemo(String userId, String publicId) {
     public void deleteMemo(String publicId) {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         // 메모 존재 여부 확인
         memoRepository

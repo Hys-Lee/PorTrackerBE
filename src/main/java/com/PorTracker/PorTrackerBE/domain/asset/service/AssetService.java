@@ -10,7 +10,9 @@ import com.PorTracker.PorTrackerBE.global.common.UserContextHolder;
 import com.PorTracker.PorTrackerBE.global.constant.SqliteSchema;
 import com.PorTracker.PorTrackerBE.global.error.BusinessException;
 import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
-import com.PorTracker.PorTrackerBE.service.sqlite.SqliteDatabaseManager;
+import com.PorTracker.PorTrackerBE.global.infra.sqlite.SqliteDatabaseManager;
+
+// import com.PorTracker.PorTrackerBE.service.sqlite.SqliteDatabaseManager;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +35,7 @@ public class AssetService {
     // public List<AssetRecord> getAllAssets(String userId) {
     public List<AssetRecord> getAllAssets() {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         return assetRepository.findAll(jdbcTemplate);
     }
@@ -41,7 +43,7 @@ public class AssetService {
     // public AssetRecord getAssetByPublicId(String userId, String publicId) {
     public AssetRecord getAssetByPublicId(String publicId) {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         return assetRepository
                 .findByPublicId(jdbcTemplate, publicId)
@@ -53,7 +55,7 @@ public class AssetService {
     // public void addAsset(String userId, AssetCreateRequest request) {
     public void addAsset(AssetCreateRequest request) {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         // 로그 출력 수정
         log.info(
@@ -103,7 +105,7 @@ public class AssetService {
     // public void updateAsset(String userId, String publicId, AssetCreateRequest request) {
     public void updateAsset(String publicId, AssetCreateRequest request) {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         // Check exists
         assetRepository
@@ -135,7 +137,7 @@ public class AssetService {
     // public void deleteAsset(String userId, String publicId) {
     public void deleteAsset(String publicId) {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         // Check exists
         assetRepository

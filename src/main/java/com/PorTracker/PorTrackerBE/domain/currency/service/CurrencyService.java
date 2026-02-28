@@ -6,7 +6,9 @@ import com.PorTracker.PorTrackerBE.global.common.UserContextHolder;
 import com.PorTracker.PorTrackerBE.global.constant.SqliteSchema;
 import com.PorTracker.PorTrackerBE.global.error.BusinessException;
 import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
-import com.PorTracker.PorTrackerBE.service.sqlite.SqliteDatabaseManager;
+import com.PorTracker.PorTrackerBE.global.infra.sqlite.SqliteDatabaseManager;
+
+// import com.PorTracker.PorTrackerBE.service.sqlite.SqliteDatabaseManager;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +26,7 @@ public class CurrencyService {
     // public List<CurrencyTypeRecord> getAllCurrencies(String userId) {
     public List<CurrencyTypeRecord> getAllCurrencies() {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         String sql =
                 String.format(
@@ -47,7 +49,7 @@ public class CurrencyService {
     // public CurrencyTypeRecord getCurrencyByPublicId(String userId, String publicId) {
     public CurrencyTypeRecord getCurrencyByPublicId(String publicId) {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         String sql =
                 String.format(
@@ -83,7 +85,7 @@ public class CurrencyService {
     // public void addCurrency(String userId, CurrencyTypeRequest request) {
     public void addCurrency(CurrencyTypeRequest request) {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         String sql =
                 String.format(
@@ -114,7 +116,7 @@ public class CurrencyService {
     // public void updateCurrency(String userId, String publicId, CurrencyTypeRequest request) {
     public void updateCurrency(String publicId, CurrencyTypeRequest request) {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         String sql =
                 String.format(
@@ -141,7 +143,7 @@ public class CurrencyService {
     // public void deleteCurrency(String userId, String publicId) {
     public void deleteCurrency(String publicId) {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplateOfDataSource(userId);
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         // Check exists
         // getCurrencyByPublicId(userId, publicId); // This logic might need refinement if get
