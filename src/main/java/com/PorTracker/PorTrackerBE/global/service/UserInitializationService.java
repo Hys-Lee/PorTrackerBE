@@ -24,9 +24,22 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class UserInitializationService {
     private final SqliteDatabaseManager sqliteManager;
+    private final SyncService  syncService;
+
 
     public void initializeUserDatabase(String userId){
         ensureDatabaseDirectoryExists();
+
+        Path localPath = Paths.get("db/"+userId+".db").toAbsolutePath();
+        if(!Files.exists(localPath)){
+            log.info("[Init] local file missing. Attempting to download for user: {}",userId);
+
+            // 메모리에 있는 유령 커넥션 제거하기
+            sqliteManager.removeDataSource(userId);
+
+            syncService.downloadFromCloud(userId);
+        }
+
          // 뭐 try안에 있어야 하는거아닌가? 사용측에 있어야 하나?
         runFlywayMigration(userId);
     }

@@ -4,6 +4,8 @@ import com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioCr
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioResponse;
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.entity.ActualPortfolioRecord;
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.service.ActualPortfolioService;
+import com.PorTracker.PorTrackerBE.global.service.SyncService;
+
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

@@ -27,6 +27,13 @@ public class SqliteDatabaseManager {
     private final Map<String, DataSource> dataSourceMap = new ConcurrentHashMap<>();
 
     public DataSource getDataSource(String userId){
+        // Map에는 있는데 실제는 없다면, 캐시 무효화하고 새로 만들기
+        Path path = Paths.get("db/"+userId+".db");
+        if (!Files.exists(path)){
+            removeDataSource(userId);
+        }
+
+
         return dataSourceMap.computeIfAbsent(userId, this::createSqliteDataSource);
     }
 

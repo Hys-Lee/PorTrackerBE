@@ -81,6 +81,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	runtimeOnly 'io.netty:netty-resolver-dns-native-macos'
 	developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+	implementation 'org.apache.httpcomponents.client5:httpclient5'
 }
 
 tasks.named('test') {

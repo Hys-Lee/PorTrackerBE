@@ -1,4 +1,4 @@
-package com.PorTracker.PorTrackerBE.global.aspect;
+package com.PorTracker.PorTrackerBE.global.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

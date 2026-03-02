@@ -11,6 +11,7 @@ import com.PorTracker.PorTrackerBE.global.common.UserContextHolder;
 import com.PorTracker.PorTrackerBE.global.error.BusinessException;
 import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
 import com.PorTracker.PorTrackerBE.global.infra.sqlite.SqliteDatabaseManager;
+import com.PorTracker.PorTrackerBE.global.service.SyncService;
 
 // import com.PorTracker.PorTrackerBE.service.sqlite.SqliteDatabaseManager;
 import java.util.List;
@@ -29,10 +30,15 @@ public class ActualPortfolioService {
     private final AssetService assetService;
     private final CurrencyService currencyService;
 
+
+    //test
+    private final SyncService syncService;
+
     // public List<ActualPortfolioRecord> getAllActualPortfolios(String userId) {
     public List<ActualPortfolioRecord> getAllActualPortfolios() {
         String userId = UserContextHolder.getUserId();
         JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
+
 
         return actualPortfolioRepository.findAll(jdbcTemplate);
     }

@@ -42,3 +42,6 @@ google-key.json
 .env
 application.properties
 gradle.properties
+
+### tmp user's db ###
+/db

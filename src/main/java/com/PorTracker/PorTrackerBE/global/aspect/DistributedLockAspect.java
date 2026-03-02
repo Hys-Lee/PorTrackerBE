@@ -1,5 +1,6 @@
 package com.PorTracker.PorTrackerBE.global.aspect;
 
+import com.PorTracker.PorTrackerBE.global.annotation.DistributedLock;
 import com.PorTracker.PorTrackerBE.global.error.BusinessException;
 import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
 import java.util.concurrent.TimeUnit;
