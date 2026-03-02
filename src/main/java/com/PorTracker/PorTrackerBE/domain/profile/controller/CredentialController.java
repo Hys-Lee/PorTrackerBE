@@ -26,8 +26,9 @@ public class CredentialController {
     public ResponseEntity<Void> updateToken(@RequestBody Map<String, String> body){
         String userId = UserContextHolder.getUserId();
         String googletoken = body.get("provider_token");
+        String refreshToken = body.get("refresh_token");
 
-        credentialRepository.saveGoogleToken(UUID.fromString(userId), googletoken);
+        credentialRepository.saveGoogleToken(UUID.fromString(userId), googletoken, refreshToken);
         return ResponseEntity.ok().build();
     }
     

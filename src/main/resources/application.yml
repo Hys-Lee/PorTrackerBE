@@ -32,3 +32,6 @@ supabase:
   url: ${SUPABASE_URL}
   key: ${SUPABASE_KEY}
   jwt-secret: ${SUPABASE_JWT_SECRET}
+google:
+  client-id: ${GOOGLE_CLIENT_ID}
+  client-secret: ${GOOGLE_CLIENT_SECRET}

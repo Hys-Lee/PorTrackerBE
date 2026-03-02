@@ -10,7 +10,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Service;
 
+import com.PorTracker.PorTrackerBE.domain.profile.entity.CredentialRecord;
 import com.PorTracker.PorTrackerBE.domain.profile.repository.CredentialRepository;
+import com.PorTracker.PorTrackerBE.global.infra.google.GoogleAuthService;
 import com.PorTracker.PorTrackerBE.global.infra.google.GoogleDriveClient;
 // import com.PorTracker.PorTrackerBE.global.infra.supabase.SupabaseAuthClient;
 import com.PorTracker.PorTrackerBE.global.infra.sqlite.SqliteDatabaseManager;
@@ -25,10 +27,10 @@ public class SyncService {
     // private final SupabaseAuthClient supabaseAuthClient;
     private final CredentialRepository credentialRepository;
     private final GoogleDriveClient googleDriveClient;
+    private final GoogleAuthService googleAuthService;
     private final SqliteDatabaseManager sqliteManager;
 
    
-
 
 
     public void downloadFromCloud (String userId){
@@ -67,13 +69,43 @@ public class SyncService {
         }
     
 
-        // String accessToken = supabaseAuthClient.getGoogleAccessToken(userId);
-        String accessToken = credentialRepository.getAccessToken(UUID.fromString(userId));
-        if(accessToken==null){
-            log.error("[Sync] No google aceess token found for user: {}", userId);
+        // db에서 토큰 가져오기
+        CredentialRecord cred = credentialRepository.findByUserId(UUID.fromString(userId)).orElse(null);
+
+        if(cred == null | cred.getAccessToken() == null){
+            log.error("[Sync] No Credentials for user: {}",userId);
             return;
         }
-        googleDriveClient.syncToDrive(userId, accessToken);
+
+
+        // 업로드 시도 (401시 토큰 갱신)
+        try{
+            googleDriveClient.syncToDrive(userId, cred.getAccessToken());
+
+        }catch(Exception e){
+            if(e.getMessage()!=null && e.getMessage().contains("401")){
+                log.info("[Sync] Token expired, refresing for user: {}", userId);
+
+                String newAccessToken = googleAuthService.refreshAccessToken(cred.getRefreshToken());
+
+                if (newAccessToken != null){
+                    credentialRepository.updateAccessToken(UUID.fromString(userId), newAccessToken);
+                    googleDriveClient.syncToDrive(userId, newAccessToken);
+                    log.info("[Sync] Uploaded successfully after token refreshed");
+                }
+            }else{
+                log.error("[Sync] Upload failed for user: {}", userId, e.getMessage());
+            }
+        }
+
+
+        // String accessToken = supabaseAuthClient.getGoogleAccessToken(userId);
+        // String accessToken = credentialRepository.getAccessToken(UUID.fromString(userId));
+        // if(accessToken==null){
+        //     log.error("[Sync] No google aceess token found for user: {}", userId);
+        //     return;
+        // }
+        // googleDriveClient.syncToDrive(userId, accessToken);
     }
 
 }
