@@ -16,13 +16,15 @@ public enum ErrorCode {
     // DB
     DATA_SAVE_FAILED(500, "D001", " 데이터 저장 중 오류가 발생했습니다."),
     NO_DATA(404, "D002", "해당 데이터는 존재하지 않습니다."),
-
     DATA_CREATE_FAILED(500,"D003","개인 데이터베이스 생성에 실패했습니다."),
 
     // Google Drive File
     FILE_DOWNLOAD_FAILED(500, "F001", "구글 드라이브 파일 다운로드에 실패했습니다."),
+    DB_SYNC_FAILED(500, "F002", "DB 동기화 중 오류가 발생했습니다"),
 
-    DB_SYNC_FAILED(500, "F002", "DB 동기화 중 오류가 발생했습니다");
+    // Authenticatoin/Authorization
+    USER_WITHDRAWAL_FAILED(500, "A001", "회원 탈퇴 처리 중 오류가 발생했습니다."),
+    EXTERNAL_SERVICE_ERROR(500, "A002", "외부 인증 서버와의 통신 중 오류가 발생했습니다.");
 
     private final int status;
     private final String code;

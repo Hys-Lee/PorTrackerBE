@@ -129,16 +129,16 @@ public class GoogleDriveClient {
          HttpHeaders headers = new HttpHeaders();
          headers.setBearerAuth(accessToken);
 
-         try{
-            ResponseEntity<Map> response  = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), Map.class);
+        //  try{
+        ResponseEntity<Map> response  = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), Map.class);
 
-            List<Map<String, Object>> files = (List<Map<String,Object>>)response.getBody().get("files");
-            if(files != null && !files.isEmpty()){
-                return (String) files.get(0).get("id");
-            }
-         }catch(Exception e){
-            log.error("[GoogleDrive] Search failed for file: {}", fileName, e);
-         }
+        List<Map<String, Object>> files = (List<Map<String,Object>>)response.getBody().get("files");
+        if(files != null && !files.isEmpty()){
+            return (String) files.get(0).get("id");
+        }
+        //  }catch(Exception e){
+        //     log.error("[GoogleDrive] Search failed for file: {}", fileName, e);
+        //  }
          return null;
     }
 
@@ -190,5 +190,20 @@ public class GoogleDriveClient {
         }
     }
 
+
+    public void deleteFile(String fileName, String accessToken){
+        String fileId = findFileIdByName(fileName, accessToken);
+        if (fileId == null) return;
+
+        String url = "https://www.googleapis.com/drive/v3/files/"+fileId;
+        HttpHeaders headers = new HttpHeaders();
+
+        try{
+            restTemplate.exchange(url, HttpMethod.DELETE, new HttpEntity<>(headers), Void.class);
+            log.info("[GoogleDrive] Deleted file: {}", fileName);
+        }catch (Exception e){
+            log.error("[GoogleDrive] Failed to delete file: {}", fileName, e.getMessage());
+        }
+    }
 
 }
