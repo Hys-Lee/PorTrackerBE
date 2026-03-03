@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import lombok.RequiredArgsConstructor;
@@ -36,7 +37,11 @@ public class GoogleAuthService {
         try{
             Map<String, Object> response = restTemplate.postForObject(url, params, Map.class);
             return (String) response.get("access_token");
-        }catch(Exception e){
+        }catch(HttpClientErrorException e){
+            log.error("[GoogleAuth] Refresh failed. status: {}, body: {}", e.getStatusCode(), e.getResponseBodyAsString());
+            return null;
+        }
+        catch(Exception e){
             log.error("[GoogleAuth] Failed to refresh token", e.getMessage());
             return null;
         }

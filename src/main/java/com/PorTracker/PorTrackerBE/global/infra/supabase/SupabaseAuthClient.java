@@ -11,6 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import com.PorTracker.PorTrackerBE.global.error.BusinessException;
+import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
+
 import lombok.RequiredArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +31,7 @@ public class SupabaseAuthClient {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public String getGoogleAccessToken(String userId){
+    public String getGoogleRefreshToken(String userId){
         String url = supabaseUrl+"/auth/v1/admin/users/"+userId;
 
         HttpHeaders headers = new HttpHeaders();
@@ -45,16 +48,33 @@ public class SupabaseAuthClient {
                 log.info("[Supabase] response body: {}", body);
 
                 // supabase응답 구조에 따라서.
-                String token =  (String) body.get("provider_token");
-                if(token==null){
-                    log.warn("[Supabase] provider_token is null for user: {}", userId);
+                String googleRefreshToken =  (String) body.get("provider_refresh_token");
+                if(googleRefreshToken==null){
+                    log.warn("[Supabase] provider_refresh_token is null for user: {}", userId);
                 }
-                return token;
+                return googleRefreshToken;
             }
         }catch(Exception e){
             log.error("[Supabase] Failed to fetch Google Token:{} for user: {}",e.getMessage(),userId,e);
         }
         return null;
+    }
+
+
+    public void deleteUserAccount (String userId){
+        String url = supabaseUrl+"/auth/v1/admin/users/"+userId;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer "+serviceRoleKey);
+        headers.set("apikey", serviceRoleKey);
+
+        try{
+            restTemplate.exchange(url, HttpMethod.DELETE, new HttpEntity<>(headers), Void.class);
+            log.info("[Supabase] Successfully deleted auth account for user: {}", userId);
+        }catch(Exception e){
+            log.error("[Supabase] Failed to delete auth account for user: {}", userId, e.getMessage());
+            throw new BusinessException(ErrorCode.DATA_CREATE_FAILED);
+        }
     }
 
 }

@@ -8,7 +8,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 
 import com.PorTracker.PorTrackerBE.domain.profile.entity.CredentialRecord;
 import com.PorTracker.PorTrackerBE.domain.profile.repository.CredentialRepository;
@@ -30,7 +32,7 @@ public class SyncService {
     private final GoogleAuthService googleAuthService;
     private final SqliteDatabaseManager sqliteManager;
 
-   
+    
 
 
     public void downloadFromCloud (String userId){
@@ -82,8 +84,9 @@ public class SyncService {
         try{
             googleDriveClient.syncToDrive(userId, cred.getAccessToken());
 
-        }catch(Exception e){
-            if(e.getMessage()!=null && e.getMessage().contains("401")){
+        }catch(HttpClientErrorException e){
+
+            if(e.getStatusCode() == HttpStatus.UNAUTHORIZED){
                 log.info("[Sync] Token expired, refresing for user: {}", userId);
 
                 String newAccessToken = googleAuthService.refreshAccessToken(cred.getRefreshToken());
@@ -94,8 +97,10 @@ public class SyncService {
                     log.info("[Sync] Uploaded successfully after token refreshed");
                 }
             }else{
-                log.error("[Sync] Upload failed for user: {}", userId, e.getMessage());
+                log.error("[Sync] Google API Client Error: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
             }
+        } catch(Exception e){
+            log.error("[Sync] Unexpected eror during upload: {}", e.getMessage());
         }
 
 

@@ -20,11 +20,11 @@ import lombok.RequiredArgsConstructor;
 public class CredentialRepository {
     private final JdbcTemplate jdbcTemplate;
     public void saveGoogleToken(UUID userId, String accessToken, String refreshToken){
-        String provider = "google";
+        String provider = "'google'";
         String sql=String.format("INSERT INTO public.credential (%s,%s,%s,%s,%s)" +
-         " VALUES (?, $s, ?, ?, NOW())"+
+         " VALUES (?, %s, ?, ?, NOW())"+
          " ON CONFLICT (%s)" + 
-         " DO UPDATE SET %s=EXCLUDED.%s, %s = EXCLUDED.%s, %s = NOW()",
+         " DO UPDATE SET %s=EXCLUDED.%s, %s = COALESCE(EXCLUDED.%s, public.credential.%s), %s = NOW()",
         // insert
         SqliteSchema.COL_ID, SqliteSchema.COL_PROVIDER, SqliteSchema.COL_ACCESS_TOKEN,CentralSchema.COL_REFRESH_TOKEN, SqliteSchema.COL_UPDATED_AT,
 
@@ -34,7 +34,7 @@ public class CredentialRepository {
         SqliteSchema.COL_ID,
         // do
         SqliteSchema.COL_ACCESS_TOKEN, SqliteSchema.COL_ACCESS_TOKEN, 
-        CentralSchema.COL_REFRESH_TOKEN, CentralSchema.COL_REFRESH_TOKEN,
+        CentralSchema.COL_REFRESH_TOKEN, CentralSchema.COL_REFRESH_TOKEN,CentralSchema.COL_REFRESH_TOKEN,
         SqliteSchema.COL_UPDATED_AT
         );
 
