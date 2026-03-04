@@ -1,38 +1,31 @@
 package com.PorTracker.PorTrackerBE.global.service;
 
-import java.io.File;
+import com.PorTracker.PorTrackerBE.global.error.BusinessException;
+import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
+import com.PorTracker.PorTrackerBE.global.infra.sqlite.SqliteDatabaseManager;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import javax.management.RuntimeErrorException;
 import javax.sql.DataSource;
-
-import org.flywaydb.core.Flyway;
-import org.springframework.stereotype.Service;
-
-import com.PorTracker.PorTrackerBE.global.error.BusinessException;
-import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
-import com.PorTracker.PorTrackerBE.global.infra.sqlite.SqliteDatabaseManager;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.flywaydb.core.Flyway;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserInitializationService {
     private final SqliteDatabaseManager sqliteManager;
-    private final SyncService  syncService;
+    private final SyncService syncService;
 
-
-    public void initializeUserDatabase(String userId){
+    public void initializeUserDatabase(String userId) {
         ensureDatabaseDirectoryExists();
 
-        Path localPath = Paths.get("db/"+userId+".db").toAbsolutePath();
-        if(!Files.exists(localPath)){
-            log.info("[Init] local file missing. Attempting to download for user: {}",userId);
+        Path localPath = Paths.get("db/" + userId + ".db").toAbsolutePath();
+        if (!Files.exists(localPath)) {
+            log.info("[Init] local file missing. Attempting to download for user: {}", userId);
 
             // 메모리에 있는 유령 커넥션 제거하기
             sqliteManager.removeDataSource(userId);
@@ -40,7 +33,7 @@ public class UserInitializationService {
             syncService.downloadFromCloud(userId);
         }
 
-         // 뭐 try안에 있어야 하는거아닌가? 사용측에 있어야 하나?
+        // 뭐 try안에 있어야 하는거아닌가? 사용측에 있어야 하나?
         runFlywayMigration(userId);
     }
 
@@ -62,27 +55,32 @@ public class UserInitializationService {
     //     }
     // }
 
-    private void ensureDatabaseDirectoryExists(){
+    private void ensureDatabaseDirectoryExists() {
         Path dbFolderPath = Paths.get("db").toAbsolutePath();
-        try{
-            if(!Files.exists(dbFolderPath)){
+        try {
+            if (!Files.exists(dbFolderPath)) {
                 Files.createDirectories(dbFolderPath);
-                log.info("[Init] Created database directory: {}",dbFolderPath);
+                log.info("[Init] Created database directory: {}", dbFolderPath);
             }
-        }catch (IOException e){
-            log.error("[Init] Failed to create db directory",e);
+        } catch (IOException e) {
+            log.error("[Init] Failed to create db directory", e);
             throw new BusinessException(ErrorCode.DATA_CREATE_FAILED);
         }
     }
 
-    private void runFlywayMigration(String userId){
+    private void runFlywayMigration(String userId) {
         DataSource dataSource = sqliteManager.getDataSource(userId);
 
         // Sqlite flyway 설정
-        Flyway flyway = Flyway.configure().dataSource(dataSource).locations("classpath:db/migration/sqlite").baselineOnMigrate(true).load();
+        Flyway flyway =
+                Flyway.configure()
+                        .dataSource(dataSource)
+                        .locations("classpath:db/migration/sqlite")
+                        .baselineOnMigrate(true)
+                        .load();
 
         flyway.migrate();
-        
-        log.info("[Init] Flyway migration successful for user:{} ",userId);
+
+        log.info("[Init] Flyway migration successful for user:{} ", userId);
     }
 }

@@ -1,5 +1,3 @@
 package com.PorTracker.PorTrackerBE.global.annotation;
 
-public class SyncToCloud {
-    
-}
+public class SyncToCloud {}
