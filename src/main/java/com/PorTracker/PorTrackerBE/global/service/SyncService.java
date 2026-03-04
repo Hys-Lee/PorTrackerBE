@@ -8,12 +8,14 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.checkerframework.checker.units.qual.t;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
 import com.PorTracker.PorTrackerBE.domain.profile.entity.CredentialRecord;
 import com.PorTracker.PorTrackerBE.domain.profile.repository.CredentialRepository;
+import com.PorTracker.PorTrackerBE.domain.statistic.service.StatisticService;
 import com.PorTracker.PorTrackerBE.global.infra.google.GoogleAuthService;
 import com.PorTracker.PorTrackerBE.global.infra.google.GoogleDriveClient;
 // import com.PorTracker.PorTrackerBE.global.infra.supabase.SupabaseAuthClient;
@@ -31,7 +33,7 @@ public class SyncService {
     private final GoogleDriveClient googleDriveClient;
     private final GoogleAuthService googleAuthService;
     private final SqliteDatabaseManager sqliteManager;
-
+    private final StatisticService statisticService;
     
 
 
@@ -83,6 +85,7 @@ public class SyncService {
         // 업로드 시도 (401시 토큰 갱신)
         try{
             googleDriveClient.syncToDrive(userId, cred.getAccessToken());
+            log.info("[Sync] Upload successful for user: {}", userId);
 
         }catch(HttpClientErrorException e){
 
@@ -103,6 +106,12 @@ public class SyncService {
             log.error("[Sync] Unexpected eror during upload: {}", e.getMessage());
         }
 
+
+        try{
+            statisticService.contributeTotalAsset(userId);
+        }catch(Exception e){
+            log.warn("[Stat] Failed to contribute statistics: {}",e.getMessage());
+        }
 
         // String accessToken = supabaseAuthClient.getGoogleAccessToken(userId);
         // String accessToken = credentialRepository.getAccessToken(UUID.fromString(userId));
