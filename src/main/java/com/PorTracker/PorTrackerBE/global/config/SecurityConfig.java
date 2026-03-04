@@ -26,7 +26,15 @@ public class SecurityConfig {
                                         SessionCreationPolicy.STATELESS)) // 세션 미사용
                 .authorizeHttpRequests(
                         auth ->
-                                auth.requestMatchers("/api/v1/public/**")
+                                auth
+                                        // 스웨거 관련
+                                        .requestMatchers(
+                                                "/swagger-ui/**",
+                                                "/v3/api-docs/**",
+                                                "/swagger-resource/**",
+                                                "webjars/**")
+                                        .permitAll()
+                                        .requestMatchers("/api/v1/public/**")
                                         .permitAll() // 공개 API
                                         .anyRequest()
                                         .authenticated() // 나머지는 모두 인증 필요

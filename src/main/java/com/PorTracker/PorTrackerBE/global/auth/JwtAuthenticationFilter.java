@@ -3,7 +3,6 @@ package com.PorTracker.PorTrackerBE.global.auth;
 import com.PorTracker.PorTrackerBE.global.common.UserContextHolder;
 import com.PorTracker.PorTrackerBE.global.service.SyncManager;
 import com.PorTracker.PorTrackerBE.global.service.UserInitializationService;
-
 import io.jsonwebtoken.lang.Collections;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -12,7 +11,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -32,6 +30,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final SyncManager syncManager;
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getServletPath();
+        return path.startsWith("/swagger-ui")
+                || path.startsWith("/v3/api-docs")
+                || path.startsWith("/swagger-resource");
+    }
+
+    @Override
     protected void doFilterInternal(
             HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
@@ -40,24 +46,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (token != null && jwtUtils.validateToken(token)) {
             String userId = jwtUtils.extractUserId(token);
-            
+
             //
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
-            
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
+
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            
+
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            
+
             // 핵심: 검증된 진짜 ID를 컨텍스트에 저장
             UserContextHolder.setUserId(userId);
 
             // 활동 시간 갱신하기
             syncManager.updateAccessTime(userId);
 
-
             userInitializationService.initializeUserDatabase(userId);
 
-            log.info("Authentication user: {}, SecurityContext updated",userId);
+            log.info("Authentication user: {}, SecurityContext updated", userId);
         }
 
         try {
