@@ -28,6 +28,40 @@ public class SyncService {
     private final StatisticService statisticService;
 
     public void downloadFromCloud(String userId) {
+        CredentialRecord cred =
+                credentialRepository.findByUserId(UUID.fromString(userId)).orElse(null);
+        if (cred == null || cred.getAccessToken() == null) {
+            log.warn("[Sync] No credentials found for user: {}. Skipping dowload...", userId);
+            return;
+        }
+
+        try {
+            // 다운로드 시도
+            performDownload(userId, cred.getAccessToken());
+
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+                log.info("[Sync] Access Token Expried. Refreshing for user: {}", userId);
+
+                String newAccessToken =
+                        googleAuthService.refreshAccessToken(cred.getRefreshToken());
+
+                if (newAccessToken != null) {
+                    credentialRepository.updateAccessToken(UUID.fromString(userId), newAccessToken);
+
+                    performDownload(userId, newAccessToken);
+                    log.info("[Sync] Download dsuccessful after token refresh");
+
+                } else {
+                    log.error("[Sync] Google API Error during download:{}");
+                }
+            }
+        } catch (Exception e) {
+            log.error("[Sync] Unexpected error during download: {}", e.getMessage());
+        }
+    }
+
+    private void performDownload(String userId, String acessToken) {
         String accessToken = credentialRepository.getAccessToken(UUID.fromString(userId));
         if (accessToken == null) return;
 
