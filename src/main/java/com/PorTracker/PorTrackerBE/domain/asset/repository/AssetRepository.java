@@ -7,6 +7,8 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -15,12 +17,7 @@ public class AssetRepository {
     private static String sqlCurrencyPublicIdName = "currency_type_public_id";
     private static String sqlAssetTypePublicIdName = "asset_type_public_id";
 
-    private static String BASE_SELECT_SQL =
-            String.format(
-                    "SELECT a.%s, a.%s, a.%s, a.%s, a.%s, a.%s, a.%s, a.%s, a.%s, c.%s as %s, at.%s as %s"
-                            + " FROM %s a JOIN %s c ON a.%s=c.%s JOIN %s at ON a.%s=at.%s",
-                    // select
-                    SqliteSchema.COL_ID,
+        private static String CORE_SELECT_SQL = String.format("SELECT a.%s, a.%s, a.%s, a.%s, a.%s, a.%s, a.%s, a.%s, a.%s",SqliteSchema.COL_ID,
                     SqliteSchema.COL_PUBLIC_ID,
                     SqliteSchema.COL_CREATED_AT,
                     SqliteSchema.COL_UPDATED_AT,
@@ -28,7 +25,14 @@ public class AssetRepository {
                     SqliteSchema.COL_NAME,
                     SqliteSchema.COL_DESCRIPTION,
                     SqliteSchema.COL_CURRENCY_ID,
-                    SqliteSchema.COL_TYPE_ID,
+                    SqliteSchema.COL_TYPE_ID);
+
+    private static String BASE_SELECT_SQL =
+            String.format(
+                    CORE_SELECT_SQL+", c.%s as %s, at.%s as %s"
+                            + " FROM %s a JOIN %s c ON a.%s=c.%s JOIN %s at ON a.%s=at.%s",
+                    // select
+                  
                     SqliteSchema.COL_PUBLIC_ID,
                     sqlCurrencyPublicIdName,
                     SqliteSchema.COL_PUBLIC_ID,
@@ -110,4 +114,21 @@ public class AssetRepository {
 
         jdbcTemplate.update(sql, ps -> ps.setString(1, publicId));
     }
+
+    private static final String BULK_SELECT_SQL = String.format(CORE_SELECT_SQL + " FROM %s"+" WHERE %s IN (:bulkIds) AND %s IS NULL" , 
+        // from
+        SqliteSchema.TABLE_ASSET,
+        // where
+        SqliteSchema.COL_PUBLIC_ID, SqliteSchema.COL_DELETED_AT
+    );
+
+    public List<AssetRecord> findByPublicIds(NamedParameterJdbcTemplate jdbcTemplate, List<String> publicIds){
+        if(publicIds==null || publicIds.isEmpty()) return List.of();
+
+        MapSqlParameterSource parameters = new MapSqlParameterSource();
+        parameters.addValue("bulkIds", publicIds);
+
+        return jdbcTemplate.query(BULK_SELECT_SQL,parameters, assetMapper);
+    }
+
 }

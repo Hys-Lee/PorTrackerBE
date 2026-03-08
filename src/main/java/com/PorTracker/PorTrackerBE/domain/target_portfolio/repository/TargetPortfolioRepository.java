@@ -10,22 +10,35 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
 public class TargetPortfolioRepository {
 
-    private static final String BASE_SELECT_SQL =
+    private static final String CORE_SELECT_SQL =
             String.format(
-                    " SELECT %s, %s, %s, %s, %s, %s FROM %s",
+                    "SELECT %s, %s, %s, %s, %s, %s",
                     SqliteSchema.COL_ID,
                     SqliteSchema.COL_PUBLIC_ID,
                     SqliteSchema.COL_NAME,
                     SqliteSchema.COL_DATE,
                     SqliteSchema.COL_CREATED_AT,
-                    SqliteSchema.COL_DELETED_AT,
+                    SqliteSchema.COL_DELETED_AT);
+
+    private static final String BASE_SELECT_SQL =
+            String.format(
+                    CORE_SELECT_SQL + " FROM %s",
                     SqliteSchema.TABLE_TARGET_PORTFOLIO);
+
+    private static final String BULK_SELECT_SQL =
+            String.format(
+                    CORE_SELECT_SQL + " FROM %s WHERE %s IN (:bulkIds) AND %s IS NULL",
+                    SqliteSchema.TABLE_TARGET_PORTFOLIO,
+                    SqliteSchema.COL_PUBLIC_ID,
+                    SqliteSchema.COL_DELETED_AT);
 
     private final RowMapper<TargetPortfolioRecord> portfolioMapper =
             (rs, rowNum) ->
@@ -119,5 +132,15 @@ public class TargetPortfolioRepository {
                         SqliteSchema.COL_DELETED_AT);
 
         jdbcTemplate.update(sql, ps -> ps.setString(1, publicId));
+    }
+
+    public List<TargetPortfolioRecord> findByPublicIds(
+            NamedParameterJdbcTemplate jdbcTemplate, List<String> publicIds) {
+        if (publicIds == null || publicIds.isEmpty()) return List.of();
+
+        MapSqlParameterSource parameters = new MapSqlParameterSource();
+        parameters.addValue("bulkIds", publicIds);
+
+        return jdbcTemplate.query(BULK_SELECT_SQL, parameters, portfolioMapper);
     }
 }

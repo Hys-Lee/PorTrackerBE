@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -75,4 +76,10 @@ public class SqliteDatabaseManager {
             log.info("[SQLite] Closed DataSource for user: {}", userId);
         }
     }
+
+    // bulk api 위해
+    public NamedParameterJdbcTemplate getNamedParameterJdbcTemplate(String userId){
+        return new NamedParameterJdbcTemplate(getDataSource(userId));
+    }
+
 }

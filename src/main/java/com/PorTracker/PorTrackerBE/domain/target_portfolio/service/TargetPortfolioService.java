@@ -89,6 +89,33 @@ public class TargetPortfolioService {
                 portfolio, items);
     }
 
+    /** 여러 포트폴리오를 public ID 리스트로 조회. */
+    public List<com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioData> getTargetPortfolioByPublicIds(List<String> publicIds) {
+        String userId = UserContextHolder.getUserId();
+        org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate jdbcTemplate = sqliteManager.getNamedParameterJdbcTemplate(userId);
+
+        List<TargetPortfolioRecord> portfolios = targetPortfolioRepository.findByPublicIds(jdbcTemplate, publicIds);
+
+        if (portfolios.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+
+        List<Long> portfolioIds = portfolios.stream().map(TargetPortfolioRecord::getId).toList();
+
+        java.util.Map<Long, List<TargetPortfolioItemRecord>> itemsMap =
+                itemRepository.findLatestItemsByPortfolioIds(sqliteManager.getJdbcTemplate(userId), portfolioIds);
+
+        return portfolios.stream()
+                .map(
+                        portfolio ->
+                                new com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioData(
+                                        portfolio,
+                                        itemsMap.getOrDefault(
+                                                portfolio.getId(),
+                                                java.util.Collections.emptyList())))
+                .toList();
+    }
+
     /** 타겟 포트폴리오의 최신 스냅샷에 등록된 아이템 목록 조회. item 테이블에서 서브쿼리로 최신 snapshot_id를 찾아 JOIN하여 한번에 가져옴. */
     // public List<TargetPortfolioItemRecord> getLatestSnapshotItems(String userId,
     public List<TargetPortfolioItemRecord> getLatestSnapshotItems(String publicId) {

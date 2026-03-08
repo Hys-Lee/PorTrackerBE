@@ -44,6 +44,13 @@ public class MemoService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
     }
 
+    public List<MemoRecord> getMemoByPublicIds(List<String> publicIds) {
+        String userId = UserContextHolder.getUserId();
+        org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate jdbcTemplate = sqliteManager.getNamedParameterJdbcTemplate(userId);
+
+        return memoRepository.findByPublicIds(jdbcTemplate, publicIds);
+    }
+
     @Transactional
     // public String addMemo(String userId, MemoCreateRequest request) {
     public String addMemo(MemoCreateRequest request) {

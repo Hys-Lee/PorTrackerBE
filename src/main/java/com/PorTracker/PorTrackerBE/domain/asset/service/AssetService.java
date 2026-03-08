@@ -16,6 +16,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,6 +47,13 @@ public class AssetService {
         return assetRepository
                 .findByPublicId(jdbcTemplate, publicId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA, "assets"));
+    }
+
+    public List<AssetRecord> getAssetByPublicIds(List<String> publicIds){
+        String userId = UserContextHolder.getUserId();
+        NamedParameterJdbcTemplate jdbcTemplate = sqliteManager.getNamedParameterJdbcTemplate(userId);
+
+        return assetRepository.findByPublicIds(jdbcTemplate, publicIds);
     }
 
     // NPE 버그 수정된 메서드

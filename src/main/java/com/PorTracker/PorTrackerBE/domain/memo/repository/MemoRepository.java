@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -22,15 +24,12 @@ public class MemoRepository {
     private static final String actualPortfolioPublicIdName = "actual_portfolio_public_id";
     private static final String targetPortfolioPublicIdName = "target_portfolio_public_id";
 
-    private static final String BASE_SELECT_SQL =
+    private static final String CORE_SELECT_SQL =
             String.format(
-                    " SELECT m.%s, m.%s, m.%s, m.%s, m.%s, m.%s, m.%s, m.%s, m.%s, m.%s,m.%s, ap.%s as %s, tp.%s as %s"
-                            + " FROM %s m LEFT JOIN %s ap ON m.%s=ap.%s LEFT JOIN %s tp ON m.%s=tp.%s",
-                    // select
+                    "SELECT m.%s, m.%s, m.%s, m.%s, m.%s, m.%s, m.%s, m.%s, m.%s, m.%s, m.%s",
                     SqliteSchema.COL_ID,
                     SqliteSchema.COL_PUBLIC_ID,
                     SqliteSchema.COL_CREATED_AT,
-                    // SqliteSchema.COL_UPDATED_AT, SqliteSchema.COL_DELETED_AT,
                     SqliteSchema.COL_IMPORTANCE,
                     SqliteSchema.COL_TITLE,
                     SqliteSchema.COL_CONTENT,
@@ -38,7 +37,13 @@ public class MemoRepository {
                     SqliteSchema.COL_DATE,
                     SqliteSchema.COL_MEMO_TYPE,
                     SqliteSchema.COL_ACTUAL_ID,
-                    SqliteSchema.COL_TARGET_ID,
+                    SqliteSchema.COL_TARGET_ID);
+
+    private static final String BASE_SELECT_SQL =
+            String.format(
+                    CORE_SELECT_SQL + ", ap.%s as %s, tp.%s as %s"
+                            + " FROM %s m LEFT JOIN %s ap ON m.%s=ap.%s LEFT JOIN %s tp ON m.%s=tp.%s",
+                    // select
                     SqliteSchema.COL_PUBLIC_ID,
                     actualPortfolioPublicIdName,
                     SqliteSchema.COL_PUBLIC_ID,
@@ -52,6 +57,13 @@ public class MemoRepository {
                     SqliteSchema.TABLE_TARGET_PORTFOLIO,
                     SqliteSchema.COL_TARGET_ID,
                     SqliteSchema.COL_ID);
+
+    private static final String BULK_SELECT_SQL =
+            String.format(
+                    CORE_SELECT_SQL + " FROM %s m WHERE m.%s IN (:bulkIds) AND m.%s IS NULL",
+                    SqliteSchema.TABLE_MEMO,
+                    SqliteSchema.COL_PUBLIC_ID,
+                    SqliteSchema.COL_DELETED_AT);
 
     private final RowMapper<MemoRecord> memoMapper =
             (rs, rowNum) ->
@@ -199,5 +211,15 @@ public class MemoRepository {
                         SqliteSchema.COL_DELETED_AT);
 
         jdbcTemplate.update(sql, ps -> ps.setString(1, publicId));
+    }
+
+    public List<MemoRecord> findByPublicIds(
+            NamedParameterJdbcTemplate jdbcTemplate, List<String> publicIds) {
+        if (publicIds == null || publicIds.isEmpty()) return List.of();
+
+        MapSqlParameterSource parameters = new MapSqlParameterSource();
+        parameters.addValue("bulkIds", publicIds);
+
+        return jdbcTemplate.query(BULK_SELECT_SQL, parameters, memoMapper);
     }
 }

@@ -94,6 +94,8 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -103,11 +105,9 @@ public class ActualPortfolioRepository {
     private static final String assetPublicIdName = "asset_public_id";
     private static final String currencyPublicIdName = "currency_type_public_id";
 
-    private static final String BASE_SELECT_SQL =
+    private static final String CORE_SELECT_SQL =
             String.format(
-                    " SELECT ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, a.%s as %s, c.%s as %s"
-                            + " FROM %s ap JOIN %s a ON a.%s=ap.%s JOIN %s c ON c.%s=ap.%s",
-                    // select
+                    "SELECT ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s",
                     SqliteSchema.COL_ID,
                     SqliteSchema.COL_PUBLIC_ID,
                     SqliteSchema.COL_ASSET_ID,
@@ -116,7 +116,13 @@ public class ActualPortfolioRepository {
                     SqliteSchema.COL_CURRENCY_ID,
                     SqliteSchema.COL_PRICE_BP,
                     SqliteSchema.COL_AMOUNT_BP,
-                    SqliteSchema.COL_EXCHANGE_RATE_BP,
+                    SqliteSchema.COL_EXCHANGE_RATE_BP);
+
+    private static final String BASE_SELECT_SQL =
+            String.format(
+                    CORE_SELECT_SQL + ", a.%s as %s, c.%s as %s"
+                            + " FROM %s ap JOIN %s a ON a.%s=ap.%s JOIN %s c ON c.%s=ap.%s",
+                    // select
                     SqliteSchema.COL_PUBLIC_ID,
                     assetPublicIdName,
                     SqliteSchema.COL_PUBLIC_ID,
@@ -130,6 +136,13 @@ public class ActualPortfolioRepository {
                     SqliteSchema.TABLE_CURRENCY_TYPE,
                     SqliteSchema.COL_ID,
                     SqliteSchema.COL_CURRENCY_ID);
+
+    private static final String BULK_SELECT_SQL =
+            String.format(
+                    CORE_SELECT_SQL + " FROM %s ap WHERE ap.%s IN (:bulkIds) AND ap.%s IS NULL",
+                    SqliteSchema.TABLE_ACTUAL_PORTFOLIO,
+                    SqliteSchema.COL_PUBLIC_ID,
+                    SqliteSchema.COL_DELETED_AT);
 
     public List<ActualPortfolioRecord> findAll(JdbcTemplate jdbcTemplate) {
         return jdbcTemplate.query(BASE_SELECT_SQL, actualPortfolioMapper);
@@ -241,5 +254,15 @@ public class ActualPortfolioRepository {
                         SqliteSchema.COL_DELETED_AT);
 
         jdbcTemplate.update(sql, ps -> ps.setString(1, publicId));
+    }
+
+    public List<ActualPortfolioRecord> findByPublicIds(
+            NamedParameterJdbcTemplate jdbcTemplate, List<String> publicIds) {
+        if (publicIds == null || publicIds.isEmpty()) return List.of();
+
+        MapSqlParameterSource parameters = new MapSqlParameterSource();
+        parameters.addValue("bulkIds", publicIds);
+
+        return jdbcTemplate.query(BULK_SELECT_SQL, parameters, actualPortfolioMapper);
     }
 }

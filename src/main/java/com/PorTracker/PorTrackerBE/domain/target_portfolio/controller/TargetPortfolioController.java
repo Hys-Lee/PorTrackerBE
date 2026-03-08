@@ -50,6 +50,20 @@ public class TargetPortfolioController {
         return ResponseEntity.ok(TargetPortfolioResponse.from(data.portfolio(), data.items()));
     }
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "다건 조회", description = "여러 publicId 받아 리스트로 반환 - 순서는 랜덤")
+    @GetMapping("/bulk")
+    public ResponseEntity<List<TargetPortfolioResponse>> getTargetPortfoliosBulk(
+            @io.swagger.v3.oas.annotations.Parameter(description = "조회할 publicId 리스트 (쉼표로 구분)")
+            @org.springframework.web.bind.annotation.RequestParam List<String> publicIds) {
+        
+        List<com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioData> records = targetPortfolioService.getTargetPortfolioByPublicIds(publicIds);
+        List<TargetPortfolioResponse> response = records.stream()
+                .map(data -> TargetPortfolioResponse.from(data.portfolio(), data.items()))
+                .toList();
+
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping
     public ResponseEntity<java.util.Map<String, String>> addTargetPortfolio(
             // @RequestHeader("X-USER-ID") String userId,
