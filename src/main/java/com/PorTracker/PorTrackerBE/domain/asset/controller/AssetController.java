@@ -4,7 +4,6 @@ import com.PorTracker.PorTrackerBE.domain.asset.dto.AssetCreateRequest;
 import com.PorTracker.PorTrackerBE.domain.asset.dto.AssetResponse;
 import com.PorTracker.PorTrackerBE.domain.asset.entity.AssetRecord;
 import com.PorTracker.PorTrackerBE.domain.asset.service.AssetService;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
@@ -17,9 +16,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestParam;
-
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/assets")
@@ -42,15 +40,13 @@ public class AssetController {
     @Operation(summary = "다건 조회", description = "여러 publicId 받아 리스트로 반환 - 순서는 랜덤")
     @GetMapping("/bulk")
     public ResponseEntity<List<AssetResponse>> getAssetsBulk(
-        @Parameter(description = "조회할 publicId 리스트 (쉼표로 구분)")
-        @RequestParam List<String> publicIds) {
-            List<AssetRecord> records = assetService.getAssetByPublicIds(publicIds);
-             List<AssetResponse> response = records.stream().map(AssetResponse::from).toList();
+            @Parameter(description = "조회할 publicId 리스트 (쉼표로 구분)") @RequestParam
+                    List<String> publicIds) {
+        List<AssetRecord> records = assetService.getAssetByPublicIds(publicIds);
+        List<AssetResponse> response = records.stream().map(AssetResponse::from).toList();
 
         return ResponseEntity.ok(response);
     }
-    
-
 
     @PostMapping
     // public ResponseEntity<Void> addAsset(@RequestHeader("X-USER-ID") String userId,

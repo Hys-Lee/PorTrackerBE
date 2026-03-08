@@ -8,10 +8,10 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -29,9 +29,7 @@ public class TargetPortfolioRepository {
                     SqliteSchema.COL_DELETED_AT);
 
     private static final String BASE_SELECT_SQL =
-            String.format(
-                    CORE_SELECT_SQL + " FROM %s",
-                    SqliteSchema.TABLE_TARGET_PORTFOLIO);
+            String.format(CORE_SELECT_SQL + " FROM %s", SqliteSchema.TABLE_TARGET_PORTFOLIO);
 
     private static final String BULK_SELECT_SQL =
             String.format(

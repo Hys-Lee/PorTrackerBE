@@ -46,7 +46,8 @@ public class MemoService {
 
     public List<MemoRecord> getMemoByPublicIds(List<String> publicIds) {
         String userId = UserContextHolder.getUserId();
-        org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate jdbcTemplate = sqliteManager.getNamedParameterJdbcTemplate(userId);
+        org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate jdbcTemplate =
+                sqliteManager.getNamedParameterJdbcTemplate(userId);
 
         return memoRepository.findByPublicIds(jdbcTemplate, publicIds);
     }

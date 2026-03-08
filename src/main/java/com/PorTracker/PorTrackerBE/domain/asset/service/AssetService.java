@@ -49,9 +49,10 @@ public class AssetService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA, "assets"));
     }
 
-    public List<AssetRecord> getAssetByPublicIds(List<String> publicIds){
+    public List<AssetRecord> getAssetByPublicIds(List<String> publicIds) {
         String userId = UserContextHolder.getUserId();
-        NamedParameterJdbcTemplate jdbcTemplate = sqliteManager.getNamedParameterJdbcTemplate(userId);
+        NamedParameterJdbcTemplate jdbcTemplate =
+                sqliteManager.getNamedParameterJdbcTemplate(userId);
 
         return assetRepository.findByPublicIds(jdbcTemplate, publicIds);
     }

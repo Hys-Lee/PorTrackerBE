@@ -41,7 +41,8 @@ public class MemoRepository {
 
     private static final String BASE_SELECT_SQL =
             String.format(
-                    CORE_SELECT_SQL + ", ap.%s as %s, tp.%s as %s"
+                    CORE_SELECT_SQL
+                            + ", ap.%s as %s, tp.%s as %s"
                             + " FROM %s m LEFT JOIN %s ap ON m.%s=ap.%s LEFT JOIN %s tp ON m.%s=tp.%s",
                     // select
                     SqliteSchema.COL_PUBLIC_ID,

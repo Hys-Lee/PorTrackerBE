@@ -47,12 +47,15 @@ public class MemoController {
         return ResponseEntity.ok(MemoResponse.from(record));
     }
 
-    @io.swagger.v3.oas.annotations.Operation(summary = "다건 조회", description = "여러 publicId 받아 리스트로 반환 - 순서는 랜덤")
+    @io.swagger.v3.oas.annotations.Operation(
+            summary = "다건 조회",
+            description = "여러 publicId 받아 리스트로 반환 - 순서는 랜덤")
     @GetMapping("/bulk")
     public ResponseEntity<List<MemoResponse>> getMemosBulk(
             @io.swagger.v3.oas.annotations.Parameter(description = "조회할 publicId 리스트 (쉼표로 구분)")
-            @org.springframework.web.bind.annotation.RequestParam List<String> publicIds) {
-        
+                    @org.springframework.web.bind.annotation.RequestParam
+                    List<String> publicIds) {
+
         List<MemoRecord> records = memoService.getMemoByPublicIds(publicIds);
         List<MemoResponse> response = records.stream().map(MemoResponse::from).toList();
 

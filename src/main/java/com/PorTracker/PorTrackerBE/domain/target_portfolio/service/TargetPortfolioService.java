@@ -90,11 +90,14 @@ public class TargetPortfolioService {
     }
 
     /** 여러 포트폴리오를 public ID 리스트로 조회. */
-    public List<com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioData> getTargetPortfolioByPublicIds(List<String> publicIds) {
+    public List<com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioData>
+            getTargetPortfolioByPublicIds(List<String> publicIds) {
         String userId = UserContextHolder.getUserId();
-        org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate jdbcTemplate = sqliteManager.getNamedParameterJdbcTemplate(userId);
+        org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate jdbcTemplate =
+                sqliteManager.getNamedParameterJdbcTemplate(userId);
 
-        List<TargetPortfolioRecord> portfolios = targetPortfolioRepository.findByPublicIds(jdbcTemplate, publicIds);
+        List<TargetPortfolioRecord> portfolios =
+                targetPortfolioRepository.findByPublicIds(jdbcTemplate, publicIds);
 
         if (portfolios.isEmpty()) {
             return java.util.Collections.emptyList();
@@ -103,12 +106,16 @@ public class TargetPortfolioService {
         List<Long> portfolioIds = portfolios.stream().map(TargetPortfolioRecord::getId).toList();
 
         java.util.Map<Long, List<TargetPortfolioItemRecord>> itemsMap =
-                itemRepository.findLatestItemsByPortfolioIds(sqliteManager.getJdbcTemplate(userId), portfolioIds);
+                itemRepository.findLatestItemsByPortfolioIds(
+                        sqliteManager.getJdbcTemplate(userId), portfolioIds);
 
         return portfolios.stream()
                 .map(
                         portfolio ->
-                                new com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioData(
+                                new com.PorTracker.PorTrackerBE.domain
+                                        .target_portfolio
+                                        .dto
+                                        .TargetPortfolioData(
                                         portfolio,
                                         itemsMap.getOrDefault(
                                                 portfolio.getId(),

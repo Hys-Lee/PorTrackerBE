@@ -78,8 +78,7 @@ public class SqliteDatabaseManager {
     }
 
     // bulk api 위해
-    public NamedParameterJdbcTemplate getNamedParameterJdbcTemplate(String userId){
+    public NamedParameterJdbcTemplate getNamedParameterJdbcTemplate(String userId) {
         return new NamedParameterJdbcTemplate(getDataSource(userId));
     }
-
 }

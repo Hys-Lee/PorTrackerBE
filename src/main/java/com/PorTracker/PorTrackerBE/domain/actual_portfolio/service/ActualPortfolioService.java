@@ -56,7 +56,8 @@ public class ActualPortfolioService {
 
     public List<ActualPortfolioRecord> getActualPortfolioByPublicIds(List<String> publicIds) {
         String userId = UserContextHolder.getUserId();
-        org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate jdbcTemplate = sqliteManager.getNamedParameterJdbcTemplate(userId);
+        org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate jdbcTemplate =
+                sqliteManager.getNamedParameterJdbcTemplate(userId);
 
         return actualPortfolioRepository.findByPublicIds(jdbcTemplate, publicIds);
     }

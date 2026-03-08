@@ -120,7 +120,8 @@ public class ActualPortfolioRepository {
 
     private static final String BASE_SELECT_SQL =
             String.format(
-                    CORE_SELECT_SQL + ", a.%s as %s, c.%s as %s"
+                    CORE_SELECT_SQL
+                            + ", a.%s as %s, c.%s as %s"
                             + " FROM %s ap JOIN %s a ON a.%s=ap.%s JOIN %s c ON c.%s=ap.%s",
                     // select
                     SqliteSchema.COL_PUBLIC_ID,
