@@ -1,10 +1,11 @@
 package com.PorTracker.PorTrackerBE.domain.currency.controller;
 
 import com.PorTracker.PorTrackerBE.domain.currency.dto.CurrencyTypeRequest;
-import com.PorTracker.PorTrackerBE.domain.currency.entity.CurrencyTypeRecord;
+import com.PorTracker.PorTrackerBE.domain.currency.dto.CurrencyTypeResponse;
 import com.PorTracker.PorTrackerBE.domain.currency.service.CurrencyService;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,12 +22,12 @@ public class CurrencyController {
     private final CurrencyService currencyService;
 
     @GetMapping
-    public ResponseEntity<List<CurrencyTypeRecord>> getCurrencies(
-            // @RequestHeader("X-USER-ID") String userId) {
-            ) {
-
-        // return ResponseEntity.ok(currencyService.getAllCurrencies(userId));
-        return ResponseEntity.ok(currencyService.getAllCurrencies());
+    public ResponseEntity<List<CurrencyTypeResponse>> getCurrencies() {
+        List<CurrencyTypeResponse> response =
+                currencyService.getAllCurrencies().stream()
+                        .map(CurrencyTypeResponse::from)
+                        .collect(Collectors.toList());
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping
