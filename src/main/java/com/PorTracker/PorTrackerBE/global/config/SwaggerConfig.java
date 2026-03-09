@@ -17,8 +17,14 @@ import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+
 @Configuration
 public class SwaggerConfig {
+    static {
+        // Enum을 스캔할 때 실제 값(JsonValue 등)을 기준으로 리스트를 만들도록 설정
+        io.swagger.v3.core.jackson.ModelResolver.enumsAsRef = true;
+    }
+
     @Bean
     public OpenAPI openAPI() {
         String jwtSchemeName = "jwtAuth";
