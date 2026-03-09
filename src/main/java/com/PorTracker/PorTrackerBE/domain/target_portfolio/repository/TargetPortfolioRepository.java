@@ -142,7 +142,10 @@ public class TargetPortfolioRepository {
         return jdbcTemplate.query(BULK_SELECT_SQL, parameters, portfolioMapper);
     }
 
-    public List<TargetPortfolioRecord> search(NamedParameterJdbcTemplate jdbcTemplate, com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioSearchRequest request) {
+    public List<TargetPortfolioRecord> search(
+            NamedParameterJdbcTemplate jdbcTemplate,
+            com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioSearchRequest
+                    request) {
         StringBuilder sql = new StringBuilder(BASE_SELECT_SQL);
         sql.append(String.format(" WHERE %s IS NULL", SqliteSchema.COL_DELETED_AT));
 
@@ -166,8 +169,11 @@ public class TargetPortfolioRepository {
             params.addValue(paramName, request.getEndDate());
         }
 
-        sql.append(String.format(" ORDER BY %s DESC, %s DESC", SqliteSchema.COL_DATE, SqliteSchema.COL_CREATED_AT));
-        
+        sql.append(
+                String.format(
+                        " ORDER BY %s DESC, %s DESC",
+                        SqliteSchema.COL_DATE, SqliteSchema.COL_CREATED_AT));
+
         String limitParam = "limit";
         String offsetParam = "offset";
         sql.append(String.format(" LIMIT :%s OFFSET :%s", limitParam, offsetParam));

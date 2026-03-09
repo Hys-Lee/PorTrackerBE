@@ -5,13 +5,11 @@ import com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioRe
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioSearchRequest;
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.entity.ActualPortfolioRecord;
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.service.ActualPortfolioService;
-
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -80,11 +78,10 @@ public class ActualPortfolioController {
     @GetMapping("/search")
     public ResponseEntity<List<ActualPortfolioResponse>> searchActualPortfolios(
             @io.swagger.v3.oas.annotations.Parameter(description = "조회할 publicId 리스트 (쉼표로 구분)")
-                    @ParameterObject ActualPortfolioSearchRequest request
-                    ) {
+                    @ParameterObject
+                    ActualPortfolioSearchRequest request) {
 
-        List<ActualPortfolioRecord> records =
-                actualPortfolioService.search(request)  ;
+        List<ActualPortfolioRecord> records = actualPortfolioService.search(request);
         List<ActualPortfolioResponse> response =
                 records.stream().map(ActualPortfolioResponse::from).toList();
 

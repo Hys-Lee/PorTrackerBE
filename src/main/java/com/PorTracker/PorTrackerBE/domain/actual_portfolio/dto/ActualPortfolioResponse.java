@@ -24,7 +24,9 @@ public record ActualPortfolioResponse(
                 record.getAssetPublicId(),
                 record.getDate(),
                 record.getCreatedAt(),
-                record.getTransactionType() != null ? TransactionType.from(record.getTransactionType()) : null,
+                record.getTransactionType() != null
+                        ? TransactionType.from(record.getTransactionType())
+                        : null,
                 // record.getCurrencyId(),
                 record.getCurrencyPublicId(),
                 record.getPriceBp(),

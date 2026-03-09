@@ -123,12 +123,15 @@ public class TargetPortfolioService {
                 .toList();
     }
 
-    public List<com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioData> search(com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioSearchRequest request) {
+    public List<com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioData> search(
+            com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioSearchRequest
+                    request) {
         String userId = UserContextHolder.getUserId();
         org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate jdbcTemplate =
                 sqliteManager.getNamedParameterJdbcTemplate(userId);
 
-        List<TargetPortfolioRecord> portfolios = targetPortfolioRepository.search(jdbcTemplate, request);
+        List<TargetPortfolioRecord> portfolios =
+                targetPortfolioRepository.search(jdbcTemplate, request);
 
         if (portfolios.isEmpty()) {
             return java.util.Collections.emptyList();
@@ -141,9 +144,16 @@ public class TargetPortfolioService {
                         sqliteManager.getJdbcTemplate(userId), portfolioIds);
 
         return portfolios.stream()
-                .map(portfolio -> new com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioData(
-                        portfolio,
-                        itemsMap.getOrDefault(portfolio.getId(), java.util.Collections.emptyList())))
+                .map(
+                        portfolio ->
+                                new com.PorTracker.PorTrackerBE.domain
+                                        .target_portfolio
+                                        .dto
+                                        .TargetPortfolioData(
+                                        portfolio,
+                                        itemsMap.getOrDefault(
+                                                portfolio.getId(),
+                                                java.util.Collections.emptyList())))
                 .toList();
     }
 

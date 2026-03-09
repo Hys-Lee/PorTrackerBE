@@ -270,47 +270,54 @@ public class ActualPortfolioRepository {
         return jdbcTemplate.query(BULK_SELECT_SQL, parameters, actualPortfolioMapper);
     }
 
-    public List<ActualPortfolioRecord> search (NamedParameterJdbcTemplate jdbcTemplate, ActualPortfolioSearchRequest request){
+    public List<ActualPortfolioRecord> search(
+            NamedParameterJdbcTemplate jdbcTemplate, ActualPortfolioSearchRequest request) {
         StringBuilder sql = new StringBuilder(BASE_SELECT_SQL);
-        sql.append(String.format(" WHERE ap.%sß IS NULL",
-                //where
-                SqliteSchema.COL_DELETED_AT
-        ));
+        sql.append(
+                String.format(
+                        " WHERE ap.%sß IS NULL",
+                        // where
+                        SqliteSchema.COL_DELETED_AT));
 
         MapSqlParameterSource params = new MapSqlParameterSource();
 
         // 필터 조건 처리
-        if (request.getAssetId() != null){
-                String paramName="assetId";
-                sql.append(String.format(" AND a.%s = :%s", SqliteSchema.COL_PUBLIC_ID, paramName));
-                params.addValue(paramName, request.getAssetId());
+        if (request.getAssetId() != null) {
+            String paramName = "assetId";
+            sql.append(String.format(" AND a.%s = :%s", SqliteSchema.COL_PUBLIC_ID, paramName));
+            params.addValue(paramName, request.getAssetId());
         }
 
-        if(request.getCurrencyId() != null){
-                String paramName="currencyId";
-                sql.append( String.format(" AND c.%s = :%s",SqliteSchema.COL_PUBLIC_ID, paramName));
-                params.addValue(paramName, request.getCurrencyId());
+        if (request.getCurrencyId() != null) {
+            String paramName = "currencyId";
+            sql.append(String.format(" AND c.%s = :%s", SqliteSchema.COL_PUBLIC_ID, paramName));
+            params.addValue(paramName, request.getCurrencyId());
         }
 
-        if(request.getTransactionType() != null){
-                String paramName = "transactionId";
-                sql.append(String.format(" AND ap.%s = :%s", SqliteSchema.COL_TRANSACTION_TYPE, paramName));
-                params.addValue(paramName, request.getTransactionType().getValue());
+        if (request.getTransactionType() != null) {
+            String paramName = "transactionId";
+            sql.append(
+                    String.format(
+                            " AND ap.%s = :%s", SqliteSchema.COL_TRANSACTION_TYPE, paramName));
+            params.addValue(paramName, request.getTransactionType().getValue());
         }
 
-        if(request.getStartDate() != null){
-                String paramName = "startDate";
-                sql.append(String.format(" AND ap.%s >= :%s", SqliteSchema.COL_DATE, paramName));
-                params.addValue(paramName, request.getStartDate());
+        if (request.getStartDate() != null) {
+            String paramName = "startDate";
+            sql.append(String.format(" AND ap.%s >= :%s", SqliteSchema.COL_DATE, paramName));
+            params.addValue(paramName, request.getStartDate());
         }
-        if(request.getEndDate() != null){
-                String paramName = "endDate";
-                sql.append(String.format(" AND ap.%s <= :%s", SqliteSchema.COL_DATE, paramName));
-                params.addValue(paramName, request.getEndDate());
+        if (request.getEndDate() != null) {
+            String paramName = "endDate";
+            sql.append(String.format(" AND ap.%s <= :%s", SqliteSchema.COL_DATE, paramName));
+            params.addValue(paramName, request.getEndDate());
         }
 
         // 정렬 및 개수제한
-        sql.append(String.format(" ORDER BY ap.%s DESC, ap.%s DESC", SqliteSchema.COL_DATE, SqliteSchema.COL_CREATED_AT));
+        sql.append(
+                String.format(
+                        " ORDER BY ap.%s DESC, ap.%s DESC",
+                        SqliteSchema.COL_DATE, SqliteSchema.COL_CREATED_AT));
         String limitParam = "limit";
         String offsetParam = "offset";
         sql.append(String.format(" LIMIT :%s OFFSET :%s", limitParam, offsetParam));
@@ -318,7 +325,5 @@ public class ActualPortfolioRepository {
         params.addValue(offsetParam, request.getOffset());
 
         return jdbcTemplate.query(sql.toString(), params, actualPortfolioMapper);
-
     }
-
 }
