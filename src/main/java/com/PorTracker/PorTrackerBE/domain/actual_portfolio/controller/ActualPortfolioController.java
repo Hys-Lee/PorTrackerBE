@@ -2,12 +2,17 @@ package com.PorTracker.PorTrackerBE.domain.actual_portfolio.controller;
 
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioCreateRequest;
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioResponse;
+import com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioSearchRequest;
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.entity.ActualPortfolioRecord;
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.service.ActualPortfolioService;
+
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -65,6 +70,21 @@ public class ActualPortfolioController {
 
         List<ActualPortfolioRecord> records =
                 actualPortfolioService.getActualPortfolioByPublicIds(publicIds);
+        List<ActualPortfolioResponse> response =
+                records.stream().map(ActualPortfolioResponse::from).toList();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "포트폴리오 검색 및 필터링", description = "자산, 통화, 거래타입, 기간별 필터링 및 최근 내역 조회를 수행합니다.")
+    @GetMapping("/search")
+    public ResponseEntity<List<ActualPortfolioResponse>> searchActualPortfolios(
+            @io.swagger.v3.oas.annotations.Parameter(description = "조회할 publicId 리스트 (쉼표로 구분)")
+                    @ParameterObject ActualPortfolioSearchRequest request
+                    ) {
+
+        List<ActualPortfolioRecord> records =
+                actualPortfolioService.search(request)  ;
         List<ActualPortfolioResponse> response =
                 records.stream().map(ActualPortfolioResponse::from).toList();
 

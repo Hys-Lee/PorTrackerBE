@@ -223,4 +223,62 @@ public class MemoRepository {
 
         return jdbcTemplate.query(BULK_SELECT_SQL, parameters, memoMapper);
     }
+
+    public List<MemoRecord> search(NamedParameterJdbcTemplate jdbcTemplate, com.PorTracker.PorTrackerBE.domain.memo.dto.MemoSearchRequest request) {
+        StringBuilder sql = new StringBuilder(BASE_SELECT_SQL);
+        sql.append(String.format(" WHERE m.%s IS NULL", SqliteSchema.COL_DELETED_AT));
+
+        MapSqlParameterSource params = new MapSqlParameterSource();
+
+        if (request.getImportance() != null) {
+            String paramName = "importance";
+            sql.append(String.format(" AND m.%s = :%s", SqliteSchema.COL_IMPORTANCE, paramName));
+            params.addValue(paramName, request.getImportance().getValue());
+        }
+        if (request.getTitle() != null) {
+            String paramName = "title";
+            sql.append(String.format(" AND m.%s LIKE :%s", SqliteSchema.COL_TITLE, paramName));
+            params.addValue(paramName, "%" + request.getTitle() + "%");
+        }
+        if (request.getEvaluation() != null) {
+            String paramName = "evaluation";
+            sql.append(String.format(" AND m.%s = :%s", SqliteSchema.COL_EVALUATION, paramName));
+            params.addValue(paramName, request.getEvaluation().getValue());
+        }
+        if (request.getMemoType() != null) {
+            String paramName = "memoType";
+            sql.append(String.format(" AND m.%s = :%s", SqliteSchema.COL_MEMO_TYPE, paramName));
+            params.addValue(paramName, request.getMemoType().getValue());
+        }
+        if (request.getActualId() != null) {
+            String paramName = "actualId";
+            sql.append(String.format(" AND ap.%s = :%s", SqliteSchema.COL_PUBLIC_ID, paramName));
+            params.addValue(paramName, request.getActualId());
+        }
+        if (request.getTargetId() != null) {
+            String paramName = "targetId";
+            sql.append(String.format(" AND tp.%s = :%s", SqliteSchema.COL_PUBLIC_ID, paramName));
+            params.addValue(paramName, request.getTargetId());
+        }
+        if (request.getStartDate() != null) {
+            String paramName = "startDate";
+            sql.append(String.format(" AND m.%s >= :%s", SqliteSchema.COL_DATE, paramName));
+            params.addValue(paramName, request.getStartDate());
+        }
+        if (request.getEndDate() != null) {
+            String paramName = "endDate";
+            sql.append(String.format(" AND m.%s <= :%s", SqliteSchema.COL_DATE, paramName));
+            params.addValue(paramName, request.getEndDate());
+        }
+
+        sql.append(String.format(" ORDER BY m.%s DESC, m.%s DESC", SqliteSchema.COL_DATE, SqliteSchema.COL_CREATED_AT));
+
+        String limitParam = "limit";
+        String offsetParam = "offset";
+        sql.append(String.format(" LIMIT :%s OFFSET :%s", limitParam, offsetParam));
+        params.addValue(limitParam, request.getLimit());
+        params.addValue(offsetParam, request.getOffset());
+
+        return jdbcTemplate.query(sql.toString(), params, memoMapper);
+    }
 }

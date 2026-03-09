@@ -141,4 +141,39 @@ public class TargetPortfolioRepository {
 
         return jdbcTemplate.query(BULK_SELECT_SQL, parameters, portfolioMapper);
     }
+
+    public List<TargetPortfolioRecord> search(NamedParameterJdbcTemplate jdbcTemplate, com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioSearchRequest request) {
+        StringBuilder sql = new StringBuilder(BASE_SELECT_SQL);
+        sql.append(String.format(" WHERE %s IS NULL", SqliteSchema.COL_DELETED_AT));
+
+        MapSqlParameterSource params = new MapSqlParameterSource();
+
+        if (request.getName() != null) {
+            String paramName = "name";
+            sql.append(String.format(" AND %s LIKE :%s", SqliteSchema.COL_NAME, paramName));
+            params.addValue(paramName, "%" + request.getName() + "%");
+        }
+
+        if (request.getStartDate() != null) {
+            String paramName = "startDate";
+            sql.append(String.format(" AND %s >= :%s", SqliteSchema.COL_DATE, paramName));
+            params.addValue(paramName, request.getStartDate());
+        }
+
+        if (request.getEndDate() != null) {
+            String paramName = "endDate";
+            sql.append(String.format(" AND %s <= :%s", SqliteSchema.COL_DATE, paramName));
+            params.addValue(paramName, request.getEndDate());
+        }
+
+        sql.append(String.format(" ORDER BY %s DESC, %s DESC", SqliteSchema.COL_DATE, SqliteSchema.COL_CREATED_AT));
+        
+        String limitParam = "limit";
+        String offsetParam = "offset";
+        sql.append(String.format(" LIMIT :%s OFFSET :%s", limitParam, offsetParam));
+        params.addValue(limitParam, request.getLimit());
+        params.addValue(offsetParam, request.getOffset());
+
+        return jdbcTemplate.query(sql.toString(), params, portfolioMapper);
+    }
 }

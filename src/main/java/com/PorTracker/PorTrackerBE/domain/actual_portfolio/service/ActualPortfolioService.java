@@ -1,6 +1,7 @@
 package com.PorTracker.PorTrackerBE.domain.actual_portfolio.service;
 
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioCreateRequest;
+import com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioSearchRequest;
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.entity.ActualPortfolioRecord;
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.repository.ActualPortfolioRepository;
 import com.PorTracker.PorTrackerBE.domain.asset.entity.AssetRecord;
@@ -16,6 +17,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,6 +62,13 @@ public class ActualPortfolioService {
                 sqliteManager.getNamedParameterJdbcTemplate(userId);
 
         return actualPortfolioRepository.findByPublicIds(jdbcTemplate, publicIds);
+    }
+
+    public List<ActualPortfolioRecord> search(ActualPortfolioSearchRequest request) {
+        String userId = UserContextHolder.getUserId();
+
+        NamedParameterJdbcTemplate jdbcTemplate = sqliteManager.getNamedParameterJdbcTemplate(userId);
+        return actualPortfolioRepository.search(jdbcTemplate, request);
     }
 
     @Transactional

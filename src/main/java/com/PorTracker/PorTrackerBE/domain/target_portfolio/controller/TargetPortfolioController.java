@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springdoc.core.annotations.ParameterObject;
 
 @RestController
 @RequestMapping("/api/v1/target-portfolios")
@@ -61,6 +62,21 @@ public class TargetPortfolioController {
 
         List<com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioData> records =
                 targetPortfolioService.getTargetPortfolioByPublicIds(publicIds);
+        List<TargetPortfolioResponse> response =
+                records.stream()
+                        .map(data -> TargetPortfolioResponse.from(data.portfolio(), data.items()))
+                        .toList();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @io.swagger.v3.oas.annotations.Operation(summary = "타겟 포트폴리오 검색 및 필터링", description = "이름, 기간별 필터링을 수행합니다.")
+    @GetMapping("/search")
+    public ResponseEntity<List<TargetPortfolioResponse>> searchTargetPortfolios(
+            @ParameterObject com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioSearchRequest request) {
+
+        List<com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioData> records =
+                targetPortfolioService.search(request);
         List<TargetPortfolioResponse> response =
                 records.stream()
                         .map(data -> TargetPortfolioResponse.from(data.portfolio(), data.items()))

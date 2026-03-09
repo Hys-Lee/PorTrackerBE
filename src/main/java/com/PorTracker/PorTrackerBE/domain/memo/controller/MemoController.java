@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springdoc.core.annotations.ParameterObject;
 
 @RestController
 @RequestMapping("/api/v1/memos")
@@ -57,6 +58,17 @@ public class MemoController {
                     List<String> publicIds) {
 
         List<MemoRecord> records = memoService.getMemoByPublicIds(publicIds);
+        List<MemoResponse> response = records.stream().map(MemoResponse::from).toList();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @io.swagger.v3.oas.annotations.Operation(summary = "메모 검색 및 필터링", description = "메모의 다양한 속성으로 검색 및 필터링을 수행합니다.")
+    @GetMapping("/search")
+    public ResponseEntity<List<MemoResponse>> searchMemos(
+            @ParameterObject com.PorTracker.PorTrackerBE.domain.memo.dto.MemoSearchRequest request) {
+
+        List<MemoRecord> records = memoService.search(request);
         List<MemoResponse> response = records.stream().map(MemoResponse::from).toList();
 
         return ResponseEntity.ok(response);

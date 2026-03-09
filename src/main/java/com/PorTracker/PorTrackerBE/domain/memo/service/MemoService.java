@@ -52,6 +52,12 @@ public class MemoService {
         return memoRepository.findByPublicIds(jdbcTemplate, publicIds);
     }
 
+    public List<MemoRecord> search(com.PorTracker.PorTrackerBE.domain.memo.dto.MemoSearchRequest request) {
+        String userId = UserContextHolder.getUserId();
+        org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate jdbcTemplate = sqliteManager.getNamedParameterJdbcTemplate(userId);
+        return memoRepository.search(jdbcTemplate, request);
+    }
+
     @Transactional
     // public String addMemo(String userId, MemoCreateRequest request) {
     public String addMemo(MemoCreateRequest request) {
