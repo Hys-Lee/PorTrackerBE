@@ -67,7 +67,8 @@ public class ActualPortfolioService {
     public List<ActualPortfolioRecord> search(ActualPortfolioSearchRequest request) {
         String userId = UserContextHolder.getUserId();
 
-        NamedParameterJdbcTemplate jdbcTemplate = sqliteManager.getNamedParameterJdbcTemplate(userId);
+        NamedParameterJdbcTemplate jdbcTemplate =
+                sqliteManager.getNamedParameterJdbcTemplate(userId);
         return actualPortfolioRepository.search(jdbcTemplate, request);
     }
 

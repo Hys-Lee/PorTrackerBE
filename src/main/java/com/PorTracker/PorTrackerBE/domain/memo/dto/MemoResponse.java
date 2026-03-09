@@ -16,7 +16,8 @@ public record MemoResponse(
         String date,
         MemoType memoType,
         @JsonProperty("actualId") String actualPublicId,
-        @JsonProperty("targetId") String targetPublicId) {
+        @JsonProperty("targetId") String targetPublicId,
+        @JsonProperty("tags") java.util.List<String> tags) {
 
     public static MemoResponse from(MemoRecord record) {
         return new MemoResponse(
@@ -29,6 +30,7 @@ public record MemoResponse(
                 record.getDate(),
                 record.getMemoType() != null ? MemoType.from(record.getMemoType()) : null,
                 record.getActualPublicId(),
-                record.getTargetPublicId());
+                record.getTargetPublicId(),
+                record.getTags() != null ? record.getTags() : java.util.Collections.emptyList());
     }
 }

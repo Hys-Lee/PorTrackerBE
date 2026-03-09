@@ -27,55 +27,56 @@ public class TagService {
         return tagRepository.findAll(jdbcTemplate);
     }
 
-    public TagRecord getTagById(Long id) {
+    public TagRecord getTagById(String publicId) {
         String userId = UserContextHolder.getUserId();
         JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
         return tagRepository
-                .findById(jdbcTemplate, id)
+                .findByPublicId(jdbcTemplate, publicId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
     }
 
-    public List<TagRecord> getTagsByIds(List<Long> ids) {
+    public List<TagRecord> getTagsByIds(List<String> publicIds) {
         String userId = UserContextHolder.getUserId();
         org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate jdbcTemplate =
                 sqliteManager.getNamedParameterJdbcTemplate(userId);
 
-        return tagRepository.findByIds(jdbcTemplate, ids);
+        return tagRepository.findByPublicIds(jdbcTemplate, publicIds);
     }
 
     @Transactional
-    public Long addTag(TagCreateRequest request) {
+    public String addTag(TagCreateRequest request) {
         String userId = UserContextHolder.getUserId();
         JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
-        Long id = tagRepository.save(jdbcTemplate, request);
-        log.info("Tag created successfully for user: {}, id: {}", userId, id);
-        return id;
+        String publicId = java.util.UUID.randomUUID().toString();
+        tagRepository.save(jdbcTemplate, request, publicId);
+        log.info("Tag created successfully for user: {}, publicId: {}", userId, publicId);
+        return publicId;
     }
 
     @Transactional
-    public void updateTag(Long id, TagCreateRequest request) {
-        String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
-
-        tagRepository
-                .findById(jdbcTemplate, id)
-                .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
-
-        tagRepository.updateById(jdbcTemplate, id, request);
-        log.info("Tag updated successfully for user: {}, id: {}", userId, id);
-    }
-
-    @Transactional
-    public void deleteTag(Long id) {
+    public void updateTag(String publicId, TagCreateRequest request) {
         String userId = UserContextHolder.getUserId();
         JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         tagRepository
-                .findById(jdbcTemplate, id)
+                .findByPublicId(jdbcTemplate, publicId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
 
-        tagRepository.deleteById(jdbcTemplate, id);
-        log.info("Tag deleted successfully for user: {}, id: {}", userId, id);
+        tagRepository.updateByPublicId(jdbcTemplate, publicId, request);
+        log.info("Tag updated successfully for user: {}, publicId: {}", userId, publicId);
+    }
+
+    @Transactional
+    public void deleteTag(String publicId) {
+        String userId = UserContextHolder.getUserId();
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
+
+        tagRepository
+                .findByPublicId(jdbcTemplate, publicId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
+
+        tagRepository.deleteByPublicId(jdbcTemplate, publicId);
+        log.info("Tag deleted successfully for user: {}, publicId: {}", userId, publicId);
     }
 }

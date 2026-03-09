@@ -51,4 +51,7 @@ public class MemoCreateRequest {
     @JsonProperty("targetId") // JSON의 "targetId" 키를 이 필드에 매핑
     @Pattern(regexp = ValidationConstants.UUID_REGEXP, message = "유효한 ID 형식이 아닙니다.")
     private String targetId;
+
+    @JsonProperty("tags")
+    private java.util.List<String> tags;
 }

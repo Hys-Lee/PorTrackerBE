@@ -3,7 +3,6 @@ package com.PorTracker.PorTrackerBE.domain.memo.dto;
 import com.PorTracker.PorTrackerBE.domain.memo.entity.Evaluation;
 import com.PorTracker.PorTrackerBE.domain.memo.entity.Importance;
 import com.PorTracker.PorTrackerBE.domain.memo.entity.MemoType;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

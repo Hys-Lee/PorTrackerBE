@@ -105,6 +105,7 @@ create table memo(
 
 create table tag(
 	id integer primary key autoincrement,
+	public_id text unique not null,
 	content text(15) not null -- 적당히..
 );
 

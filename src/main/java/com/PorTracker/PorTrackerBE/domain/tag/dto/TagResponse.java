@@ -7,12 +7,14 @@ import lombok.Getter;
 @Getter
 @Builder
 public class TagResponse {
-    private final Long id;
+    @com.fasterxml.jackson.annotation.JsonProperty("id")
+    private final String publicId;
+
     private final String content;
 
     public static TagResponse from(TagRecord record) {
         return TagResponse.builder()
-                .id(record.getId())
+                .publicId(record.getPublicId())
                 .content(record.getContent())
                 .build();
     }
