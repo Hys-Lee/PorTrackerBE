@@ -4,12 +4,18 @@ import com.PorTracker.PorTrackerBE.domain.tag.dto.TagCreateRequest;
 import com.PorTracker.PorTrackerBE.domain.tag.entity.TagRecord;
 import com.PorTracker.PorTrackerBE.global.constant.SqliteSchema;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -149,7 +155,7 @@ public class TagRepository {
                 public int getBatchSize() {
                     return tagContents.size();
                 }
-        })
+        });
 
         // 관련 내부 id들 배칭 조회
         String inSql = tagContents.stream().map(content -> "?").collect(Collectors.joining(","));
