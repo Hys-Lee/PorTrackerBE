@@ -27,6 +27,7 @@ public class MemoService {
     // private final TargetPortfolioRepository targetPortfolioRepository;
     private final ActualPortfolioService actualPortfolioService;
     private final TargetPortfolioService targetPortfolioService;
+    private final com.PorTracker.PorTrackerBE.domain.tag.repository.TagRepository tagRepository;
 
     // public List<MemoRecord> getAllMemos(String userId) {
     public List<MemoRecord> getAllMemos() {
@@ -60,9 +61,11 @@ public class MemoService {
         return memoRepository.enrichWithTags(jdbcTemplate, memos);
     }
 
-    public List<MemoRecord> search(com.PorTracker.PorTrackerBE.domain.memo.dto.MemoSearchRequest request) {
+    public List<MemoRecord> search(
+            com.PorTracker.PorTrackerBE.domain.memo.dto.MemoSearchRequest request) {
         String userId = UserContextHolder.getUserId();
-        org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate jdbcTemplate = sqliteManager.getNamedParameterJdbcTemplate(userId);
+        org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate jdbcTemplate =
+                sqliteManager.getNamedParameterJdbcTemplate(userId);
         List<MemoRecord> memos = memoRepository.search(jdbcTemplate, request);
         return memoRepository.enrichWithTags(jdbcTemplate, memos);
     }
@@ -103,8 +106,9 @@ public class MemoService {
 
         Long memoId = memoRepository.save(jdbcTemplate, request, publicId, actualId, targetId);
 
-        if (request.getTags() != null) {
-            memoRepository.updateTagsByMemoId(jdbcTemplate, memoId, request.getTags());
+        if (request.getTags() != null && !request.getTags().isEmpty()) {
+            List<Long> tagIds = tagRepository.upsertTagsByContent(jdbcTemplate, request.getTags());
+            memoRepository.updateTagsByMemoId(jdbcTemplate, memoId, tagIds);
         }
 
         log.info("Memo created successfully for user: {}, publicId: {}", userId, publicId);
@@ -146,7 +150,8 @@ public class MemoService {
         memoRepository.updateByPublicId(jdbcTemplate, publicId, request, actualId, targetId);
 
         if (request.getTags() != null) {
-            memoRepository.updateTagsByMemoId(jdbcTemplate, existingMemo.getId(), request.getTags());
+            List<Long> tagIds = tagRepository.upsertTagsByContent(jdbcTemplate, request.getTags());
+            memoRepository.updateTagsByMemoId(jdbcTemplate, existingMemo.getId(), tagIds);
         }
 
         log.info("Memo updated successfully for user: {}, publicId: {}", userId, publicId);
@@ -165,7 +170,8 @@ public class MemoService {
                         .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
 
         memoRepository.deleteByPublicId(jdbcTemplate, publicId);
-        memoRepository.updateTagsByMemoId(jdbcTemplate, existingMemo.getId(), java.util.Collections.emptyList());
+        memoRepository.updateTagsByMemoId(
+                jdbcTemplate, existingMemo.getId(), java.util.Collections.<Long>emptyList());
 
         log.info("Memo deleted successfully for user: {}, publicId: {}", userId, publicId);
     }

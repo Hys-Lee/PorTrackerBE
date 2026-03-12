@@ -224,7 +224,9 @@ public class MemoRepository {
         return jdbcTemplate.query(BULK_SELECT_SQL, parameters, memoMapper);
     }
 
-    public List<MemoRecord> search(NamedParameterJdbcTemplate jdbcTemplate, com.PorTracker.PorTrackerBE.domain.memo.dto.MemoSearchRequest request) {
+    public List<MemoRecord> search(
+            NamedParameterJdbcTemplate jdbcTemplate,
+            com.PorTracker.PorTrackerBE.domain.memo.dto.MemoSearchRequest request) {
         StringBuilder sql = new StringBuilder(BASE_SELECT_SQL);
         sql.append(String.format(" WHERE m.%s IS NULL", SqliteSchema.COL_DELETED_AT));
 
@@ -271,7 +273,10 @@ public class MemoRepository {
             params.addValue(paramName, request.getEndDate());
         }
 
-        sql.append(String.format(" ORDER BY m.%s DESC, m.%s DESC", SqliteSchema.COL_DATE, SqliteSchema.COL_CREATED_AT));
+        sql.append(
+                String.format(
+                        " ORDER BY m.%s DESC, m.%s DESC",
+                        SqliteSchema.COL_DATE, SqliteSchema.COL_CREATED_AT));
 
         String limitParam = "limit";
         String offsetParam = "offset";
@@ -289,7 +294,7 @@ public class MemoRepository {
         List<Long> memoIds = memos.stream().map(MemoRecord::getId).toList();
 
         String sql =
-                "SELECT mt.memo_id, t.public_id FROM memo_tag mt JOIN tag t ON mt.tag_id = t.id WHERE mt.memo_id IN (:memoIds) AND mt.deleted_at IS NULL";
+                "SELECT mt.memo_id, t.content FROM memo_tag mt JOIN tag t ON mt.tag_id = t.id WHERE mt.memo_id IN (:memoIds) AND mt.deleted_at IS NULL";
 
         MapSqlParameterSource params = new MapSqlParameterSource("memoIds", memoIds);
 
@@ -299,10 +304,10 @@ public class MemoRepository {
                 params,
                 rs -> {
                     Long memoId = rs.getLong("memo_id");
-                    String tagPublicId = rs.getString("public_id");
+                    String tagContent = rs.getString("content");
                     memoTagsMap
                             .computeIfAbsent(memoId, k -> new java.util.ArrayList<>())
-                            .add(tagPublicId);
+                            .add(tagContent);
                 });
 
         return memos.stream()
@@ -316,16 +321,16 @@ public class MemoRepository {
                 .toList();
     }
 
-    public void updateTagsByMemoId(
-            JdbcTemplate jdbcTemplate, Long memoId, List<String> tagPublicIds) {
+    public void updateTagsByMemoId(JdbcTemplate jdbcTemplate, Long memoId, List<Long> tagIds) {
         jdbcTemplate.update(
-                "UPDATE memo_tag SET deleted_at = datetime('now') WHERE memo_id = ? AND deleted_at IS NULL", memoId);
+                "UPDATE memo_tag SET deleted_at = datetime('now') WHERE memo_id = ? AND deleted_at IS NULL",
+                memoId);
 
-        if (tagPublicIds == null || tagPublicIds.isEmpty()) return;
+        if (tagIds == null || tagIds.isEmpty()) return;
 
         String sql =
                 "INSERT INTO memo_tag (memo_id, tag_id, deleted_at) "
-                        + "SELECT ?, id, NULL FROM tag WHERE public_id = ? "
+                        + "VALUES (?, ?, NULL) "
                         + "ON CONFLICT(memo_id, tag_id) DO UPDATE SET deleted_at = NULL, updated_at = datetime('now')";
 
         jdbcTemplate.batchUpdate(
@@ -335,12 +340,12 @@ public class MemoRepository {
                     public void setValues(java.sql.PreparedStatement ps, int i)
                             throws java.sql.SQLException {
                         ps.setLong(1, memoId);
-                        ps.setString(2, tagPublicIds.get(i));
+                        ps.setLong(2, tagIds.get(i));
                     }
 
                     @Override
                     public int getBatchSize() {
-                        return tagPublicIds.size();
+                        return tagIds.size();
                     }
                 });
     }
