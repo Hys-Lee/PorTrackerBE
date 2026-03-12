@@ -81,7 +81,7 @@ public class CurrencyService {
 
     // public void addCurrency(String userId, String code) {
     // public void addCurrency(String userId, CurrencyTypeRequest request) {
-    public void addCurrency(CurrencyTypeRequest request) {
+    public String addCurrency(CurrencyTypeRequest request) {
         String userId = UserContextHolder.getUserId();
         JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
@@ -109,6 +109,7 @@ public class CurrencyService {
                 userId,
                 code,
                 publicId);
+        return publicId;
     }
 
     // public void updateCurrency(String userId, String publicId, CurrencyTypeRequest request) {

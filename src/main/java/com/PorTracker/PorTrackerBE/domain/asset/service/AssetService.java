@@ -60,7 +60,7 @@ public class AssetService {
     // NPE 버그 수정된 메서드
     @Transactional
     // public void addAsset(String userId, AssetCreateRequest request) {
-    public void addAsset(AssetCreateRequest request) {
+    public String addAsset(AssetCreateRequest request) {
         String userId = UserContextHolder.getUserId();
         JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
@@ -106,6 +106,7 @@ public class AssetService {
                 });
 
         log.info("asset recorded successfully for user: {}, publicId: {}", userId, publicId);
+        return publicId;
     }
 
     @Transactional

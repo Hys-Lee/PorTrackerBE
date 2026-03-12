@@ -5,6 +5,7 @@ import com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioRe
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioSearchRequest;
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.entity.ActualPortfolioRecord;
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.service.ActualPortfolioService;
+import com.PorTracker.PorTrackerBE.global.common.IdResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -90,31 +91,32 @@ public class ActualPortfolioController {
 
     @PostMapping
     // public ResponseEntity<Void> addActualPortfolio(@RequestHeader("X-USER-ID") String userId,
-    public ResponseEntity<Void> addActualPortfolio(
+    public ResponseEntity<IdResponse> addActualPortfolio(
             @Valid @RequestBody ActualPortfolioCreateRequest request) {
 
         // actualPortfolioService.addActualPortfolio(userId, request);
-        actualPortfolioService.addActualPortfolio(request);
-        return ResponseEntity.ok().build();
+        String publicId = actualPortfolioService.addActualPortfolio(request);
+        return ResponseEntity.ok(IdResponse.of(publicId));
     }
 
     @org.springframework.web.bind.annotation.PutMapping("/{publicId}")
     // public ResponseEntity<Void> updateActualPortfolio(@RequestHeader("X-USER-ID") String userId,
-    public ResponseEntity<Void> updateActualPortfolio(
+    public ResponseEntity<IdResponse> updateActualPortfolio(
             @PathVariable("publicId") String publicId,
             @Valid @RequestBody ActualPortfolioCreateRequest request) {
 
         // actualPortfolioService.updateActualPortfolio(userId, publicId, request);
         actualPortfolioService.updateActualPortfolio(publicId, request);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(IdResponse.of(publicId));
     }
 
     @org.springframework.web.bind.annotation.DeleteMapping("/{publicId}")
     // public ResponseEntity<Void> deleteActualPortfolio(@RequestHeader("X-USER-ID") String userId,
-    public ResponseEntity<Void> deleteActualPortfolio(@PathVariable("publicId") String publicId) {
+    public ResponseEntity<IdResponse> deleteActualPortfolio(
+            @PathVariable("publicId") String publicId) {
 
         // actualPortfolioService.deleteActualPortfolio(userId, publicId);
         actualPortfolioService.deleteActualPortfolio(publicId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(IdResponse.of(publicId));
     }
 }

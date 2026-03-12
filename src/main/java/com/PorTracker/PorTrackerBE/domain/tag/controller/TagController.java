@@ -4,6 +4,7 @@ import com.PorTracker.PorTrackerBE.domain.tag.dto.TagCreateRequest;
 import com.PorTracker.PorTrackerBE.domain.tag.dto.TagResponse;
 import com.PorTracker.PorTrackerBE.domain.tag.entity.TagRecord;
 import com.PorTracker.PorTrackerBE.domain.tag.service.TagService;
+import com.PorTracker.PorTrackerBE.global.common.IdResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -57,24 +58,23 @@ public class TagController {
 
     @Operation(summary = "새 태그 생성")
     @PostMapping
-    public ResponseEntity<java.util.Map<String, String>> addTag(
-            @Valid @RequestBody TagCreateRequest request) {
+    public ResponseEntity<IdResponse> addTag(@Valid @RequestBody TagCreateRequest request) {
         String id = tagService.addTag(request);
-        return ResponseEntity.ok(java.util.Map.of("id", id));
+        return ResponseEntity.ok(IdResponse.of(id));
     }
 
     @Operation(summary = "태그 수정")
     @PutMapping("/{id}")
-    public ResponseEntity<Void> updateTag(
+    public ResponseEntity<IdResponse> updateTag(
             @PathVariable("id") String id, @Valid @RequestBody TagCreateRequest request) {
         tagService.updateTag(id, request);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(IdResponse.of(id));
     }
 
     @Operation(summary = "태그 삭제")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTag(@PathVariable("id") String id) {
+    public ResponseEntity<IdResponse> deleteTag(@PathVariable("id") String id) {
         tagService.deleteTag(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(IdResponse.of(id));
     }
 }

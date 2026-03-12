@@ -177,7 +177,7 @@ public class ActualPortfolioRepository {
                             .exchangeRateBp(rs.getLong(SqliteSchema.COL_EXCHANGE_RATE_BP))
                             .build();
 
-    public void save(
+    public String save(
             JdbcTemplate jdbcTemplate,
             ActualPortfolioCreateRequest request,
             Long assetId,
@@ -210,6 +210,8 @@ public class ActualPortfolioRepository {
                     ps.setLong(7, request.getAmountBp());
                     ps.setLong(8, request.getExchangeRateBp());
                 });
+
+        return publicId;
     }
 
     public void updateByPublicId(

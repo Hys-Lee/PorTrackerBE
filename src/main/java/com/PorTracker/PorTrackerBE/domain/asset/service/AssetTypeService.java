@@ -101,7 +101,7 @@ public class AssetTypeService {
 
     // NPE 버그 수정된 메서드
     // public void addAssetType(String userId, AssetTypeRequest request) {
-    public void addAssetType(AssetTypeRequest request) {
+    public String addAssetType(AssetTypeRequest request) {
         String userId = UserContextHolder.getUserId();
         JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
@@ -121,7 +121,8 @@ public class AssetTypeService {
                     ps.setString(2, request.getName());
                 });
 
-        log.info("asset type recorded successfully for user: {}", userId);
+        log.info("asset type recorded successfully for user: {}, publicId: {}", userId, publicId);
+        return publicId;
     }
 
     // public void updateAssetType(String userId, String publicId, AssetTypeRequest request) {

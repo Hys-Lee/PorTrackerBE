@@ -74,7 +74,7 @@ public class ActualPortfolioService {
 
     @Transactional
     // public void addActualPortfolio(String userId, ActualPortfolioCreateRequest request) {
-    public void addActualPortfolio(ActualPortfolioCreateRequest request) {
+    public String addActualPortfolio(ActualPortfolioCreateRequest request) {
         String userId = UserContextHolder.getUserId();
         JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
@@ -89,9 +89,15 @@ public class ActualPortfolioService {
         CurrencyTypeRecord currencyRes =
                 currencyService.getCurrencyByPublicId(request.getCurrencyId());
 
-        actualPortfolioRepository.save(jdbcTemplate, request, assetRes.getId(), currencyRes.id());
+        String publicId =
+                actualPortfolioRepository.save(
+                        jdbcTemplate, request, assetRes.getId(), currencyRes.id());
 
-        log.info("actual portfolio recorded successfully for user: {}", userId);
+        log.info(
+                "actual portfolio recorded successfully for user: {}, publicId: {}",
+                userId,
+                publicId);
+        return publicId;
     }
 
     @Transactional

@@ -4,6 +4,7 @@ import com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioCr
 import com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioResponse;
 import com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioSnapshotUpdateRequest;
 import com.PorTracker.PorTrackerBE.domain.target_portfolio.service.TargetPortfolioService;
+import com.PorTracker.PorTrackerBE.global.common.IdResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -93,43 +94,44 @@ public class TargetPortfolioController {
     }
 
     @PostMapping
-    public ResponseEntity<java.util.Map<String, String>> addTargetPortfolio(
+    public ResponseEntity<IdResponse> addTargetPortfolio(
             // @RequestHeader("X-USER-ID") String userId,
             @RequestBody TargetPortfolioCreateRequest request) {
 
         // String publicId = targetPortfolioService.addTargetPortfolio(userId, request);
         String publicId = targetPortfolioService.addTargetPortfolio(request);
-        return ResponseEntity.ok(java.util.Map.of("id", publicId));
+        return ResponseEntity.ok(IdResponse.of(publicId));
     }
 
     @org.springframework.web.bind.annotation.PutMapping("/{publicId}")
     // public ResponseEntity<Void> updateTargetPortfolio(@RequestHeader("X-USER-ID") String userId,
-    public ResponseEntity<Void> updateTargetPortfolio(
+    public ResponseEntity<IdResponse> updateTargetPortfolio(
             @PathVariable("publicId") String publicId,
             @RequestBody TargetPortfolioCreateRequest request) {
 
         // targetPortfolioService.updateTargetPortfolio(userId, publicId, request);
         targetPortfolioService.updateTargetPortfolio(publicId, request);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(IdResponse.of(publicId));
     }
 
     @PostMapping("/{publicId}/snapshots")
     // public ResponseEntity<Void> addSnapshot(@RequestHeader("X-USER-ID") String userId,
-    public ResponseEntity<Void> addSnapshot(
+    public ResponseEntity<IdResponse> addSnapshot(
             @PathVariable("publicId") String publicId,
             @RequestBody TargetPortfolioSnapshotUpdateRequest request) {
 
         // targetPortfolioService.addSnapshot(userId, publicId, request);
         targetPortfolioService.addSnapshot(publicId, request);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(IdResponse.of(publicId));
     }
 
     @DeleteMapping("/{publicId}")
     // public ResponseEntity<Void> deleteTargetPortfolio(@RequestHeader("X-USER-ID") String userId,
-    public ResponseEntity<Void> deleteTargetPortfolio(@PathVariable("publicId") String publicId) {
+    public ResponseEntity<IdResponse> deleteTargetPortfolio(
+            @PathVariable("publicId") String publicId) {
 
         // targetPortfolioService.deleteTargetPortfolio(userId, publicId);
         targetPortfolioService.deleteTargetPortfolio(publicId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(IdResponse.of(publicId));
     }
 }

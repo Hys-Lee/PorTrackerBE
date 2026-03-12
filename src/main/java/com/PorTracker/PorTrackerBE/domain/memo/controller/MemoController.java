@@ -4,6 +4,7 @@ import com.PorTracker.PorTrackerBE.domain.memo.dto.MemoCreateRequest;
 import com.PorTracker.PorTrackerBE.domain.memo.dto.MemoResponse;
 import com.PorTracker.PorTrackerBE.domain.memo.entity.MemoRecord;
 import com.PorTracker.PorTrackerBE.domain.memo.service.MemoService;
+import com.PorTracker.PorTrackerBE.global.common.IdResponse;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -78,31 +79,31 @@ public class MemoController {
     }
 
     @PostMapping
-    public ResponseEntity<java.util.Map<String, String>> addMemo(
+    public ResponseEntity<IdResponse> addMemo(
             // @RequestHeader("X-USER-ID") String userId, @RequestBody MemoCreateRequest request) {
             @Valid @RequestBody MemoCreateRequest request) {
         // String publicId = memoService.addMemo(userId, request);
         String publicId = memoService.addMemo(request);
-        return ResponseEntity.ok(java.util.Map.of("id", publicId));
+        return ResponseEntity.ok(IdResponse.of(publicId));
     }
 
     @PutMapping("/{publicId}")
-    public ResponseEntity<Void> updateMemo(
+    public ResponseEntity<IdResponse> updateMemo(
             // @RequestHeader("X-USER-ID") String userId,
             @PathVariable("publicId") String publicId,
             @Valid @RequestBody MemoCreateRequest request) {
         // memoService.updateMemo(userId, publicId, request);
         memoService.updateMemo(publicId, request);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(IdResponse.of(publicId));
     }
 
     @DeleteMapping("/{publicId}")
-    public ResponseEntity<Void> deleteMemo(
+    public ResponseEntity<IdResponse> deleteMemo(
             // @RequestHeader("X-USER-ID") String userId, @PathVariable("publicId") String publicId)
             // {
             @PathVariable("publicId") String publicId) {
         // memoService.deleteMemo(userId, publicId);
         memoService.deleteMemo(publicId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(IdResponse.of(publicId));
     }
 }
