@@ -14,6 +14,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,7 +75,9 @@ public class MemoService {
     // public String addMemo(String userId, MemoCreateRequest request) {
     public String addMemo(MemoCreateRequest request) {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
+        // JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
+        NamedParameterJdbcTemplate jdbcTemplate =
+                sqliteManager.getNamedParameterJdbcTemplate(userId);
 
         // Long actualId = resolveActualPortfolioId(jdbcTemplate, request.getActualId());
         // Long targetId = resolveTargetPortfolioId(jdbcTemplate, request.getTargetId());
@@ -104,11 +107,13 @@ public class MemoService {
                             .getId();
         }
 
-        Long memoId = memoRepository.save(jdbcTemplate, request, publicId, actualId, targetId);
+        Long memoId =
+                memoRepository.save(
+                        jdbcTemplate.getJdbcTemplate(), request, publicId, actualId, targetId);
 
         if (request.getTags() != null && !request.getTags().isEmpty()) {
             List<Long> tagIds = tagRepository.upsertTagsByContent(jdbcTemplate, request.getTags());
-            memoRepository.updateTagsByMemoId(jdbcTemplate, memoId, tagIds);
+            memoRepository.updateTagsByMemoId(jdbcTemplate.getJdbcTemplate(), memoId, tagIds);
         }
 
         log.info("Memo created successfully for user: {}, publicId: {}", userId, publicId);
@@ -119,12 +124,14 @@ public class MemoService {
     // public void updateMemo(String userId, String publicId, MemoCreateRequest request) {
     public void updateMemo(String publicId, MemoCreateRequest request) {
         String userId = UserContextHolder.getUserId();
-        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
+        // JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
+        NamedParameterJdbcTemplate jdbcTemplate =
+                sqliteManager.getNamedParameterJdbcTemplate(userId);
 
         // 메모 존재 여부 확인
         MemoRecord existingMemo =
                 memoRepository
-                        .findByPublicId(jdbcTemplate, publicId)
+                        .findByPublicId(jdbcTemplate.getJdbcTemplate(), publicId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
 
         Long actualId = null;
@@ -147,11 +154,13 @@ public class MemoService {
             }
         }
 
-        memoRepository.updateByPublicId(jdbcTemplate, publicId, request, actualId, targetId);
+        memoRepository.updateByPublicId(
+                jdbcTemplate.getJdbcTemplate(), publicId, request, actualId, targetId);
 
         if (request.getTags() != null) {
             List<Long> tagIds = tagRepository.upsertTagsByContent(jdbcTemplate, request.getTags());
-            memoRepository.updateTagsByMemoId(jdbcTemplate, existingMemo.getId(), tagIds);
+            memoRepository.updateTagsByMemoId(
+                    jdbcTemplate.getJdbcTemplate(), existingMemo.getId(), tagIds);
         }
 
         log.info("Memo updated successfully for user: {}, publicId: {}", userId, publicId);
