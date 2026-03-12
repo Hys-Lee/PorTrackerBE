@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -116,7 +119,7 @@ public class TagRepository {
      * 태그 content 리스트를 받아서 upsert 후 tag id 리스트를 반환. content가 이미 존재하면 기존 tag id, 없으면 새로 생성한 tag id를
      * 반환.
      */
-    public List<Long> upsertTagsByContent(JdbcTemplate jdbcTemplate, List<String> tagContents) {
+    public List<Long> upsertTagsByContent(NamedParameterJdbcTemplate jdbcTemplate, List<String> tagContents) {
         if (tagContents == null || tagContents.isEmpty()) return List.of();
 
         // List<Long> tagIds = new java.util.ArrayList<>();
@@ -141,27 +144,33 @@ public class TagRepository {
         // return tagIds;
 
         // 배치 처리하기
-        String insertSql = String.format("INSERT OR IGNORE INTO %s (%s, %s) VALUES (?, ?)", SqliteSchema.TABLE_TAG, SqliteSchema.COL_PUBLIC_ID, SqliteSchema.COL_CONTENT);
-        jdbcTemplate.batchUpdate(insertSql, new BatchPreparedStatementSetter(){
-                @Override
-                public void setValues(PreparedStatement ps, int i) throws SQLException {
-                    String content = tagContents.get(i);
-                    String trimmed = content.trim();
-                    if (trimmed.isEmpty()) return;
-                    ps.setString(1, java.util.UUID.randomUUID().toString());
-                    ps.setString(2, trimmed);
-                }
-                @Override
-                public int getBatchSize() {
-                    return tagContents.size();
-                }
-        });
+        String publicIdParam = "publicId";
+        String contentParam = "content";
+        String insertSql = String.format("INSERT OR IGNORE INTO %s (%s, %s) VALUES (:%s, :%s)", SqliteSchema.TABLE_TAG, SqliteSchema.COL_PUBLIC_ID, SqliteSchema.COL_CONTENT,publicIdParam, contentParam);
+        // jdbcTemplate.batchUpdate(insertSql, new BatchPreparedStatementSetter(){
+        //         @Override
+        //         public void setValues(PreparedStatement ps, int i) throws SQLException {
+        //             String content = tagContents.get(i);
+        //             String trimmed = content.trim();
+        //             if (trimmed.isEmpty()) return;
+        //             ps.setString(1, java.util.UUID.randomUUID().toString());
+        //             ps.setString(2, trimmed);
+        //         }
+        //         @Override
+        //         public int getBatchSize() {
+        //             return tagContents.size();
+        //         }
+        // });
+        SqlParameterSource[] batchParams = tagContents.stream().map(content->new MapSqlParameterSource().addValue(publicIdParam, UUID.randomUUID().toString()).addValue(content, content.trim())).toArray(SqlParameterSource[]::new);
+        jdbcTemplate.batchUpdate(insertSql, batchParams);
 
         // 관련 내부 id들 배칭 조회
-        String inSql = tagContents.stream().map(content -> "?").collect(Collectors.joining(","));
-        String selectSql = String.format("SELECT %s, %s FROM %s WHERE %s IN (%s)", SqliteSchema.COL_ID, SqliteSchema.TABLE_TAG, SqliteSchema.COL_CONTENT, inSql);
+        // String inSql = tagContents.stream().map(content -> "?").collect(Collectors.joining(","));
+        String selectSql = String.format("SELECT %s FROM %s WHERE %s IN (:%s)", SqliteSchema.COL_ID, SqliteSchema.TABLE_TAG, SqliteSchema.COL_CONTENT, contentParam);
+        MapSqlParameterSource selectParams = new MapSqlParameterSource(contentParam,tagContents);
         
-        return jdbcTemplate.queryForList(selectSql, Long.class, tagContents.toArray());
+        // return jdbcTemplate.queryForList(selectSql, Long.class, tagContents.toArray());
+        return jdbcTemplate.queryForList(selectSql, selectParams, Long.class);
         
 
 
