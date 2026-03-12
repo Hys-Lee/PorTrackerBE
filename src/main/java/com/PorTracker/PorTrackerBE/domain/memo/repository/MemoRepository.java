@@ -281,4 +281,67 @@ public class MemoRepository {
 
         return jdbcTemplate.query(sql.toString(), params, memoMapper);
     }
+
+    public List<MemoRecord> enrichWithTags(
+            NamedParameterJdbcTemplate namedParameterJdbcTemplate, List<MemoRecord> memos) {
+        if (memos == null || memos.isEmpty()) return memos;
+
+        List<Long> memoIds = memos.stream().map(MemoRecord::getId).toList();
+
+        String sql =
+                "SELECT mt.memo_id, t.public_id FROM memo_tag mt JOIN tag t ON mt.tag_id = t.id WHERE mt.memo_id IN (:memoIds) AND mt.deleted_at IS NULL";
+
+        MapSqlParameterSource params = new MapSqlParameterSource("memoIds", memoIds);
+
+        java.util.Map<Long, List<String>> memoTagsMap = new java.util.HashMap<>();
+        namedParameterJdbcTemplate.query(
+                sql,
+                params,
+                rs -> {
+                    Long memoId = rs.getLong("memo_id");
+                    String tagPublicId = rs.getString("public_id");
+                    memoTagsMap
+                            .computeIfAbsent(memoId, k -> new java.util.ArrayList<>())
+                            .add(tagPublicId);
+                });
+
+        return memos.stream()
+                .map(
+                        memo -> {
+                            List<String> tags =
+                                    memoTagsMap.getOrDefault(
+                                            memo.getId(), new java.util.ArrayList<>());
+                            return memo.toBuilder().tags(tags).build();
+                        })
+                .toList();
+    }
+
+    public void updateTagsByMemoId(
+            JdbcTemplate jdbcTemplate, Long memoId, List<String> tagPublicIds) {
+        jdbcTemplate.update(
+                "UPDATE memo_tag SET deleted_at = datetime('now') WHERE memo_id = ? AND deleted_at IS NULL", memoId);
+
+        if (tagPublicIds == null || tagPublicIds.isEmpty()) return;
+
+        String sql =
+                "INSERT INTO memo_tag (memo_id, tag_id, deleted_at) "
+                        + "SELECT ?, id, NULL FROM tag WHERE public_id = ? "
+                        + "ON CONFLICT(memo_id, tag_id) DO UPDATE SET deleted_at = NULL, updated_at = datetime('now')";
+
+        jdbcTemplate.batchUpdate(
+                sql,
+                new org.springframework.jdbc.core.BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(java.sql.PreparedStatement ps, int i)
+                            throws java.sql.SQLException {
+                        ps.setLong(1, memoId);
+                        ps.setString(2, tagPublicIds.get(i));
+                    }
+
+                    @Override
+                    public int getBatchSize() {
+                        return tagPublicIds.size();
+                    }
+                });
+    }
 }

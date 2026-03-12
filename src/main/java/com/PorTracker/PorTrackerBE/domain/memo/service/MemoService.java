@@ -32,16 +32,23 @@ public class MemoService {
     public List<MemoRecord> getAllMemos() {
         String userId = UserContextHolder.getUserId();
         JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
-        return memoRepository.findAll(jdbcTemplate);
+        org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate namedJdbcTemplate =
+                sqliteManager.getNamedParameterJdbcTemplate(userId);
+        List<MemoRecord> memos = memoRepository.findAll(jdbcTemplate);
+        return memoRepository.enrichWithTags(namedJdbcTemplate, memos);
     }
 
     // public MemoRecord getMemoById(String userId, String publicId) {
     public MemoRecord getMemoById(String publicId) {
         String userId = UserContextHolder.getUserId();
         JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
-        return memoRepository
-                .findByPublicId(jdbcTemplate, publicId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
+        org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate namedJdbcTemplate =
+                sqliteManager.getNamedParameterJdbcTemplate(userId);
+        MemoRecord memo =
+                memoRepository
+                        .findByPublicId(jdbcTemplate, publicId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
+        return memoRepository.enrichWithTags(namedJdbcTemplate, List.of(memo)).get(0);
     }
 
     public List<MemoRecord> getMemoByPublicIds(List<String> publicIds) {
@@ -49,13 +56,15 @@ public class MemoService {
         org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate jdbcTemplate =
                 sqliteManager.getNamedParameterJdbcTemplate(userId);
 
-        return memoRepository.findByPublicIds(jdbcTemplate, publicIds);
+        List<MemoRecord> memos = memoRepository.findByPublicIds(jdbcTemplate, publicIds);
+        return memoRepository.enrichWithTags(jdbcTemplate, memos);
     }
 
     public List<MemoRecord> search(com.PorTracker.PorTrackerBE.domain.memo.dto.MemoSearchRequest request) {
         String userId = UserContextHolder.getUserId();
         org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate jdbcTemplate = sqliteManager.getNamedParameterJdbcTemplate(userId);
-        return memoRepository.search(jdbcTemplate, request);
+        List<MemoRecord> memos = memoRepository.search(jdbcTemplate, request);
+        return memoRepository.enrichWithTags(jdbcTemplate, memos);
     }
 
     @Transactional
@@ -92,7 +101,11 @@ public class MemoService {
                             .getId();
         }
 
-        memoRepository.save(jdbcTemplate, request, publicId, actualId, targetId);
+        Long memoId = memoRepository.save(jdbcTemplate, request, publicId, actualId, targetId);
+
+        if (request.getTags() != null) {
+            memoRepository.updateTagsByMemoId(jdbcTemplate, memoId, request.getTags());
+        }
 
         log.info("Memo created successfully for user: {}, publicId: {}", userId, publicId);
         return publicId;
@@ -105,9 +118,10 @@ public class MemoService {
         JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         // 메모 존재 여부 확인
-        memoRepository
-                .findByPublicId(jdbcTemplate, publicId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
+        MemoRecord existingMemo =
+                memoRepository
+                        .findByPublicId(jdbcTemplate, publicId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
 
         Long actualId = null;
         if (request.getActualId() != null) {
@@ -131,6 +145,10 @@ public class MemoService {
 
         memoRepository.updateByPublicId(jdbcTemplate, publicId, request, actualId, targetId);
 
+        if (request.getTags() != null) {
+            memoRepository.updateTagsByMemoId(jdbcTemplate, existingMemo.getId(), request.getTags());
+        }
+
         log.info("Memo updated successfully for user: {}, publicId: {}", userId, publicId);
     }
 
@@ -141,11 +159,13 @@ public class MemoService {
         JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         // 메모 존재 여부 확인
-        memoRepository
-                .findByPublicId(jdbcTemplate, publicId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
+        MemoRecord existingMemo =
+                memoRepository
+                        .findByPublicId(jdbcTemplate, publicId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
 
         memoRepository.deleteByPublicId(jdbcTemplate, publicId);
+        memoRepository.updateTagsByMemoId(jdbcTemplate, existingMemo.getId(), java.util.Collections.emptyList());
 
         log.info("Memo deleted successfully for user: {}, publicId: {}", userId, publicId);
     }
