@@ -3,6 +3,7 @@ package com.PorTracker.PorTrackerBE.domain.memo.dto;
 import com.PorTracker.PorTrackerBE.domain.memo.entity.Evaluation;
 import com.PorTracker.PorTrackerBE.domain.memo.entity.Importance;
 import com.PorTracker.PorTrackerBE.domain.memo.entity.MemoType;
+import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,12 +12,12 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class MemoSearchRequest {
-    private Importance importance;
-    private String title;
-    private Evaluation evaluation;
-    private MemoType memoType;
-    private String actualId;
-    private String targetId;
+    private List<Importance> importance;
+    private List<String> title;
+    private List<Evaluation> evaluation;
+    private List<MemoType> memoType;
+    private List<String> actualId;
+    private List<String> targetId;
     private String startDate;
     private String endDate;
     private Integer limit = 5;

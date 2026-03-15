@@ -284,24 +284,24 @@ public class ActualPortfolioRepository {
         MapSqlParameterSource params = new MapSqlParameterSource();
 
         // 필터 조건 처리
-        if (request.getAssetId() != null) {
+        if (request.getAssetId() != null && !request.getAssetId().isEmpty()) {
             String paramName = "assetId";
-            sql.append(String.format(" AND a.%s = :%s", SqliteSchema.COL_PUBLIC_ID, paramName));
+            sql.append(String.format(" AND a.%s IN (:%s)", SqliteSchema.COL_PUBLIC_ID, paramName));
             params.addValue(paramName, request.getAssetId());
         }
 
-        if (request.getCurrencyId() != null) {
+        if (request.getCurrencyId() != null && !request.getCurrencyId().isEmpty()) {
             String paramName = "currencyId";
-            sql.append(String.format(" AND c.%s = :%s", SqliteSchema.COL_PUBLIC_ID, paramName));
+            sql.append(String.format(" AND c.%s IN (:%s)", SqliteSchema.COL_PUBLIC_ID, paramName));
             params.addValue(paramName, request.getCurrencyId());
         }
 
-        if (request.getTransactionType() != null) {
-            String paramName = "transactionId";
+        if (request.getTransactionType() != null && !request.getTransactionType().isEmpty()) {
+            String paramName = "transactionType";
             sql.append(
                     String.format(
-                            " AND ap.%s = :%s", SqliteSchema.COL_TRANSACTION_TYPE, paramName));
-            params.addValue(paramName, request.getTransactionType().getValue());
+                            " AND ap.%s IN (:%s)", SqliteSchema.COL_TRANSACTION_TYPE, paramName));
+            params.addValue(paramName, request.getTransactionType().stream().map(com.PorTracker.PorTrackerBE.domain.actual_portfolio.entity.TransactionType::getValue).toList());
         }
 
         if (request.getStartDate() != null) {

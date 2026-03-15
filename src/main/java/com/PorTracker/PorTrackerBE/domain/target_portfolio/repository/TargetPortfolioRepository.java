@@ -151,10 +151,14 @@ public class TargetPortfolioRepository {
 
         MapSqlParameterSource params = new MapSqlParameterSource();
 
-        if (request.getName() != null) {
-            String paramName = "name";
-            sql.append(String.format(" AND %s LIKE :%s", SqliteSchema.COL_NAME, paramName));
-            params.addValue(paramName, "%" + request.getName() + "%");
+        if (request.getName() != null && !request.getName().isEmpty()) {
+            sql.append(" AND (");
+            for (int i = 0; i < request.getName().size(); i++) {
+                String paramName = "name" + i;
+                sql.append(i == 0 ? "" : " OR ").append(String.format("%s LIKE :%s", SqliteSchema.COL_NAME, paramName));
+                params.addValue(paramName, "%" + request.getName().get(i) + "%");
+            }
+            sql.append(")");
         }
 
         if (request.getStartDate() != null) {

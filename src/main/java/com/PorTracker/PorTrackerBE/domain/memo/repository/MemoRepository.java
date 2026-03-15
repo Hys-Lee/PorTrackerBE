@@ -232,34 +232,38 @@ public class MemoRepository {
 
         MapSqlParameterSource params = new MapSqlParameterSource();
 
-        if (request.getImportance() != null) {
+        if (request.getImportance() != null && !request.getImportance().isEmpty()) {
             String paramName = "importance";
-            sql.append(String.format(" AND m.%s = :%s", SqliteSchema.COL_IMPORTANCE, paramName));
-            params.addValue(paramName, request.getImportance().getValue());
+            sql.append(String.format(" AND m.%s IN (:%s)", SqliteSchema.COL_IMPORTANCE, paramName));
+            params.addValue(paramName, request.getImportance().stream().map(com.PorTracker.PorTrackerBE.domain.memo.entity.Importance::getValue).toList());
         }
-        if (request.getTitle() != null) {
-            String paramName = "title";
-            sql.append(String.format(" AND m.%s LIKE :%s", SqliteSchema.COL_TITLE, paramName));
-            params.addValue(paramName, "%" + request.getTitle() + "%");
+        if (request.getTitle() != null && !request.getTitle().isEmpty()) {
+            sql.append(" AND (");
+            for (int i = 0; i < request.getTitle().size(); i++) {
+                String paramName = "title" + i;
+                sql.append(i == 0 ? "" : " OR ").append(String.format("m.%s LIKE :%s", SqliteSchema.COL_TITLE, paramName));
+                params.addValue(paramName, "%" + request.getTitle().get(i) + "%");
+            }
+            sql.append(")");
         }
-        if (request.getEvaluation() != null) {
+        if (request.getEvaluation() != null && !request.getEvaluation().isEmpty()) {
             String paramName = "evaluation";
-            sql.append(String.format(" AND m.%s = :%s", SqliteSchema.COL_EVALUATION, paramName));
-            params.addValue(paramName, request.getEvaluation().getValue());
+            sql.append(String.format(" AND m.%s IN (:%s)", SqliteSchema.COL_EVALUATION, paramName));
+            params.addValue(paramName, request.getEvaluation().stream().map(com.PorTracker.PorTrackerBE.domain.memo.entity.Evaluation::getValue).toList());
         }
-        if (request.getMemoType() != null) {
+        if (request.getMemoType() != null && !request.getMemoType().isEmpty()) {
             String paramName = "memoType";
-            sql.append(String.format(" AND m.%s = :%s", SqliteSchema.COL_MEMO_TYPE, paramName));
-            params.addValue(paramName, request.getMemoType().getValue());
+            sql.append(String.format(" AND m.%s IN (:%s)", SqliteSchema.COL_MEMO_TYPE, paramName));
+            params.addValue(paramName, request.getMemoType().stream().map(com.PorTracker.PorTrackerBE.domain.memo.entity.MemoType::getValue).toList());
         }
-        if (request.getActualId() != null) {
+        if (request.getActualId() != null && !request.getActualId().isEmpty()) {
             String paramName = "actualId";
-            sql.append(String.format(" AND ap.%s = :%s", SqliteSchema.COL_PUBLIC_ID, paramName));
+            sql.append(String.format(" AND ap.%s IN (:%s)", SqliteSchema.COL_PUBLIC_ID, paramName));
             params.addValue(paramName, request.getActualId());
         }
-        if (request.getTargetId() != null) {
+        if (request.getTargetId() != null && !request.getTargetId().isEmpty()) {
             String paramName = "targetId";
-            sql.append(String.format(" AND tp.%s = :%s", SqliteSchema.COL_PUBLIC_ID, paramName));
+            sql.append(String.format(" AND tp.%s IN (:%s)", SqliteSchema.COL_PUBLIC_ID, paramName));
             params.addValue(paramName, request.getTargetId());
         }
         if (request.getStartDate() != null) {

@@ -1,5 +1,6 @@
 package com.PorTracker.PorTrackerBE.domain.target_portfolio.dto;
 
+import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -8,7 +9,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class TargetPortfolioSearchRequest {
-    private String name;
+    private List<String> name;
     private String startDate;
     private String endDate;
     private Integer limit = 5;
