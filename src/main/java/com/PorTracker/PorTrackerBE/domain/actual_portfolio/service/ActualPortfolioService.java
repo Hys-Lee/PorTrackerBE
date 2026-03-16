@@ -41,6 +41,13 @@ public class ActualPortfolioService {
         return actualPortfolioRepository.findAll(jdbcTemplate);
     }
 
+    public List<ActualPortfolioRecord> getUnlinkedActualPortfolios() {
+        String userId = UserContextHolder.getUserId();
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
+
+        return actualPortfolioRepository.findUnlinkedToMemo(jdbcTemplate);
+    }
+
     // public ActualPortfolioRecord getActualPortfolioById(String userId, String publicId) {
     public ActualPortfolioRecord getActualPortfolioById(String publicId) {
         String userId = UserContextHolder.getUserId();

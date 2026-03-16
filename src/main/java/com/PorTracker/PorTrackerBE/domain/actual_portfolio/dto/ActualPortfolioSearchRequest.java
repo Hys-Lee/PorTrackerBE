@@ -10,9 +10,9 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class ActualPortfolioSearchRequest {
-    private List<String> assetId;
-    private List<String> currencyId;
-    private List<TransactionType> transactionType;
+    private List<String> assetIds;
+    private List<String> currencyIds;
+    private List<TransactionType> transactionTypes;
     private String startDate;
     private String endDate;
     private Integer limit = 5;

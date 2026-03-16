@@ -12,12 +12,12 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class MemoSearchRequest {
-    private List<Importance> importance;
-    private List<String> title;
-    private List<Evaluation> evaluation;
-    private List<MemoType> memoType;
-    private List<String> actualId;
-    private List<String> targetId;
+    private List<Importance> importances;
+    private List<String> titles;
+    private List<Evaluation> evaluations;
+    private List<MemoType> memoTypes;
+    private List<String> actualIds;
+    private List<String> targetIds;
     private String startDate;
     private String endDate;
     private Integer limit = 5;

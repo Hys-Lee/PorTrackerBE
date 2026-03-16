@@ -284,24 +284,24 @@ public class ActualPortfolioRepository {
         MapSqlParameterSource params = new MapSqlParameterSource();
 
         // 필터 조건 처리
-        if (request.getAssetId() != null && !request.getAssetId().isEmpty()) {
+        if (request.getAssetIds() != null && !request.getAssetIds().isEmpty()) {
             String paramName = "assetId";
             sql.append(String.format(" AND a.%s IN (:%s)", SqliteSchema.COL_PUBLIC_ID, paramName));
-            params.addValue(paramName, request.getAssetId());
+            params.addValue(paramName, request.getAssetIds());
         }
 
-        if (request.getCurrencyId() != null && !request.getCurrencyId().isEmpty()) {
+        if (request.getCurrencyIds() != null && !request.getCurrencyIds().isEmpty()) {
             String paramName = "currencyId";
             sql.append(String.format(" AND c.%s IN (:%s)", SqliteSchema.COL_PUBLIC_ID, paramName));
-            params.addValue(paramName, request.getCurrencyId());
+            params.addValue(paramName, request.getCurrencyIds());
         }
 
-        if (request.getTransactionType() != null && !request.getTransactionType().isEmpty()) {
+        if (request.getTransactionTypes() != null && !request.getTransactionTypes().isEmpty()) {
             String paramName = "transactionType";
             sql.append(
                     String.format(
                             " AND ap.%s IN (:%s)", SqliteSchema.COL_TRANSACTION_TYPE, paramName));
-            params.addValue(paramName, request.getTransactionType().stream().map(com.PorTracker.PorTrackerBE.domain.actual_portfolio.entity.TransactionType::getValue).toList());
+            params.addValue(paramName, request.getTransactionTypes().stream().map(com.PorTracker.PorTrackerBE.domain.actual_portfolio.entity.TransactionType::getValue).toList());
         }
 
         if (request.getStartDate() != null) {
@@ -327,5 +327,14 @@ public class ActualPortfolioRepository {
         params.addValue(offsetParam, request.getOffset());
 
         return jdbcTemplate.query(sql.toString(), params, actualPortfolioMapper);
+    }
+
+    public List<ActualPortfolioRecord> findUnlinkedToMemo(JdbcTemplate jdbcTemplate) {
+        String sql = BASE_SELECT_SQL +
+                " LEFT JOIN " + SqliteSchema.TABLE_MEMO + " m ON m." + SqliteSchema.COL_ACTUAL_ID + " = ap." + SqliteSchema.COL_ID +
+                " AND m." + SqliteSchema.COL_DELETED_AT + " IS NULL" +
+                " WHERE m." + SqliteSchema.COL_ID + " IS NULL AND ap." + SqliteSchema.COL_DELETED_AT + " IS NULL" +
+                " ORDER BY ap." + SqliteSchema.COL_DATE + " DESC, ap." + SqliteSchema.COL_CREATED_AT + " DESC";
+        return jdbcTemplate.query(sql, actualPortfolioMapper);
     }
 }

@@ -78,6 +78,20 @@ public class MemoController {
         return ResponseEntity.ok(response);
     }
 
+    @io.swagger.v3.oas.annotations.Operation(
+            summary = "에셋 관련 최근 메모 조회",
+            description = "특정 asset_id와 연결된 actual_portfolio의 메모 중 최근 n개를 조회합니다.")
+    @GetMapping("/recent/asset/{assetPublicId}")
+    public ResponseEntity<List<MemoResponse>> getRecentMemosByAssetId(
+            @PathVariable("assetPublicId") String assetPublicId,
+            @org.springframework.web.bind.annotation.RequestParam(value = "limit", defaultValue = "5") int limit) {
+        
+        List<MemoRecord> records = memoService.getRecentMemosByAssetId(assetPublicId, limit);
+        List<MemoResponse> response = records.stream().map(MemoResponse::from).toList();
+
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping
     public ResponseEntity<IdResponse> addMemo(
             // @RequestHeader("X-USER-ID") String userId, @RequestBody MemoCreateRequest request) {

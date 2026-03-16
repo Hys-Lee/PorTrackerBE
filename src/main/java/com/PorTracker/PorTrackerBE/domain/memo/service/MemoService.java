@@ -1,6 +1,7 @@
 package com.PorTracker.PorTrackerBE.domain.memo.service;
 
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.service.ActualPortfolioService;
+import com.PorTracker.PorTrackerBE.domain.asset.service.AssetService;
 import com.PorTracker.PorTrackerBE.domain.memo.dto.MemoCreateRequest;
 import com.PorTracker.PorTrackerBE.domain.memo.entity.MemoRecord;
 import com.PorTracker.PorTrackerBE.domain.memo.repository.MemoRepository;
@@ -29,6 +30,7 @@ public class MemoService {
     private final ActualPortfolioService actualPortfolioService;
     private final TargetPortfolioService targetPortfolioService;
     private final com.PorTracker.PorTrackerBE.domain.tag.repository.TagRepository tagRepository;
+    private final AssetService assetService;
 
     // public List<MemoRecord> getAllMemos(String userId) {
     public List<MemoRecord> getAllMemos() {
@@ -68,6 +70,16 @@ public class MemoService {
         org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate jdbcTemplate =
                 sqliteManager.getNamedParameterJdbcTemplate(userId);
         List<MemoRecord> memos = memoRepository.search(jdbcTemplate, request);
+        return memoRepository.enrichWithTags(jdbcTemplate, memos);
+    }
+
+    public List<MemoRecord> getRecentMemosByAssetId(String assetPublicId, int limit) {
+        String userId = UserContextHolder.getUserId();
+        NamedParameterJdbcTemplate jdbcTemplate = sqliteManager.getNamedParameterJdbcTemplate(userId);
+
+        Long assetId = assetService.getAssetByPublicId(assetPublicId).getId();
+        
+        List<MemoRecord> memos = memoRepository.findRecentByAssetId(jdbcTemplate, assetId, limit);
         return memoRepository.enrichWithTags(jdbcTemplate, memos);
     }
 

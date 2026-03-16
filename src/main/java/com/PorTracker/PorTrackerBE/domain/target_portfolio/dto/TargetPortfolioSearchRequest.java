@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class TargetPortfolioSearchRequest {
-    private List<String> name;
+    private List<String> names;
     private String startDate;
     private String endDate;
     private Integer limit = 5;

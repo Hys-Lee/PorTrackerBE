@@ -232,39 +232,39 @@ public class MemoRepository {
 
         MapSqlParameterSource params = new MapSqlParameterSource();
 
-        if (request.getImportance() != null && !request.getImportance().isEmpty()) {
+        if (request.getImportances() != null && !request.getImportances().isEmpty()) {
             String paramName = "importance";
             sql.append(String.format(" AND m.%s IN (:%s)", SqliteSchema.COL_IMPORTANCE, paramName));
-            params.addValue(paramName, request.getImportance().stream().map(com.PorTracker.PorTrackerBE.domain.memo.entity.Importance::getValue).toList());
+            params.addValue(paramName, request.getImportances().stream().map(com.PorTracker.PorTrackerBE.domain.memo.entity.Importance::getValue).toList());
         }
-        if (request.getTitle() != null && !request.getTitle().isEmpty()) {
+        if (request.getTitles() != null && !request.getTitles().isEmpty()) {
             sql.append(" AND (");
-            for (int i = 0; i < request.getTitle().size(); i++) {
+            for (int i = 0; i < request.getTitles().size(); i++) {
                 String paramName = "title" + i;
                 sql.append(i == 0 ? "" : " OR ").append(String.format("m.%s LIKE :%s", SqliteSchema.COL_TITLE, paramName));
-                params.addValue(paramName, "%" + request.getTitle().get(i) + "%");
+                params.addValue(paramName, "%" + request.getTitles().get(i) + "%");
             }
             sql.append(")");
         }
-        if (request.getEvaluation() != null && !request.getEvaluation().isEmpty()) {
+        if (request.getEvaluations() != null && !request.getEvaluations().isEmpty()) {
             String paramName = "evaluation";
             sql.append(String.format(" AND m.%s IN (:%s)", SqliteSchema.COL_EVALUATION, paramName));
-            params.addValue(paramName, request.getEvaluation().stream().map(com.PorTracker.PorTrackerBE.domain.memo.entity.Evaluation::getValue).toList());
+            params.addValue(paramName, request.getEvaluations().stream().map(com.PorTracker.PorTrackerBE.domain.memo.entity.Evaluation::getValue).toList());
         }
-        if (request.getMemoType() != null && !request.getMemoType().isEmpty()) {
+        if (request.getMemoTypes() != null && !request.getMemoTypes().isEmpty()) {
             String paramName = "memoType";
             sql.append(String.format(" AND m.%s IN (:%s)", SqliteSchema.COL_MEMO_TYPE, paramName));
-            params.addValue(paramName, request.getMemoType().stream().map(com.PorTracker.PorTrackerBE.domain.memo.entity.MemoType::getValue).toList());
+            params.addValue(paramName, request.getMemoTypes().stream().map(com.PorTracker.PorTrackerBE.domain.memo.entity.MemoType::getValue).toList());
         }
-        if (request.getActualId() != null && !request.getActualId().isEmpty()) {
+        if (request.getActualIds() != null && !request.getActualIds().isEmpty()) {
             String paramName = "actualId";
             sql.append(String.format(" AND ap.%s IN (:%s)", SqliteSchema.COL_PUBLIC_ID, paramName));
-            params.addValue(paramName, request.getActualId());
+            params.addValue(paramName, request.getActualIds());
         }
-        if (request.getTargetId() != null && !request.getTargetId().isEmpty()) {
+        if (request.getTargetIds() != null && !request.getTargetIds().isEmpty()) {
             String paramName = "targetId";
             sql.append(String.format(" AND tp.%s IN (:%s)", SqliteSchema.COL_PUBLIC_ID, paramName));
-            params.addValue(paramName, request.getTargetId());
+            params.addValue(paramName, request.getTargetIds());
         }
         if (request.getStartDate() != null) {
             String paramName = "startDate";
@@ -289,6 +289,20 @@ public class MemoRepository {
         params.addValue(offsetParam, request.getOffset());
 
         return jdbcTemplate.query(sql.toString(), params, memoMapper);
+    }
+
+    public List<MemoRecord> findRecentByAssetId(NamedParameterJdbcTemplate jdbcTemplate, Long assetId, int limit) {
+        String sql = BASE_SELECT_SQL +
+                " WHERE ap." + SqliteSchema.COL_ASSET_ID + " = :assetId" +
+                " AND m." + SqliteSchema.COL_DELETED_AT + " IS NULL" +
+                " ORDER BY m." + SqliteSchema.COL_DATE + " DESC, m." + SqliteSchema.COL_CREATED_AT + " DESC" +
+                " LIMIT :limit";
+
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("assetId", assetId);
+        params.addValue("limit", limit);
+
+        return jdbcTemplate.query(sql, params, memoMapper);
     }
 
     public List<MemoRecord> enrichWithTags(

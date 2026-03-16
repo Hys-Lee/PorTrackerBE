@@ -42,6 +42,16 @@ public class ActualPortfolioController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Unlinked actual portfolios", description = "Get actual portfolios that are not linked to any memo")
+    @GetMapping("/unlinked")
+    public ResponseEntity<List<ActualPortfolioResponse>> getUnlinkedActualPortfolios() {
+        List<ActualPortfolioRecord> records = actualPortfolioService.getUnlinkedActualPortfolios();
+        List<ActualPortfolioResponse> response =
+                records.stream().map(ActualPortfolioResponse::from).toList();
+
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/{publicId}")
     public ResponseEntity<ActualPortfolioResponse> getActualPortfolio(
             // @RequestHeader("X-USER-ID") String userId, @PathVariable("publicId") String publicId)
