@@ -138,7 +138,7 @@ public class MemoRepository {
                     ps.setString(3, request.getTitle());
                     ps.setString(4, request.getContent());
                     ps.setString(5, request.getEvaluation().getValue());
-                    ps.setString(6, request.getDate());
+                    ps.setString(6, request.getDate().toString());
                     ps.setString(7, request.getMemoType().getValue());
                     if (actualId != null) {
                         ps.setLong(8, actualId);
@@ -186,7 +186,7 @@ public class MemoRepository {
                     ps.setString(2, request.getTitle());
                     ps.setString(3, request.getContent());
                     ps.setString(4, request.getEvaluation().getValue());
-                    ps.setString(5, request.getDate());
+                    ps.setString(5, request.getDate().toString());
                     ps.setString(6, request.getMemoType().getValue());
                     if (actualId != null) {
                         ps.setLong(7, actualId);
@@ -202,6 +202,35 @@ public class MemoRepository {
                 });
     }
 
+    public void patchIdsByPublicId(
+            JdbcTemplate jdbcTemplate, String publicId, Long actualId, Long targetId) {
+        String sql =
+                String.format(
+                        "UPDATE %s SET %s = ?, %s = ?, %s = datetime('now') WHERE %s = ? AND %s IS NULL",
+                        SqliteSchema.TABLE_MEMO,
+                        SqliteSchema.COL_ACTUAL_ID,
+                        SqliteSchema.COL_TARGET_ID,
+                        SqliteSchema.COL_UPDATED_AT,
+                        SqliteSchema.COL_PUBLIC_ID,
+                        SqliteSchema.COL_DELETED_AT);
+
+        jdbcTemplate.update(
+                sql,
+                ps -> {
+                    if (actualId != null) {
+                        ps.setLong(1, actualId);
+                    } else {
+                        ps.setNull(1, java.sql.Types.BIGINT);
+                    }
+                    if (targetId != null) {
+                        ps.setLong(2, targetId);
+                    } else {
+                        ps.setNull(2, java.sql.Types.BIGINT);
+                    }
+                    ps.setString(3, publicId);
+                });
+    }
+
     public void deleteByPublicId(JdbcTemplate jdbcTemplate, String publicId) {
         String sql =
                 String.format(
@@ -212,6 +241,30 @@ public class MemoRepository {
                         SqliteSchema.COL_DELETED_AT);
 
         jdbcTemplate.update(sql, ps -> ps.setString(1, publicId));
+    }
+
+    public void nullifyActualId(JdbcTemplate jdbcTemplate, Long actualId) {
+        String sql =
+                String.format(
+                        "UPDATE %s SET %s = NULL, %s = datetime('now') WHERE %s = ? AND %s IS NULL",
+                        SqliteSchema.TABLE_MEMO,
+                        SqliteSchema.COL_ACTUAL_ID,
+                        SqliteSchema.COL_UPDATED_AT,
+                        SqliteSchema.COL_ACTUAL_ID,
+                        SqliteSchema.COL_DELETED_AT);
+        jdbcTemplate.update(sql, ps -> ps.setLong(1, actualId));
+    }
+
+    public void nullifyTargetId(JdbcTemplate jdbcTemplate, Long targetId) {
+        String sql =
+                String.format(
+                        "UPDATE %s SET %s = NULL, %s = datetime('now') WHERE %s = ? AND %s IS NULL",
+                        SqliteSchema.TABLE_MEMO,
+                        SqliteSchema.COL_TARGET_ID,
+                        SqliteSchema.COL_UPDATED_AT,
+                        SqliteSchema.COL_TARGET_ID,
+                        SqliteSchema.COL_DELETED_AT);
+        jdbcTemplate.update(sql, ps -> ps.setLong(1, targetId));
     }
 
     public List<MemoRecord> findByPublicIds(
@@ -235,13 +288,20 @@ public class MemoRepository {
         if (request.getImportances() != null && !request.getImportances().isEmpty()) {
             String paramName = "importance";
             sql.append(String.format(" AND m.%s IN (:%s)", SqliteSchema.COL_IMPORTANCE, paramName));
-            params.addValue(paramName, request.getImportances().stream().map(com.PorTracker.PorTrackerBE.domain.memo.entity.Importance::getValue).toList());
+            params.addValue(
+                    paramName,
+                    request.getImportances().stream()
+                            .map(
+                                    com.PorTracker.PorTrackerBE.domain.memo.entity.Importance
+                                            ::getValue)
+                            .toList());
         }
         if (request.getTitles() != null && !request.getTitles().isEmpty()) {
             sql.append(" AND (");
             for (int i = 0; i < request.getTitles().size(); i++) {
                 String paramName = "title" + i;
-                sql.append(i == 0 ? "" : " OR ").append(String.format("m.%s LIKE :%s", SqliteSchema.COL_TITLE, paramName));
+                sql.append(i == 0 ? "" : " OR ")
+                        .append(String.format("m.%s LIKE :%s", SqliteSchema.COL_TITLE, paramName));
                 params.addValue(paramName, "%" + request.getTitles().get(i) + "%");
             }
             sql.append(")");
@@ -249,12 +309,22 @@ public class MemoRepository {
         if (request.getEvaluations() != null && !request.getEvaluations().isEmpty()) {
             String paramName = "evaluation";
             sql.append(String.format(" AND m.%s IN (:%s)", SqliteSchema.COL_EVALUATION, paramName));
-            params.addValue(paramName, request.getEvaluations().stream().map(com.PorTracker.PorTrackerBE.domain.memo.entity.Evaluation::getValue).toList());
+            params.addValue(
+                    paramName,
+                    request.getEvaluations().stream()
+                            .map(
+                                    com.PorTracker.PorTrackerBE.domain.memo.entity.Evaluation
+                                            ::getValue)
+                            .toList());
         }
         if (request.getMemoTypes() != null && !request.getMemoTypes().isEmpty()) {
             String paramName = "memoType";
             sql.append(String.format(" AND m.%s IN (:%s)", SqliteSchema.COL_MEMO_TYPE, paramName));
-            params.addValue(paramName, request.getMemoTypes().stream().map(com.PorTracker.PorTrackerBE.domain.memo.entity.MemoType::getValue).toList());
+            params.addValue(
+                    paramName,
+                    request.getMemoTypes().stream()
+                            .map(com.PorTracker.PorTrackerBE.domain.memo.entity.MemoType::getValue)
+                            .toList());
         }
         if (request.getActualIds() != null && !request.getActualIds().isEmpty()) {
             String paramName = "actualId";
@@ -291,12 +361,22 @@ public class MemoRepository {
         return jdbcTemplate.query(sql.toString(), params, memoMapper);
     }
 
-    public List<MemoRecord> findRecentByAssetId(NamedParameterJdbcTemplate jdbcTemplate, Long assetId, int limit) {
-        String sql = BASE_SELECT_SQL +
-                " WHERE ap." + SqliteSchema.COL_ASSET_ID + " = :assetId" +
-                " AND m." + SqliteSchema.COL_DELETED_AT + " IS NULL" +
-                " ORDER BY m." + SqliteSchema.COL_DATE + " DESC, m." + SqliteSchema.COL_CREATED_AT + " DESC" +
-                " LIMIT :limit";
+    public List<MemoRecord> findRecentByAssetId(
+            NamedParameterJdbcTemplate jdbcTemplate, Long assetId, int limit) {
+        String sql =
+                BASE_SELECT_SQL
+                        + " WHERE ap."
+                        + SqliteSchema.COL_ASSET_ID
+                        + " = :assetId"
+                        + " AND m."
+                        + SqliteSchema.COL_DELETED_AT
+                        + " IS NULL"
+                        + " ORDER BY m."
+                        + SqliteSchema.COL_DATE
+                        + " DESC, m."
+                        + SqliteSchema.COL_CREATED_AT
+                        + " DESC"
+                        + " LIMIT :limit";
 
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("assetId", assetId);

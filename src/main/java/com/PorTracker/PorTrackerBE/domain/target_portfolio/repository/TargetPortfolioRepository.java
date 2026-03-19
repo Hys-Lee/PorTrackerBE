@@ -155,7 +155,8 @@ public class TargetPortfolioRepository {
             sql.append(" AND (");
             for (int i = 0; i < request.getNames().size(); i++) {
                 String paramName = "name" + i;
-                sql.append(i == 0 ? "" : " OR ").append(String.format("%s LIKE :%s", SqliteSchema.COL_NAME, paramName));
+                sql.append(i == 0 ? "" : " OR ")
+                        .append(String.format("%s LIKE :%s", SqliteSchema.COL_NAME, paramName));
                 params.addValue(paramName, "%" + request.getNames().get(i) + "%");
             }
             sql.append(")");

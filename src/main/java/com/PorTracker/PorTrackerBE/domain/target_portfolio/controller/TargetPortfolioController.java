@@ -93,10 +93,27 @@ public class TargetPortfolioController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/with-memo")
+    public ResponseEntity<IdResponse> addTargetPortfolioWithMemo(
+            @jakarta.validation.Valid @RequestBody com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioWithMemoCreateRequest request) {
+
+        String publicId = targetPortfolioService.addTargetPortfolioWithMemo(request);
+        return ResponseEntity.ok(IdResponse.of(publicId));
+    }
+
+    @org.springframework.web.bind.annotation.PutMapping("/{publicId}/with-memo")
+    public ResponseEntity<IdResponse> updateTargetPortfolioWithMemo(
+            @PathVariable("publicId") String publicId,
+            @jakarta.validation.Valid @RequestBody com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioWithMemoCreateRequest request) {
+
+        targetPortfolioService.updateTargetPortfolioWithMemo(publicId, request);
+        return ResponseEntity.ok(IdResponse.of(publicId));
+    }
+
     @PostMapping
     public ResponseEntity<IdResponse> addTargetPortfolio(
             // @RequestHeader("X-USER-ID") String userId,
-            @RequestBody TargetPortfolioCreateRequest request) {
+            @jakarta.validation.Valid @RequestBody TargetPortfolioCreateRequest request) {
 
         // String publicId = targetPortfolioService.addTargetPortfolio(userId, request);
         String publicId = targetPortfolioService.addTargetPortfolio(request);
@@ -107,7 +124,7 @@ public class TargetPortfolioController {
     // public ResponseEntity<Void> updateTargetPortfolio(@RequestHeader("X-USER-ID") String userId,
     public ResponseEntity<IdResponse> updateTargetPortfolio(
             @PathVariable("publicId") String publicId,
-            @RequestBody TargetPortfolioCreateRequest request) {
+            @jakarta.validation.Valid @RequestBody TargetPortfolioCreateRequest request) {
 
         // targetPortfolioService.updateTargetPortfolio(userId, publicId, request);
         targetPortfolioService.updateTargetPortfolio(publicId, request);

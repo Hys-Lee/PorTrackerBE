@@ -14,6 +14,8 @@ import com.PorTracker.PorTrackerBE.global.common.UserContextHolder;
 import com.PorTracker.PorTrackerBE.global.error.BusinessException;
 import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
 import com.PorTracker.PorTrackerBE.global.infra.sqlite.SqliteDatabaseManager;
+import com.PorTracker.PorTrackerBE.domain.memo.repository.MemoRepository;
+import com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioWithMemoCreateRequest;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,7 @@ public class TargetPortfolioService {
     private final TargetPortfolioRepository targetPortfolioRepository;
     private final TargetPortfolioSnapshotRepository snapshotRepository;
     private final TargetPortfolioItemRepository itemRepository;
+    private final MemoRepository memoRepository;
     private final AssetService assetService;
 
     /** 포트폴리오 목록과 각 포트폴리오의 최신 아이템들을 함께 조회 (N+1 문제 해결) */
@@ -261,6 +264,31 @@ public class TargetPortfolioService {
         log.info("target portfolio updated for user: {}, portfolio: {}", userId, publicId);
     }
 
+    @Transactional
+    public String addTargetPortfolioWithMemo(TargetPortfolioWithMemoCreateRequest request) {
+        String publicId = addTargetPortfolio(request);
+        if (request.getMemoId() != null) {
+            String userId = UserContextHolder.getUserId();
+            JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
+            TargetPortfolioRecord record = targetPortfolioRepository.findByPublicId(jdbcTemplate, publicId)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA, "target_portfolio"));
+            memoRepository.patchIdsByPublicId(jdbcTemplate, request.getMemoId(), null, record.getId());
+        }
+        return publicId;
+    }
+
+    @Transactional
+    public void updateTargetPortfolioWithMemo(String publicId, TargetPortfolioWithMemoCreateRequest request) {
+        updateTargetPortfolio(publicId, request);
+        if (request.getMemoId() != null) {
+            String userId = UserContextHolder.getUserId();
+            JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
+            TargetPortfolioRecord record = targetPortfolioRepository.findByPublicId(jdbcTemplate, publicId)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA, "target_portfolio"));
+            memoRepository.patchIdsByPublicId(jdbcTemplate, request.getMemoId(), null, record.getId());
+        }
+    }
+
     /** 타겟 포트폴리오 소프트 삭제 */
     @Transactional
     // public void deleteTargetPortfolio(String userId, String publicId) {
@@ -268,11 +296,13 @@ public class TargetPortfolioService {
         String userId = UserContextHolder.getUserId();
         JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
-        targetPortfolioRepository
+        TargetPortfolioRecord record = targetPortfolioRepository
                 .findByPublicId(jdbcTemplate, publicId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
 
         targetPortfolioRepository.deleteByPublicId(jdbcTemplate, publicId);
+
+        memoRepository.nullifyTargetId(jdbcTemplate, record.getId());
 
         log.info("target portfolio deleted for user: {}, portfolio: {}", userId, publicId);
     }

@@ -75,10 +75,11 @@ public class MemoService {
 
     public List<MemoRecord> getRecentMemosByAssetId(String assetPublicId, int limit) {
         String userId = UserContextHolder.getUserId();
-        NamedParameterJdbcTemplate jdbcTemplate = sqliteManager.getNamedParameterJdbcTemplate(userId);
+        NamedParameterJdbcTemplate jdbcTemplate =
+                sqliteManager.getNamedParameterJdbcTemplate(userId);
 
         Long assetId = assetService.getAssetByPublicId(assetPublicId).getId();
-        
+
         List<MemoRecord> memos = memoRepository.findRecentByAssetId(jdbcTemplate, assetId, limit);
         return memoRepository.enrichWithTags(jdbcTemplate, memos);
     }
@@ -176,6 +177,41 @@ public class MemoService {
         }
 
         log.info("Memo updated successfully for user: {}, publicId: {}", userId, publicId);
+    }
+
+    @Transactional
+    public void patchMemoIds(
+            String publicId, com.PorTracker.PorTrackerBE.domain.memo.dto.MemoPatchRequest request) {
+        String userId = UserContextHolder.getUserId();
+        NamedParameterJdbcTemplate jdbcTemplate =
+                sqliteManager.getNamedParameterJdbcTemplate(userId);
+
+        // 메모 존재 여부 확인
+        memoRepository
+                .findByPublicId(jdbcTemplate.getJdbcTemplate(), publicId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
+
+        if (request.getActualId() != null && request.getTargetId() != null) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        Long actualId = null;
+        if (request.getActualId() != null) {
+            actualId = actualPortfolioService.getActualPortfolioById(request.getActualId()).getId();
+        }
+
+        Long targetId = null;
+        if (request.getTargetId() != null) {
+            var detail = targetPortfolioService.getTargetPortfolioDetail(request.getTargetId());
+            if (detail != null && detail.portfolio() != null) {
+                targetId = detail.portfolio().getId();
+            }
+        }
+
+        memoRepository.patchIdsByPublicId(
+                jdbcTemplate.getJdbcTemplate(), publicId, actualId, targetId);
+
+        log.info("Memo ids patched successfully for user: {}, publicId: {}", userId, publicId);
     }
 
     @Transactional

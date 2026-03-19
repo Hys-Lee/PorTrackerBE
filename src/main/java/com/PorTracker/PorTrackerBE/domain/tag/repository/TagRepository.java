@@ -171,7 +171,7 @@ public class TagRepository {
                                         new MapSqlParameterSource()
                                                 .addValue(
                                                         publicIdParam, UUID.randomUUID().toString())
-                                                .addValue(content, content.trim()))
+                                                .addValue(contentParam, content.trim()))
                         .toArray(SqlParameterSource[]::new);
         jdbcTemplate.batchUpdate(insertSql, batchParams);
 

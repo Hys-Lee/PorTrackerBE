@@ -42,7 +42,9 @@ public class ActualPortfolioController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Unlinked actual portfolios", description = "Get actual portfolios that are not linked to any memo")
+    @Operation(
+            summary = "Unlinked actual portfolios",
+            description = "Get actual portfolios that are not linked to any memo")
     @GetMapping("/unlinked")
     public ResponseEntity<List<ActualPortfolioResponse>> getUnlinkedActualPortfolios() {
         List<ActualPortfolioRecord> records = actualPortfolioService.getUnlinkedActualPortfolios();
@@ -97,6 +99,23 @@ public class ActualPortfolioController {
                 records.stream().map(ActualPortfolioResponse::from).toList();
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/with-memo")
+    public ResponseEntity<IdResponse> addActualPortfolioWithMemo(
+            @Valid @RequestBody com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioWithMemoCreateRequest request) {
+
+        String publicId = actualPortfolioService.addActualPortfolioWithMemo(request);
+        return ResponseEntity.ok(IdResponse.of(publicId));
+    }
+
+    @org.springframework.web.bind.annotation.PutMapping("/{publicId}/with-memo")
+    public ResponseEntity<IdResponse> updateActualPortfolioWithMemo(
+            @PathVariable("publicId") String publicId,
+            @Valid @RequestBody com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioWithMemoCreateRequest request) {
+
+        actualPortfolioService.updateActualPortfolioWithMemo(publicId, request);
+        return ResponseEntity.ok(IdResponse.of(publicId));
     }
 
     @PostMapping

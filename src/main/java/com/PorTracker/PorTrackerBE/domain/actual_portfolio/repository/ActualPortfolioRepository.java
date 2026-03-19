@@ -277,7 +277,7 @@ public class ActualPortfolioRepository {
         StringBuilder sql = new StringBuilder(BASE_SELECT_SQL);
         sql.append(
                 String.format(
-                        " WHERE ap.%sß IS NULL",
+                        " WHERE ap.%s IS NULL",
                         // where
                         SqliteSchema.COL_DELETED_AT));
 
@@ -301,7 +301,16 @@ public class ActualPortfolioRepository {
             sql.append(
                     String.format(
                             " AND ap.%s IN (:%s)", SqliteSchema.COL_TRANSACTION_TYPE, paramName));
-            params.addValue(paramName, request.getTransactionTypes().stream().map(com.PorTracker.PorTrackerBE.domain.actual_portfolio.entity.TransactionType::getValue).toList());
+            params.addValue(
+                    paramName,
+                    request.getTransactionTypes().stream()
+                            .map(
+                                    com.PorTracker.PorTrackerBE.domain
+                                                    .actual_portfolio
+                                                    .entity
+                                                    .TransactionType
+                                            ::getValue)
+                            .toList());
         }
 
         if (request.getStartDate() != null) {
@@ -330,11 +339,27 @@ public class ActualPortfolioRepository {
     }
 
     public List<ActualPortfolioRecord> findUnlinkedToMemo(JdbcTemplate jdbcTemplate) {
-        String sql = BASE_SELECT_SQL +
-                " LEFT JOIN " + SqliteSchema.TABLE_MEMO + " m ON m." + SqliteSchema.COL_ACTUAL_ID + " = ap." + SqliteSchema.COL_ID +
-                " AND m." + SqliteSchema.COL_DELETED_AT + " IS NULL" +
-                " WHERE m." + SqliteSchema.COL_ID + " IS NULL AND ap." + SqliteSchema.COL_DELETED_AT + " IS NULL" +
-                " ORDER BY ap." + SqliteSchema.COL_DATE + " DESC, ap." + SqliteSchema.COL_CREATED_AT + " DESC";
+        String sql =
+                BASE_SELECT_SQL
+                        + " LEFT JOIN "
+                        + SqliteSchema.TABLE_MEMO
+                        + " m ON m."
+                        + SqliteSchema.COL_ACTUAL_ID
+                        + " = ap."
+                        + SqliteSchema.COL_ID
+                        + " AND m."
+                        + SqliteSchema.COL_DELETED_AT
+                        + " IS NULL"
+                        + " WHERE m."
+                        + SqliteSchema.COL_ID
+                        + " IS NULL AND ap."
+                        + SqliteSchema.COL_DELETED_AT
+                        + " IS NULL"
+                        + " ORDER BY ap."
+                        + SqliteSchema.COL_DATE
+                        + " DESC, ap."
+                        + SqliteSchema.COL_CREATED_AT
+                        + " DESC";
         return jdbcTemplate.query(sql, actualPortfolioMapper);
     }
 }

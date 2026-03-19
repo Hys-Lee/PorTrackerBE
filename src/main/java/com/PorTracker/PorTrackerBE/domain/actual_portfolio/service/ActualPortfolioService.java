@@ -13,6 +13,8 @@ import com.PorTracker.PorTrackerBE.global.error.BusinessException;
 import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
 import com.PorTracker.PorTrackerBE.global.infra.sqlite.SqliteDatabaseManager;
 import com.PorTracker.PorTrackerBE.global.service.SyncService;
+import com.PorTracker.PorTrackerBE.domain.memo.repository.MemoRepository;
+import com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioWithMemoCreateRequest;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,7 @@ public class ActualPortfolioService {
     private final ActualPortfolioRepository actualPortfolioRepository;
     private final AssetService assetService;
     private final CurrencyService currencyService;
+    private final MemoRepository memoRepository;
 
     // test
     private final SyncService syncService;
@@ -142,17 +145,47 @@ public class ActualPortfolioService {
     }
 
     @Transactional
+    public String addActualPortfolioWithMemo(ActualPortfolioWithMemoCreateRequest request) {
+        String publicId = addActualPortfolio(request);
+        if (request.getMemoId() != null) {
+            String userId = UserContextHolder.getUserId();
+            JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
+            ActualPortfolioRecord record = getActualPortfolioById(publicId);
+            memoRepository.patchIdsByPublicId(jdbcTemplate, request.getMemoId(), record.getId(), null);
+        }
+        return publicId;
+    }
+
+    @Transactional
+    public void updateActualPortfolioWithMemo(String publicId, ActualPortfolioWithMemoCreateRequest request) {
+        updateActualPortfolio(publicId, request);
+
+        // test
+        String memoId = request.getMemoId();
+        log.info("{} in updateActualPortfolioWithMemo: ",memoId);
+
+        if (request.getMemoId() != null) {
+            String userId = UserContextHolder.getUserId();
+            JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
+            ActualPortfolioRecord record = getActualPortfolioById(publicId);
+            memoRepository.patchIdsByPublicId(jdbcTemplate, request.getMemoId(), record.getId(), null);
+        }
+    }
+
+    @Transactional
     // public void deleteActualPortfolio(String userId, String publicId) {
     public void deleteActualPortfolio(String publicId) {
         String userId = UserContextHolder.getUserId();
         JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         // Check exists
-        actualPortfolioRepository
+        ActualPortfolioRecord record = actualPortfolioRepository
                 .findByPublicId(jdbcTemplate, publicId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
 
         actualPortfolioRepository.deleteByPublicId(jdbcTemplate, publicId);
+
+        memoRepository.nullifyActualId(jdbcTemplate, record.getId());
 
         log.info(
                 "actual portfolio deleted successfully for user: {}, publicId: {}",

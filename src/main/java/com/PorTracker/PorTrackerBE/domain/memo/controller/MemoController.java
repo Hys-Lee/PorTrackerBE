@@ -84,8 +84,11 @@ public class MemoController {
     @GetMapping("/recent/asset/{assetPublicId}")
     public ResponseEntity<List<MemoResponse>> getRecentMemosByAssetId(
             @PathVariable("assetPublicId") String assetPublicId,
-            @org.springframework.web.bind.annotation.RequestParam(value = "limit", defaultValue = "5") int limit) {
-        
+            @org.springframework.web.bind.annotation.RequestParam(
+                            value = "limit",
+                            defaultValue = "5")
+                    int limit) {
+
         List<MemoRecord> records = memoService.getRecentMemosByAssetId(assetPublicId, limit);
         List<MemoResponse> response = records.stream().map(MemoResponse::from).toList();
 
@@ -108,6 +111,17 @@ public class MemoController {
             @Valid @RequestBody MemoCreateRequest request) {
         // memoService.updateMemo(userId, publicId, request);
         memoService.updateMemo(publicId, request);
+        return ResponseEntity.ok(IdResponse.of(publicId));
+    }
+
+    @io.swagger.v3.oas.annotations.Operation(
+            summary = "메모의 실제/목표 포트폴리오 연결 수정",
+            description = "actualId와 targetId 중 하나를 받아 메모에 연결하고 다른 하나는 연결 해제합니다.")
+    @org.springframework.web.bind.annotation.PatchMapping("/{publicId}")
+    public ResponseEntity<IdResponse> patchMemoIds(
+            @PathVariable("publicId") String publicId,
+            @Valid @RequestBody com.PorTracker.PorTrackerBE.domain.memo.dto.MemoPatchRequest request) {
+        memoService.patchMemoIds(publicId, request);
         return ResponseEntity.ok(IdResponse.of(publicId));
     }
 
