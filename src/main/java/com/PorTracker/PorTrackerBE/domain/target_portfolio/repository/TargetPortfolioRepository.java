@@ -8,6 +8,8 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -16,16 +18,25 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class TargetPortfolioRepository {
 
-    private static final String BASE_SELECT_SQL =
+    private static final String CORE_SELECT_SQL =
             String.format(
-                    " SELECT %s, %s, %s, %s, %s, %s FROM %s",
+                    "SELECT %s, %s, %s, %s, %s, %s",
                     SqliteSchema.COL_ID,
                     SqliteSchema.COL_PUBLIC_ID,
                     SqliteSchema.COL_NAME,
                     SqliteSchema.COL_DATE,
                     SqliteSchema.COL_CREATED_AT,
-                    SqliteSchema.COL_DELETED_AT,
-                    SqliteSchema.TABLE_TARGET_PORTFOLIO);
+                    SqliteSchema.COL_DELETED_AT);
+
+    private static final String BASE_SELECT_SQL =
+            String.format(CORE_SELECT_SQL + " FROM %s", SqliteSchema.TABLE_TARGET_PORTFOLIO);
+
+    private static final String BULK_SELECT_SQL =
+            String.format(
+                    CORE_SELECT_SQL + " FROM %s WHERE %s IN (:bulkIds) AND %s IS NULL",
+                    SqliteSchema.TABLE_TARGET_PORTFOLIO,
+                    SqliteSchema.COL_PUBLIC_ID,
+                    SqliteSchema.COL_DELETED_AT);
 
     private final RowMapper<TargetPortfolioRecord> portfolioMapper =
             (rs, rowNum) ->
@@ -119,5 +130,61 @@ public class TargetPortfolioRepository {
                         SqliteSchema.COL_DELETED_AT);
 
         jdbcTemplate.update(sql, ps -> ps.setString(1, publicId));
+    }
+
+    public List<TargetPortfolioRecord> findByPublicIds(
+            NamedParameterJdbcTemplate jdbcTemplate, List<String> publicIds) {
+        if (publicIds == null || publicIds.isEmpty()) return List.of();
+
+        MapSqlParameterSource parameters = new MapSqlParameterSource();
+        parameters.addValue("bulkIds", publicIds);
+
+        return jdbcTemplate.query(BULK_SELECT_SQL, parameters, portfolioMapper);
+    }
+
+    public List<TargetPortfolioRecord> search(
+            NamedParameterJdbcTemplate jdbcTemplate,
+            com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioSearchRequest
+                    request) {
+        StringBuilder sql = new StringBuilder(BASE_SELECT_SQL);
+        sql.append(String.format(" WHERE %s IS NULL", SqliteSchema.COL_DELETED_AT));
+
+        MapSqlParameterSource params = new MapSqlParameterSource();
+
+        if (request.getNames() != null && !request.getNames().isEmpty()) {
+            sql.append(" AND (");
+            for (int i = 0; i < request.getNames().size(); i++) {
+                String paramName = "name" + i;
+                sql.append(i == 0 ? "" : " OR ")
+                        .append(String.format("%s LIKE :%s", SqliteSchema.COL_NAME, paramName));
+                params.addValue(paramName, "%" + request.getNames().get(i) + "%");
+            }
+            sql.append(")");
+        }
+
+        if (request.getStartDate() != null) {
+            String paramName = "startDate";
+            sql.append(String.format(" AND %s >= :%s", SqliteSchema.COL_DATE, paramName));
+            params.addValue(paramName, request.getStartDate());
+        }
+
+        if (request.getEndDate() != null) {
+            String paramName = "endDate";
+            sql.append(String.format(" AND %s <= :%s", SqliteSchema.COL_DATE, paramName));
+            params.addValue(paramName, request.getEndDate());
+        }
+
+        sql.append(
+                String.format(
+                        " ORDER BY %s DESC, %s DESC",
+                        SqliteSchema.COL_DATE, SqliteSchema.COL_CREATED_AT));
+
+        String limitParam = "limit";
+        String offsetParam = "offset";
+        sql.append(String.format(" LIMIT :%s OFFSET :%s", limitParam, offsetParam));
+        params.addValue(limitParam, request.getLimit());
+        params.addValue(offsetParam, request.getOffset());
+
+        return jdbcTemplate.query(sql.toString(), params, portfolioMapper);
     }
 }

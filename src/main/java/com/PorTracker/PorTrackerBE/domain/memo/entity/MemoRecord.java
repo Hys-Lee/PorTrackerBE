@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-@Builder
+@Builder(toBuilder = true)
 public class MemoRecord {
     private final Long id;
     private final String publicId;
@@ -21,4 +21,5 @@ public class MemoRecord {
     private final String actualPublicId;
     private final Long targetId;
     private final String targetPublicId;
+    private final java.util.List<String> tags;
 }

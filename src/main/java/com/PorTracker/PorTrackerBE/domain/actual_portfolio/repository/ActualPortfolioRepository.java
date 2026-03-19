@@ -86,6 +86,7 @@
 package com.PorTracker.PorTrackerBE.domain.actual_portfolio.repository;
 
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioCreateRequest;
+import com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioSearchRequest;
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.entity.ActualPortfolioRecord;
 import com.PorTracker.PorTrackerBE.global.constant.SqliteSchema;
 import java.util.List;
@@ -94,6 +95,8 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -103,20 +106,26 @@ public class ActualPortfolioRepository {
     private static final String assetPublicIdName = "asset_public_id";
     private static final String currencyPublicIdName = "currency_type_public_id";
 
-    private static final String BASE_SELECT_SQL =
+    private static final String CORE_SELECT_SQL =
             String.format(
-                    " SELECT ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, a.%s as %s, c.%s as %s"
-                            + " FROM %s ap JOIN %s a ON a.%s=ap.%s JOIN %s c ON c.%s=ap.%s",
-                    // select
+                    "SELECT ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s, ap.%s",
                     SqliteSchema.COL_ID,
                     SqliteSchema.COL_PUBLIC_ID,
                     SqliteSchema.COL_ASSET_ID,
                     SqliteSchema.COL_DATE,
+                    SqliteSchema.COL_CREATED_AT,
                     SqliteSchema.COL_TRANSACTION_TYPE,
                     SqliteSchema.COL_CURRENCY_ID,
                     SqliteSchema.COL_PRICE_BP,
                     SqliteSchema.COL_AMOUNT_BP,
-                    SqliteSchema.COL_EXCHANGE_RATE_BP,
+                    SqliteSchema.COL_EXCHANGE_RATE_BP);
+
+    private static final String BASE_SELECT_SQL =
+            String.format(
+                    CORE_SELECT_SQL
+                            + ", a.%s as %s, c.%s as %s"
+                            + " FROM %s ap JOIN %s a ON a.%s=ap.%s JOIN %s c ON c.%s=ap.%s",
+                    // select
                     SqliteSchema.COL_PUBLIC_ID,
                     assetPublicIdName,
                     SqliteSchema.COL_PUBLIC_ID,
@@ -130,6 +139,13 @@ public class ActualPortfolioRepository {
                     SqliteSchema.TABLE_CURRENCY_TYPE,
                     SqliteSchema.COL_ID,
                     SqliteSchema.COL_CURRENCY_ID);
+
+    private static final String BULK_SELECT_SQL =
+            String.format(
+                    CORE_SELECT_SQL + " FROM %s ap WHERE ap.%s IN (:bulkIds) AND ap.%s IS NULL",
+                    SqliteSchema.TABLE_ACTUAL_PORTFOLIO,
+                    SqliteSchema.COL_PUBLIC_ID,
+                    SqliteSchema.COL_DELETED_AT);
 
     public List<ActualPortfolioRecord> findAll(JdbcTemplate jdbcTemplate) {
         return jdbcTemplate.query(BASE_SELECT_SQL, actualPortfolioMapper);
@@ -152,6 +168,7 @@ public class ActualPortfolioRepository {
                             .assetId(rs.getLong(SqliteSchema.COL_ASSET_ID))
                             .assetPublicId(rs.getString(assetPublicIdName))
                             .date(rs.getString(SqliteSchema.COL_DATE))
+                            .createdAt(rs.getString(SqliteSchema.COL_CREATED_AT))
                             .transactionType(rs.getString(SqliteSchema.COL_TRANSACTION_TYPE))
                             .currencyId(rs.getLong(SqliteSchema.COL_CURRENCY_ID))
                             .currencyPublicId(rs.getString(currencyPublicIdName))
@@ -160,7 +177,7 @@ public class ActualPortfolioRepository {
                             .exchangeRateBp(rs.getLong(SqliteSchema.COL_EXCHANGE_RATE_BP))
                             .build();
 
-    public void save(
+    public String save(
             JdbcTemplate jdbcTemplate,
             ActualPortfolioCreateRequest request,
             Long assetId,
@@ -193,6 +210,8 @@ public class ActualPortfolioRepository {
                     ps.setLong(7, request.getAmountBp());
                     ps.setLong(8, request.getExchangeRateBp());
                 });
+
+        return publicId;
     }
 
     public void updateByPublicId(
@@ -241,5 +260,106 @@ public class ActualPortfolioRepository {
                         SqliteSchema.COL_DELETED_AT);
 
         jdbcTemplate.update(sql, ps -> ps.setString(1, publicId));
+    }
+
+    public List<ActualPortfolioRecord> findByPublicIds(
+            NamedParameterJdbcTemplate jdbcTemplate, List<String> publicIds) {
+        if (publicIds == null || publicIds.isEmpty()) return List.of();
+
+        MapSqlParameterSource parameters = new MapSqlParameterSource();
+        parameters.addValue("bulkIds", publicIds);
+
+        return jdbcTemplate.query(BULK_SELECT_SQL, parameters, actualPortfolioMapper);
+    }
+
+    public List<ActualPortfolioRecord> search(
+            NamedParameterJdbcTemplate jdbcTemplate, ActualPortfolioSearchRequest request) {
+        StringBuilder sql = new StringBuilder(BASE_SELECT_SQL);
+        sql.append(
+                String.format(
+                        " WHERE ap.%s IS NULL",
+                        // where
+                        SqliteSchema.COL_DELETED_AT));
+
+        MapSqlParameterSource params = new MapSqlParameterSource();
+
+        // 필터 조건 처리
+        if (request.getAssetIds() != null && !request.getAssetIds().isEmpty()) {
+            String paramName = "assetId";
+            sql.append(String.format(" AND a.%s IN (:%s)", SqliteSchema.COL_PUBLIC_ID, paramName));
+            params.addValue(paramName, request.getAssetIds());
+        }
+
+        if (request.getCurrencyIds() != null && !request.getCurrencyIds().isEmpty()) {
+            String paramName = "currencyId";
+            sql.append(String.format(" AND c.%s IN (:%s)", SqliteSchema.COL_PUBLIC_ID, paramName));
+            params.addValue(paramName, request.getCurrencyIds());
+        }
+
+        if (request.getTransactionTypes() != null && !request.getTransactionTypes().isEmpty()) {
+            String paramName = "transactionType";
+            sql.append(
+                    String.format(
+                            " AND ap.%s IN (:%s)", SqliteSchema.COL_TRANSACTION_TYPE, paramName));
+            params.addValue(
+                    paramName,
+                    request.getTransactionTypes().stream()
+                            .map(
+                                    com.PorTracker.PorTrackerBE.domain
+                                                    .actual_portfolio
+                                                    .entity
+                                                    .TransactionType
+                                            ::getValue)
+                            .toList());
+        }
+
+        if (request.getStartDate() != null) {
+            String paramName = "startDate";
+            sql.append(String.format(" AND ap.%s >= :%s", SqliteSchema.COL_DATE, paramName));
+            params.addValue(paramName, request.getStartDate());
+        }
+        if (request.getEndDate() != null) {
+            String paramName = "endDate";
+            sql.append(String.format(" AND ap.%s <= :%s", SqliteSchema.COL_DATE, paramName));
+            params.addValue(paramName, request.getEndDate());
+        }
+
+        // 정렬 및 개수제한
+        sql.append(
+                String.format(
+                        " ORDER BY ap.%s DESC, ap.%s DESC",
+                        SqliteSchema.COL_DATE, SqliteSchema.COL_CREATED_AT));
+        String limitParam = "limit";
+        String offsetParam = "offset";
+        sql.append(String.format(" LIMIT :%s OFFSET :%s", limitParam, offsetParam));
+        params.addValue(limitParam, request.getLimit());
+        params.addValue(offsetParam, request.getOffset());
+
+        return jdbcTemplate.query(sql.toString(), params, actualPortfolioMapper);
+    }
+
+    public List<ActualPortfolioRecord> findUnlinkedToMemo(JdbcTemplate jdbcTemplate) {
+        String sql =
+                BASE_SELECT_SQL
+                        + " LEFT JOIN "
+                        + SqliteSchema.TABLE_MEMO
+                        + " m ON m."
+                        + SqliteSchema.COL_ACTUAL_ID
+                        + " = ap."
+                        + SqliteSchema.COL_ID
+                        + " AND m."
+                        + SqliteSchema.COL_DELETED_AT
+                        + " IS NULL"
+                        + " WHERE m."
+                        + SqliteSchema.COL_ID
+                        + " IS NULL AND ap."
+                        + SqliteSchema.COL_DELETED_AT
+                        + " IS NULL"
+                        + " ORDER BY ap."
+                        + SqliteSchema.COL_DATE
+                        + " DESC, ap."
+                        + SqliteSchema.COL_CREATED_AT
+                        + " DESC";
+        return jdbcTemplate.query(sql, actualPortfolioMapper);
     }
 }

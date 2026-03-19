@@ -7,8 +7,6 @@ import com.PorTracker.PorTrackerBE.global.constant.SqliteSchema;
 import com.PorTracker.PorTrackerBE.global.error.BusinessException;
 import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
 import com.PorTracker.PorTrackerBE.global.infra.sqlite.SqliteDatabaseManager;
-
-// import com.PorTracker.PorTrackerBE.service.sqlite.SqliteDatabaseManager;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -83,7 +81,7 @@ public class CurrencyService {
 
     // public void addCurrency(String userId, String code) {
     // public void addCurrency(String userId, CurrencyTypeRequest request) {
-    public void addCurrency(CurrencyTypeRequest request) {
+    public String addCurrency(CurrencyTypeRequest request) {
         String userId = UserContextHolder.getUserId();
         JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
@@ -111,6 +109,7 @@ public class CurrencyService {
                 userId,
                 code,
                 publicId);
+        return publicId;
     }
 
     // public void updateCurrency(String userId, String publicId, CurrencyTypeRequest request) {

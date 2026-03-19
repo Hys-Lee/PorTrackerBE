@@ -1,31 +1,36 @@
 package com.PorTracker.PorTrackerBE.domain.memo.dto;
 
+import com.PorTracker.PorTrackerBE.domain.memo.entity.Evaluation;
+import com.PorTracker.PorTrackerBE.domain.memo.entity.Importance;
 import com.PorTracker.PorTrackerBE.domain.memo.entity.MemoRecord;
+import com.PorTracker.PorTrackerBE.domain.memo.entity.MemoType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public record MemoResponse(
         @JsonProperty("id") String publicId,
         String createdAt,
-        String importance,
+        Importance importance,
         String title,
         String content,
-        String evaluation,
+        Evaluation evaluation,
         String date,
-        String memoType,
+        MemoType memoType,
         @JsonProperty("actualId") String actualPublicId,
-        @JsonProperty("targetId") String targetPublicId) {
+        @JsonProperty("targetId") String targetPublicId,
+        @JsonProperty("tags") java.util.List<String> tags) {
 
     public static MemoResponse from(MemoRecord record) {
         return new MemoResponse(
                 record.getPublicId(),
                 record.getCreatedAt(),
-                record.getImportance(),
+                record.getImportance() != null ? Importance.from(record.getImportance()) : null,
                 record.getTitle(),
                 record.getContent(),
-                record.getEvaluation(),
+                record.getEvaluation() != null ? Evaluation.from(record.getEvaluation()) : null,
                 record.getDate(),
-                record.getMemoType(),
+                record.getMemoType() != null ? MemoType.from(record.getMemoType()) : null,
                 record.getActualPublicId(),
-                record.getTargetPublicId());
+                record.getTargetPublicId(),
+                record.getTags() != null ? record.getTags() : java.util.Collections.emptyList());
     }
 }

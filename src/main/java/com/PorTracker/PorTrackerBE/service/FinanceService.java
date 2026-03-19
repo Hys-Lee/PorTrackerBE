@@ -209,7 +209,8 @@
 //         String dbPath = Paths.get(FileConstants.DB_STORAGE_ROOT, userId + ".db").toString();
 
 //         // 임시 currency
-//         // DataSource ds = sqliteManager.getJdbcTemplateOfDataSource(userId, "KRW").getDataSource();
+//         // DataSource ds = sqliteManager.getJdbcTemplateOfDataSource(userId,
+// "KRW").getDataSource();
 //         DataSource ds = sqliteManager.getJdbcTemplateOfDataSource(userId).getDataSource();
 
 //         sqliteRepository.insertTmpTransaction(ds, dto);

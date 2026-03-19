@@ -11,13 +11,12 @@ import com.PorTracker.PorTrackerBE.global.constant.SqliteSchema;
 import com.PorTracker.PorTrackerBE.global.error.BusinessException;
 import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
 import com.PorTracker.PorTrackerBE.global.infra.sqlite.SqliteDatabaseManager;
-
-// import com.PorTracker.PorTrackerBE.service.sqlite.SqliteDatabaseManager;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,10 +49,18 @@ public class AssetService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA, "assets"));
     }
 
+    public List<AssetRecord> getAssetByPublicIds(List<String> publicIds) {
+        String userId = UserContextHolder.getUserId();
+        NamedParameterJdbcTemplate jdbcTemplate =
+                sqliteManager.getNamedParameterJdbcTemplate(userId);
+
+        return assetRepository.findByPublicIds(jdbcTemplate, publicIds);
+    }
+
     // NPE 버그 수정된 메서드
     @Transactional
     // public void addAsset(String userId, AssetCreateRequest request) {
-    public void addAsset(AssetCreateRequest request) {
+    public String addAsset(AssetCreateRequest request) {
         String userId = UserContextHolder.getUserId();
         JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
@@ -99,6 +106,7 @@ public class AssetService {
                 });
 
         log.info("asset recorded successfully for user: {}, publicId: {}", userId, publicId);
+        return publicId;
     }
 
     @Transactional

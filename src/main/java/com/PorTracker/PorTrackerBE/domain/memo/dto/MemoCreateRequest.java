@@ -11,6 +11,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import java.time.OffsetDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +24,7 @@ public class MemoCreateRequest {
     @Size(max = 20, message = "제목 최대 글자수 20을 넘겼습니다.")
     private String title;
 
+    @JsonProperty("content")
     @Size(max = 1000, message = "내용 최대 글자수 1000을 넘겼습니다.")
     private String content;
 
@@ -37,7 +39,8 @@ public class MemoCreateRequest {
     @NotNull(message = "날짜가 없습니다.")
     // @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) // ISO 허용
     @JsonDeserialize(using = FlexibleOffsetDateTimeDeserializer.class)
-    private String date;
+    // private String date;
+    private OffsetDateTime date;
 
     // private String memoType;
     @JsonProperty("memoType")
@@ -51,4 +54,7 @@ public class MemoCreateRequest {
     @JsonProperty("targetId") // JSON의 "targetId" 키를 이 필드에 매핑
     @Pattern(regexp = ValidationConstants.UUID_REGEXP, message = "유효한 ID 형식이 아닙니다.")
     private String targetId;
+
+    @JsonProperty("tags")
+    private java.util.List<String> tags;
 }

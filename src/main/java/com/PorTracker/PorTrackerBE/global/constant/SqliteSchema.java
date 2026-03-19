@@ -56,7 +56,6 @@ public class SqliteSchema {
     public static final String COL_CURRENT_RATIO_BP = "current_ratio_bp";
     public static final String COL_RATIO_DELTA_BP = "ratio_delta_bp";
 
-
     // credential 관련
     public static final String COL_PROVIDER = "provider";
     public static final String COL_ACCESS_TOKEN = "access_token";

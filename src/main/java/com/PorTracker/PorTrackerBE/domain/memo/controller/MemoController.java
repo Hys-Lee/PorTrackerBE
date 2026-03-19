@@ -4,10 +4,12 @@ import com.PorTracker.PorTrackerBE.domain.memo.dto.MemoCreateRequest;
 import com.PorTracker.PorTrackerBE.domain.memo.dto.MemoResponse;
 import com.PorTracker.PorTrackerBE.domain.memo.entity.MemoRecord;
 import com.PorTracker.PorTrackerBE.domain.memo.service.MemoService;
+import com.PorTracker.PorTrackerBE.global.common.IdResponse;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,32 +49,89 @@ public class MemoController {
         return ResponseEntity.ok(MemoResponse.from(record));
     }
 
+    @io.swagger.v3.oas.annotations.Operation(
+            summary = "다건 조회",
+            description = "여러 publicId 받아 리스트로 반환 - 순서는 랜덤")
+    @GetMapping("/bulk")
+    public ResponseEntity<List<MemoResponse>> getMemosBulk(
+            @io.swagger.v3.oas.annotations.Parameter(description = "조회할 publicId 리스트 (쉼표로 구분)")
+                    @org.springframework.web.bind.annotation.RequestParam
+                    List<String> publicIds) {
+
+        List<MemoRecord> records = memoService.getMemoByPublicIds(publicIds);
+        List<MemoResponse> response = records.stream().map(MemoResponse::from).toList();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @io.swagger.v3.oas.annotations.Operation(
+            summary = "메모 검색 및 필터링",
+            description = "메모의 다양한 속성으로 검색 및 필터링을 수행합니다.")
+    @GetMapping("/search")
+    public ResponseEntity<List<MemoResponse>> searchMemos(
+            @ParameterObject
+                    com.PorTracker.PorTrackerBE.domain.memo.dto.MemoSearchRequest request) {
+
+        List<MemoRecord> records = memoService.search(request);
+        List<MemoResponse> response = records.stream().map(MemoResponse::from).toList();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @io.swagger.v3.oas.annotations.Operation(
+            summary = "에셋 관련 최근 메모 조회",
+            description = "특정 asset_id와 연결된 actual_portfolio의 메모 중 최근 n개를 조회합니다.")
+    @GetMapping("/recent/asset/{assetPublicId}")
+    public ResponseEntity<List<MemoResponse>> getRecentMemosByAssetId(
+            @PathVariable("assetPublicId") String assetPublicId,
+            @org.springframework.web.bind.annotation.RequestParam(
+                            value = "limit",
+                            defaultValue = "5")
+                    int limit) {
+
+        List<MemoRecord> records = memoService.getRecentMemosByAssetId(assetPublicId, limit);
+        List<MemoResponse> response = records.stream().map(MemoResponse::from).toList();
+
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping
-    public ResponseEntity<java.util.Map<String, String>> addMemo(
+    public ResponseEntity<IdResponse> addMemo(
             // @RequestHeader("X-USER-ID") String userId, @RequestBody MemoCreateRequest request) {
             @Valid @RequestBody MemoCreateRequest request) {
         // String publicId = memoService.addMemo(userId, request);
         String publicId = memoService.addMemo(request);
-        return ResponseEntity.ok(java.util.Map.of("id", publicId));
+        return ResponseEntity.ok(IdResponse.of(publicId));
     }
 
     @PutMapping("/{publicId}")
-    public ResponseEntity<Void> updateMemo(
+    public ResponseEntity<IdResponse> updateMemo(
             // @RequestHeader("X-USER-ID") String userId,
             @PathVariable("publicId") String publicId,
             @Valid @RequestBody MemoCreateRequest request) {
         // memoService.updateMemo(userId, publicId, request);
         memoService.updateMemo(publicId, request);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(IdResponse.of(publicId));
+    }
+
+    @io.swagger.v3.oas.annotations.Operation(
+            summary = "메모의 실제/목표 포트폴리오 연결 수정",
+            description = "actualId와 targetId 중 하나를 받아 메모에 연결하고 다른 하나는 연결 해제합니다.")
+    @org.springframework.web.bind.annotation.PatchMapping("/{publicId}")
+    public ResponseEntity<IdResponse> patchMemoIds(
+            @PathVariable("publicId") String publicId,
+            @Valid @RequestBody com.PorTracker.PorTrackerBE.domain.memo.dto.MemoPatchRequest request) {
+        memoService.patchMemoIds(publicId, request);
+        return ResponseEntity.ok(IdResponse.of(publicId));
     }
 
     @DeleteMapping("/{publicId}")
-    public ResponseEntity<Void> deleteMemo(
+    public ResponseEntity<IdResponse> deleteMemo(
             // @RequestHeader("X-USER-ID") String userId, @PathVariable("publicId") String publicId)
             // {
             @PathVariable("publicId") String publicId) {
         // memoService.deleteMemo(userId, publicId);
         memoService.deleteMemo(publicId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(IdResponse.of(publicId));
     }
 }

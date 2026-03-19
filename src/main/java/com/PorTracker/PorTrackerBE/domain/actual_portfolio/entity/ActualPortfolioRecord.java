@@ -11,9 +11,8 @@ public class ActualPortfolioRecord {
     private final String publicId;
     private final Long assetId;
     private final String assetPublicId;
-
     private final String date;
-    // private final String createdAt;
+    private final String createdAt;
     // private final String updatedAt;
     // private final String deletedAt;
     private final String transactionType;

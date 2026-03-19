@@ -1,6 +1,7 @@
 package com.PorTracker.PorTrackerBE.domain.actual_portfolio.service;
 
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioCreateRequest;
+import com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioSearchRequest;
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.entity.ActualPortfolioRecord;
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.repository.ActualPortfolioRepository;
 import com.PorTracker.PorTrackerBE.domain.asset.entity.AssetRecord;
@@ -12,12 +13,13 @@ import com.PorTracker.PorTrackerBE.global.error.BusinessException;
 import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
 import com.PorTracker.PorTrackerBE.global.infra.sqlite.SqliteDatabaseManager;
 import com.PorTracker.PorTrackerBE.global.service.SyncService;
-
-// import com.PorTracker.PorTrackerBE.service.sqlite.SqliteDatabaseManager;
+import com.PorTracker.PorTrackerBE.domain.memo.repository.MemoRepository;
+import com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioWithMemoCreateRequest;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,9 +31,9 @@ public class ActualPortfolioService {
     private final ActualPortfolioRepository actualPortfolioRepository;
     private final AssetService assetService;
     private final CurrencyService currencyService;
+    private final MemoRepository memoRepository;
 
-
-    //test
+    // test
     private final SyncService syncService;
 
     // public List<ActualPortfolioRecord> getAllActualPortfolios(String userId) {
@@ -39,8 +41,14 @@ public class ActualPortfolioService {
         String userId = UserContextHolder.getUserId();
         JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
-
         return actualPortfolioRepository.findAll(jdbcTemplate);
+    }
+
+    public List<ActualPortfolioRecord> getUnlinkedActualPortfolios() {
+        String userId = UserContextHolder.getUserId();
+        JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
+
+        return actualPortfolioRepository.findUnlinkedToMemo(jdbcTemplate);
     }
 
     // public ActualPortfolioRecord getActualPortfolioById(String userId, String publicId) {
@@ -58,9 +66,25 @@ public class ActualPortfolioService {
         // }
     }
 
+    public List<ActualPortfolioRecord> getActualPortfolioByPublicIds(List<String> publicIds) {
+        String userId = UserContextHolder.getUserId();
+        org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate jdbcTemplate =
+                sqliteManager.getNamedParameterJdbcTemplate(userId);
+
+        return actualPortfolioRepository.findByPublicIds(jdbcTemplate, publicIds);
+    }
+
+    public List<ActualPortfolioRecord> search(ActualPortfolioSearchRequest request) {
+        String userId = UserContextHolder.getUserId();
+
+        NamedParameterJdbcTemplate jdbcTemplate =
+                sqliteManager.getNamedParameterJdbcTemplate(userId);
+        return actualPortfolioRepository.search(jdbcTemplate, request);
+    }
+
     @Transactional
     // public void addActualPortfolio(String userId, ActualPortfolioCreateRequest request) {
-    public void addActualPortfolio(ActualPortfolioCreateRequest request) {
+    public String addActualPortfolio(ActualPortfolioCreateRequest request) {
         String userId = UserContextHolder.getUserId();
         JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
@@ -75,9 +99,15 @@ public class ActualPortfolioService {
         CurrencyTypeRecord currencyRes =
                 currencyService.getCurrencyByPublicId(request.getCurrencyId());
 
-        actualPortfolioRepository.save(jdbcTemplate, request, assetRes.getId(), currencyRes.id());
+        String publicId =
+                actualPortfolioRepository.save(
+                        jdbcTemplate, request, assetRes.getId(), currencyRes.id());
 
-        log.info("actual portfolio recorded successfully for user: {}", userId);
+        log.info(
+                "actual portfolio recorded successfully for user: {}, publicId: {}",
+                userId,
+                publicId);
+        return publicId;
     }
 
     @Transactional
@@ -115,17 +145,47 @@ public class ActualPortfolioService {
     }
 
     @Transactional
+    public String addActualPortfolioWithMemo(ActualPortfolioWithMemoCreateRequest request) {
+        String publicId = addActualPortfolio(request);
+        if (request.getMemoId() != null) {
+            String userId = UserContextHolder.getUserId();
+            JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
+            ActualPortfolioRecord record = getActualPortfolioById(publicId);
+            memoRepository.patchIdsByPublicId(jdbcTemplate, request.getMemoId(), record.getId(), null);
+        }
+        return publicId;
+    }
+
+    @Transactional
+    public void updateActualPortfolioWithMemo(String publicId, ActualPortfolioWithMemoCreateRequest request) {
+        updateActualPortfolio(publicId, request);
+
+        // test
+        String memoId = request.getMemoId();
+        log.info("{} in updateActualPortfolioWithMemo: ",memoId);
+
+        if (request.getMemoId() != null) {
+            String userId = UserContextHolder.getUserId();
+            JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
+            ActualPortfolioRecord record = getActualPortfolioById(publicId);
+            memoRepository.patchIdsByPublicId(jdbcTemplate, request.getMemoId(), record.getId(), null);
+        }
+    }
+
+    @Transactional
     // public void deleteActualPortfolio(String userId, String publicId) {
     public void deleteActualPortfolio(String publicId) {
         String userId = UserContextHolder.getUserId();
         JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         // Check exists
-        actualPortfolioRepository
+        ActualPortfolioRecord record = actualPortfolioRepository
                 .findByPublicId(jdbcTemplate, publicId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
 
         actualPortfolioRepository.deleteByPublicId(jdbcTemplate, publicId);
+
+        memoRepository.nullifyActualId(jdbcTemplate, record.getId());
 
         log.info(
                 "actual portfolio deleted successfully for user: {}, publicId: {}",
