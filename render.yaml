@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: portracker-backend
+    runtime: docker
+    plan: free
+    envVars:
+      - key: SENTRY_AUTH_TOKEN
+        fromVariable: SENTRY_AUTH_TOKEN
+      - key: REDIS_HOST
+        fromVariable: REDIS_HOST
+      - key: REDIS_PORT
+        fromVariable: REDIS_PORT
+      - key: SENTRY_DSN
+        fromVariable: SENTRY_DSN
+      - key: SUPABASE_DATABASE_PW
+        fromVariable: SUPABASE_DATABASE_PW
+      - key: SUPABASE_URL
+        fromVariable: SUPABASE_URL
+      - key: SUPABASE_KEY
+        fromVariable: SUPABASE_KEY
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        fromVariable: SUPABASE_SERVICE_ROLE_KEY
+      - key: SUPABASE_JWT_SECRET
+        fromVariable: SUPABASE_JWT_SECRET
+      - key: GOOGLE_CLIENT_ID
+        fromVariable: GOOGLE_CLIENT_ID
+      - key: GOOGLE_CLIENT_SECRET
+        fromVariable: GOOGLE_CLIENT_SECRET
+      - key: SPRING_JPA_OPEN_IN_VIEW
+        value: "false"
