@@ -1,5 +1,9 @@
 # 1. 빌드 단계 (Java 21 사용)
 FROM eclipse-temurin:21-jdk-jammy AS build
+
+ARG SENTRY_AUTH_TOKEN
+ENV SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN
+
 COPY . .
 # 테스트는 로컬에서 이미 통과했으니 배포 시에는 건너뜁니다.
 RUN ./gradlew clean build -x test
