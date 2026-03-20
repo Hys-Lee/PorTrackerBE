@@ -120,7 +120,8 @@ public class MemoController {
     @org.springframework.web.bind.annotation.PatchMapping("/{publicId}")
     public ResponseEntity<IdResponse> patchMemoIds(
             @PathVariable("publicId") String publicId,
-            @Valid @RequestBody com.PorTracker.PorTrackerBE.domain.memo.dto.MemoPatchRequest request) {
+            @Valid @RequestBody
+                    com.PorTracker.PorTrackerBE.domain.memo.dto.MemoPatchRequest request) {
         memoService.patchMemoIds(publicId, request);
         return ResponseEntity.ok(IdResponse.of(publicId));
     }

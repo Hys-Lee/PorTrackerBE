@@ -103,7 +103,12 @@ public class ActualPortfolioController {
 
     @PostMapping("/with-memo")
     public ResponseEntity<IdResponse> addActualPortfolioWithMemo(
-            @Valid @RequestBody com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioWithMemoCreateRequest request) {
+            @Valid @RequestBody
+                    com.PorTracker.PorTrackerBE.domain
+                                    .actual_portfolio
+                                    .dto
+                                    .ActualPortfolioWithMemoCreateRequest
+                            request) {
 
         String publicId = actualPortfolioService.addActualPortfolioWithMemo(request);
         return ResponseEntity.ok(IdResponse.of(publicId));
@@ -112,7 +117,12 @@ public class ActualPortfolioController {
     @org.springframework.web.bind.annotation.PutMapping("/{publicId}/with-memo")
     public ResponseEntity<IdResponse> updateActualPortfolioWithMemo(
             @PathVariable("publicId") String publicId,
-            @Valid @RequestBody com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioWithMemoCreateRequest request) {
+            @Valid @RequestBody
+                    com.PorTracker.PorTrackerBE.domain
+                                    .actual_portfolio
+                                    .dto
+                                    .ActualPortfolioWithMemoCreateRequest
+                            request) {
 
         actualPortfolioService.updateActualPortfolioWithMemo(publicId, request);
         return ResponseEntity.ok(IdResponse.of(publicId));

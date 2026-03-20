@@ -2,19 +2,19 @@ package com.PorTracker.PorTrackerBE.domain.actual_portfolio.service;
 
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioCreateRequest;
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioSearchRequest;
+import com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioWithMemoCreateRequest;
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.entity.ActualPortfolioRecord;
 import com.PorTracker.PorTrackerBE.domain.actual_portfolio.repository.ActualPortfolioRepository;
 import com.PorTracker.PorTrackerBE.domain.asset.entity.AssetRecord;
 import com.PorTracker.PorTrackerBE.domain.asset.service.AssetService;
 import com.PorTracker.PorTrackerBE.domain.currency.entity.CurrencyTypeRecord;
 import com.PorTracker.PorTrackerBE.domain.currency.service.CurrencyService;
+import com.PorTracker.PorTrackerBE.domain.memo.repository.MemoRepository;
 import com.PorTracker.PorTrackerBE.global.common.UserContextHolder;
 import com.PorTracker.PorTrackerBE.global.error.BusinessException;
 import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
 import com.PorTracker.PorTrackerBE.global.infra.sqlite.SqliteDatabaseManager;
 import com.PorTracker.PorTrackerBE.global.service.SyncService;
-import com.PorTracker.PorTrackerBE.domain.memo.repository.MemoRepository;
-import com.PorTracker.PorTrackerBE.domain.actual_portfolio.dto.ActualPortfolioWithMemoCreateRequest;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -151,24 +151,27 @@ public class ActualPortfolioService {
             String userId = UserContextHolder.getUserId();
             JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
             ActualPortfolioRecord record = getActualPortfolioById(publicId);
-            memoRepository.patchIdsByPublicId(jdbcTemplate, request.getMemoId(), record.getId(), null);
+            memoRepository.patchIdsByPublicId(
+                    jdbcTemplate, request.getMemoId(), record.getId(), null);
         }
         return publicId;
     }
 
     @Transactional
-    public void updateActualPortfolioWithMemo(String publicId, ActualPortfolioWithMemoCreateRequest request) {
+    public void updateActualPortfolioWithMemo(
+            String publicId, ActualPortfolioWithMemoCreateRequest request) {
         updateActualPortfolio(publicId, request);
 
         // test
         String memoId = request.getMemoId();
-        log.info("{} in updateActualPortfolioWithMemo: ",memoId);
+        log.info("{} in updateActualPortfolioWithMemo: ", memoId);
 
         if (request.getMemoId() != null) {
             String userId = UserContextHolder.getUserId();
             JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
             ActualPortfolioRecord record = getActualPortfolioById(publicId);
-            memoRepository.patchIdsByPublicId(jdbcTemplate, request.getMemoId(), record.getId(), null);
+            memoRepository.patchIdsByPublicId(
+                    jdbcTemplate, request.getMemoId(), record.getId(), null);
         }
     }
 
@@ -179,9 +182,10 @@ public class ActualPortfolioService {
         JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
         // Check exists
-        ActualPortfolioRecord record = actualPortfolioRepository
-                .findByPublicId(jdbcTemplate, publicId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
+        ActualPortfolioRecord record =
+                actualPortfolioRepository
+                        .findByPublicId(jdbcTemplate, publicId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
 
         actualPortfolioRepository.deleteByPublicId(jdbcTemplate, publicId);
 
