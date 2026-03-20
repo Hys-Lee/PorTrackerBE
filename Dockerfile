@@ -19,7 +19,8 @@ COPY --from=build /build/libs/*.jar app.jar
 RUN mkdir -p /app/db
 
 # 포트 설정
-EXPOSE 8080
+# EXPOSE 8080
+EXPOSE 10000
 
 # 메모리 최적화 (Render 무료 티어 512MB에 맞춤)
 ENV JAVA_OPTS="-Xms256m -Xmx384m -XX:+UseSerialGC"
