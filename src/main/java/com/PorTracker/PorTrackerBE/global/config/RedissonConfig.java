@@ -31,7 +31,7 @@ public class RedissonConfig {
         config.useSingleServer()
                 .setAddress(redisUrl)
                 .setPassword(redissPw)
-                .setSslEnableEndpointIdentification(false);
+                .setSslEnableEndpointIdentification(true);
 
         return Redisson.create(config);
     }
