@@ -1,6 +1,0 @@
-spring:
-  data:
-    redis:
-      host: allowed-javelin-78374.upstash.io ##localhost
-      port: 6379
-      password: "gQAAAAAAATImAAIncDFkNWQxZmQ0NDAzM2E0MjYyYjNhN2M1ZGFkZTUxZDUyNnAxNzgzNzQ"
