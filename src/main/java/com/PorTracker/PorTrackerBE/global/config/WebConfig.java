@@ -4,7 +4,6 @@ import com.PorTracker.PorTrackerBE.domain.actual_portfolio.entity.TransactionTyp
 import com.PorTracker.PorTrackerBE.domain.memo.entity.Evaluation;
 import com.PorTracker.PorTrackerBE.domain.memo.entity.Importance;
 import com.PorTracker.PorTrackerBE.domain.memo.entity.MemoType;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
@@ -18,8 +17,8 @@ public class WebConfig implements WebMvcConfigurer {
     String ClientUrl;
 
     @Override
-    public void addCorsMappings(CorsRegistry registry){
-         registry.addMapping("/api/**")
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/api/**")
                 .allowedOrigins(ClientUrl) // 프론트 주소
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE")
                 .allowedHeaders("*")
