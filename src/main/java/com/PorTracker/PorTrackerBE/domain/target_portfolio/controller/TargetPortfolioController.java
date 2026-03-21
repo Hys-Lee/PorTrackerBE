@@ -95,7 +95,12 @@ public class TargetPortfolioController {
 
     @PostMapping("/with-memo")
     public ResponseEntity<IdResponse> addTargetPortfolioWithMemo(
-            @jakarta.validation.Valid @RequestBody com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioWithMemoCreateRequest request) {
+            @jakarta.validation.Valid @RequestBody
+                    com.PorTracker.PorTrackerBE.domain
+                                    .target_portfolio
+                                    .dto
+                                    .TargetPortfolioWithMemoCreateRequest
+                            request) {
 
         String publicId = targetPortfolioService.addTargetPortfolioWithMemo(request);
         return ResponseEntity.ok(IdResponse.of(publicId));
@@ -104,7 +109,12 @@ public class TargetPortfolioController {
     @org.springframework.web.bind.annotation.PutMapping("/{publicId}/with-memo")
     public ResponseEntity<IdResponse> updateTargetPortfolioWithMemo(
             @PathVariable("publicId") String publicId,
-            @jakarta.validation.Valid @RequestBody com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioWithMemoCreateRequest request) {
+            @jakarta.validation.Valid @RequestBody
+                    com.PorTracker.PorTrackerBE.domain
+                                    .target_portfolio
+                                    .dto
+                                    .TargetPortfolioWithMemoCreateRequest
+                            request) {
 
         targetPortfolioService.updateTargetPortfolioWithMemo(publicId, request);
         return ResponseEntity.ok(IdResponse.of(publicId));

@@ -1,7 +1,7 @@
 package com.PorTracker.PorTrackerBE.domain.target_portfolio.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.PorTracker.PorTrackerBE.global.constant.ValidationConstants;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;

@@ -2,9 +2,11 @@ package com.PorTracker.PorTrackerBE.domain.target_portfolio.service;
 
 import com.PorTracker.PorTrackerBE.domain.asset.entity.AssetRecord;
 import com.PorTracker.PorTrackerBE.domain.asset.service.AssetService;
+import com.PorTracker.PorTrackerBE.domain.memo.repository.MemoRepository;
 import com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioCreateRequest;
 import com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioItemRequest;
 import com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioSnapshotUpdateRequest;
+import com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioWithMemoCreateRequest;
 import com.PorTracker.PorTrackerBE.domain.target_portfolio.entity.TargetPortfolioItemRecord;
 import com.PorTracker.PorTrackerBE.domain.target_portfolio.entity.TargetPortfolioRecord;
 import com.PorTracker.PorTrackerBE.domain.target_portfolio.repository.TargetPortfolioItemRepository;
@@ -14,8 +16,6 @@ import com.PorTracker.PorTrackerBE.global.common.UserContextHolder;
 import com.PorTracker.PorTrackerBE.global.error.BusinessException;
 import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
 import com.PorTracker.PorTrackerBE.global.infra.sqlite.SqliteDatabaseManager;
-import com.PorTracker.PorTrackerBE.domain.memo.repository.MemoRepository;
-import com.PorTracker.PorTrackerBE.domain.target_portfolio.dto.TargetPortfolioWithMemoCreateRequest;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -270,22 +270,35 @@ public class TargetPortfolioService {
         if (request.getMemoId() != null) {
             String userId = UserContextHolder.getUserId();
             JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
-            TargetPortfolioRecord record = targetPortfolioRepository.findByPublicId(jdbcTemplate, publicId)
-                    .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA, "target_portfolio"));
-            memoRepository.patchIdsByPublicId(jdbcTemplate, request.getMemoId(), null, record.getId());
+            TargetPortfolioRecord record =
+                    targetPortfolioRepository
+                            .findByPublicId(jdbcTemplate, publicId)
+                            .orElseThrow(
+                                    () ->
+                                            new BusinessException(
+                                                    ErrorCode.NO_DATA, "target_portfolio"));
+            memoRepository.patchIdsByPublicId(
+                    jdbcTemplate, request.getMemoId(), null, record.getId());
         }
         return publicId;
     }
 
     @Transactional
-    public void updateTargetPortfolioWithMemo(String publicId, TargetPortfolioWithMemoCreateRequest request) {
+    public void updateTargetPortfolioWithMemo(
+            String publicId, TargetPortfolioWithMemoCreateRequest request) {
         updateTargetPortfolio(publicId, request);
         if (request.getMemoId() != null) {
             String userId = UserContextHolder.getUserId();
             JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
-            TargetPortfolioRecord record = targetPortfolioRepository.findByPublicId(jdbcTemplate, publicId)
-                    .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA, "target_portfolio"));
-            memoRepository.patchIdsByPublicId(jdbcTemplate, request.getMemoId(), null, record.getId());
+            TargetPortfolioRecord record =
+                    targetPortfolioRepository
+                            .findByPublicId(jdbcTemplate, publicId)
+                            .orElseThrow(
+                                    () ->
+                                            new BusinessException(
+                                                    ErrorCode.NO_DATA, "target_portfolio"));
+            memoRepository.patchIdsByPublicId(
+                    jdbcTemplate, request.getMemoId(), null, record.getId());
         }
     }
 
@@ -296,9 +309,10 @@ public class TargetPortfolioService {
         String userId = UserContextHolder.getUserId();
         JdbcTemplate jdbcTemplate = sqliteManager.getJdbcTemplate(userId);
 
-        TargetPortfolioRecord record = targetPortfolioRepository
-                .findByPublicId(jdbcTemplate, publicId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
+        TargetPortfolioRecord record =
+                targetPortfolioRepository
+                        .findByPublicId(jdbcTemplate, publicId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.NO_DATA));
 
         targetPortfolioRepository.deleteByPublicId(jdbcTemplate, publicId);
 

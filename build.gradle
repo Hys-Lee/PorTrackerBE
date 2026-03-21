@@ -50,7 +50,7 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	compileOnly 'org.projectlombok:lombok'
-	// developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	runtimeOnly("io.netty:netty-resolver-dns-native-macos::osx-aarch_64")
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -77,7 +77,6 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
 	implementation 'io.jsonwebtoken:jjwt-impl:0.12.5'
 	implementation 'io.jsonwebtoken:jjwt-jackson:0.12.5'
-	// implementation 'jakarta.annotation:jakarta.annotation-api'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	runtimeOnly 'io.netty:netty-resolver-dns-native-macos'
 	developmentOnly 'org.springframework.boot:spring-boot-docker-compose'

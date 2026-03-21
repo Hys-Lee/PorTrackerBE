@@ -32,7 +32,7 @@ public class SecurityConfig {
                                                 "/swagger-ui/**",
                                                 "/v3/api-docs/**",
                                                 "/swagger-resource/**",
-                                                "webjars/**")
+                                                "/webjars/**")
                                         .permitAll()
                                         .requestMatchers("/api/v1/public/**")
                                         .permitAll() // 공개 API
