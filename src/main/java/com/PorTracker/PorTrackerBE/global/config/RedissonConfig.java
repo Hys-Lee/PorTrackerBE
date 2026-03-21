@@ -15,10 +15,21 @@ public class RedissonConfig {
     @Value("${spring.data.redis.port}")
     private int port;
 
+    @Value("${spring.data.redis.pw : null}")
+    private String redissPw;
+
     @Bean
     public RedissonClient redissonClient() {
         Config config = new Config();
-        config.useSingleServer().setAddress("redis://" + host + ":" + port);
+        if (redissPw != null) {
+
+            config.useSingleServer()
+                    .setAddress("redis://" + host + ":" + port)
+                    .setPassword(redissPw)
+                    .setSslEnableEndpointIdentification(true);
+        } else {
+            config.useSingleServer().setAddress("redis://" + host + ":" + port);
+        }
         return Redisson.create(config);
     }
 }
