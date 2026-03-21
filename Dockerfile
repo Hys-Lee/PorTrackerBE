@@ -25,4 +25,5 @@ EXPOSE 10000
 # 메모리 최적화 (Render 무료 티어 512MB에 맞춤)
 ENV JAVA_OPTS="-Xms256m -Xmx384m -XX:+UseSerialGC"
 
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+# ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Dserver.port=$PORT -jar app.jar"]
