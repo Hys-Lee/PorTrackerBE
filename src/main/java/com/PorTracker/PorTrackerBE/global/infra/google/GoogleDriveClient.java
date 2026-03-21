@@ -27,7 +27,7 @@ public class GoogleDriveClient {
             new HttpComponentsClientHttpRequestFactory();
     private final RestTemplate restTemplate = new RestTemplate(requestFactory);
 
-    private static final String DRIVE_API_URL = "https://www.googleapis.com/upload/drive/v3/files";
+    private static final String DRIVE_API_URL = "https://www.googleapis.com/drive/v3/files";
 
     private static final String UPLOAD_API_URL = "https://www.googleapis.com/upload/drive/v3/files";
 
