@@ -3,6 +3,7 @@ package com.PorTracker.PorTrackerBE.domain.profile.repository;
 import com.PorTracker.PorTrackerBE.domain.profile.entity.CredentialRecord;
 import com.PorTracker.PorTrackerBE.global.constant.CentralSchema;
 import com.PorTracker.PorTrackerBE.global.constant.SqliteSchema;
+import com.PorTracker.PorTrackerBE.global.util.EncryptionUtils;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -15,8 +16,11 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class CredentialRepository {
     private final JdbcTemplate jdbcTemplate;
+    private final EncryptionUtils encryptionUtils;
 
     public void saveGoogleToken(UUID userId, String accessToken, String refreshToken) {
+        String encryptedAccessToken = encryptionUtils.encrypt(accessToken);
+        String encryptedRefreshToken = encryptionUtils.encrypt(refreshToken);
         String provider = "'google'";
         String sql =
                 String.format(
@@ -43,7 +47,7 @@ public class CredentialRepository {
                         CentralSchema.COL_REFRESH_TOKEN,
                         SqliteSchema.COL_UPDATED_AT);
 
-        jdbcTemplate.update(sql, userId, accessToken, refreshToken);
+        jdbcTemplate.update(sql, userId, encryptedAccessToken, encryptedRefreshToken);
     }
 
     public String getAccessToken(UUID userId) {
@@ -56,22 +60,12 @@ public class CredentialRepository {
                         SqliteSchema.COL_ID);
 
         try {
-            return jdbcTemplate.queryForObject(sql, String.class, userId);
-
+            String encryptedAccessToken = jdbcTemplate.queryForObject(sql, String.class, userId);
+            return encryptionUtils.decrypt(encryptedAccessToken);
         } catch (Exception e) {
             return null;
         }
     }
-
-    private final RowMapper<CredentialRecord> credentialMapper =
-            (rs, rowNum) ->
-                    CredentialRecord.builder()
-                            .id(UUID.fromString(rs.getString("id")))
-                            .provider(rs.getString("provider"))
-                            .accessToken(rs.getString("access_token"))
-                            .refreshToken(rs.getString("refresh_token"))
-                            .updatedAt(rs.getObject("updated_at", OffsetDateTime.class))
-                            .build();
 
     public Optional<CredentialRecord> findByUserId(UUID userId) {
         String sql =
@@ -86,11 +80,22 @@ public class CredentialRepository {
                         // where
                         CentralSchema.COL_ID);
 
+        RowMapper<CredentialRecord> credentialMapper =
+                (rs, rowNum) ->
+                        CredentialRecord.builder()
+                                .id(UUID.fromString(rs.getString("id")))
+                                .provider(rs.getString("provider"))
+                                .accessToken(encryptionUtils.decrypt(rs.getString("access_token")))
+                                .refreshToken(encryptionUtils.decrypt(rs.getString("refresh_token")))
+                                .updatedAt(rs.getObject("updated_at", OffsetDateTime.class))
+                                .build();
+
         return jdbcTemplate.query(sql, ps -> ps.setObject(1, userId), credentialMapper).stream()
                 .findFirst();
     }
 
     public void updateAccessToken(UUID userId, String newAccessToken) {
+        String encryptedAccessToken = encryptionUtils.encrypt(newAccessToken);
         String sql =
                 String.format(
                         "UPDATE public.credential SET %s = ?, %s = NOW()" + " WHERE %s = ?",
@@ -99,6 +104,7 @@ public class CredentialRepository {
                         CentralSchema.COL_UPDATED_AT,
                         // where
                         CentralSchema.COL_ID);
-        jdbcTemplate.update(sql, newAccessToken, userId);
+        jdbcTemplate.update(sql, encryptedAccessToken, userId);
     }
 }
+
