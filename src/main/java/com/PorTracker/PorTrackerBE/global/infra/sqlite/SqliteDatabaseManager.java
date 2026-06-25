@@ -23,12 +23,6 @@ public class SqliteDatabaseManager {
     private final Map<String, DataSource> dataSourceMap = new ConcurrentHashMap<>();
 
     public DataSource getDataSource(String userId) {
-        // Map에는 있는데 실제는 없다면, 캐시 무효화하고 새로 만들기
-        Path path = Paths.get("db/" + userId + ".db");
-        if (!Files.exists(path)) {
-            removeDataSource(userId);
-        }
-
         return dataSourceMap.computeIfAbsent(userId, this::createSqliteDataSource);
     }
 
@@ -37,36 +31,24 @@ public class SqliteDatabaseManager {
     }
 
     private DataSource createSqliteDataSource(String userId) {
-        try {
-            Path dbFolderPath = Paths.get("db").toAbsolutePath();
+        // 인메모리 sqlite shared cache 모드 URL 구성
+        String dbUrl = "jdbc:sqlite:file:memdb_" + userId + "?mode=memory&cache=shared";
 
-            if (!Files.exists(dbFolderPath)) {
-                Files.createDirectories(dbFolderPath);
-                log.info("[SQLite] created base directory: {}", dbFolderPath);
-            }
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(dbUrl);
+        config.setDriverClassName("org.sqlite.JDBC");
+        config.setPoolName("SqlitePool-" + userId);
 
-            String dbFilePath = dbFolderPath.resolve(userId + ".db").toString();
+        // Sqlite 최적화 및 풀 제한
+        config.setMaximumPoolSize(1); // 동시성 격리 보장
+        config.setConnectionTestQuery("SELECT 1");
+        
+        // 메모리 DB이므로 WAL과 NORMAL 옵션은 크게 무의미하나 드라이버 프로퍼티 호환성 유지
+        config.addDataSourceProperty("journal_mode", "MEMORY"); 
+        config.addDataSourceProperty("synchronous", "OFF");
 
-            // String dbUrl = "jdbc:sqlite:db/"+userId+".db";
-            String dbUrl = "jdbc:sqlite:" + dbFilePath;
-
-            HikariConfig config = new HikariConfig();
-            config.setJdbcUrl(dbUrl);
-            config.setDriverClassName("org.sqlite.JDBC");
-            config.setPoolName("SqlitePool-" + userId);
-
-            // Sqlite 최적화
-            config.setMaximumPoolSize(1); // sqlite는 파일 단위 락킹이니.
-            config.setConnectionTestQuery("SELECT 1");
-            config.addDataSourceProperty("journal_mode", "WAL"); // 쓰기 성능 향상
-            config.addDataSourceProperty("synchronous", "NORMAL");
-
-            log.info("[SQLite] Created new DataSource for User:{}", userId);
-            return new HikariDataSource(config);
-        } catch (IOException e) {
-            log.error("[SQLite] Failed to create db directory", e);
-            throw new BusinessException(ErrorCode.DATA_CREATE_FAILED);
-        }
+        log.info("[SQLite] Created new In-Memory DataSource for User:{}", userId);
+        return new HikariDataSource(config);
     }
 
     public void removeDataSource(String userId) {
