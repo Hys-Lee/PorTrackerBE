@@ -24,13 +24,14 @@ public class ProfileRepository {
                             .role(rs.getString("role"))
                             .nickname(rs.getString("nickname"))
                             .baseCurrencyId(rs.getLong("base_currency_id"))
-                            .createdAt(rs.getObject("created_at", OffsetDateTime.class))
+                            .userDbVersion(rs.getInt("user_db_version"))
+                            .createdAt(rs.getObject("createdAt" != null ? "created_at" : "created_at", OffsetDateTime.class))
                             .updatedAt(rs.getObject("updated_at", OffsetDateTime.class))
                             .build();
 
     public Optional<ProfileRecord> findById(UUID id) {
         String sql =
-                "SELECT id, email, role, nickname, base_currency_id, created_at, updated_at FROM public.profile WHERE id = ?";
+                "SELECT id, email, role, nickname, base_currency_id, user_db_version, created_at, updated_at FROM public.profile WHERE id = ?";
         return jdbcTemplate.query(sql, ps -> ps.setObject(1, id), profileMapper).stream()
                 .findFirst();
     }
@@ -45,5 +46,10 @@ public class ProfileRepository {
                     ps.setLong(2, baseCurrencyId);
                     ps.setObject(3, id);
                 });
+    }
+
+    public void updateUserDbVersion(UUID id, int version) {
+        String sql = "UPDATE public.profile SET user_db_version = ?, updated_at = NOW() WHERE id = ?";
+        jdbcTemplate.update(sql, version, id);
     }
 }

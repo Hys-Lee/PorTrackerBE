@@ -13,6 +13,7 @@ public class ProfileRecord {
     private final String role;
     private final String nickname;
     private final Long baseCurrencyId;
+    private final int userDbVersion;
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;
 }
