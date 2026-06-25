@@ -37,3 +37,8 @@ supabase:
 google:
   client-id: ${GOOGLE_CLIENT_ID}
   client-secret: ${GOOGLE_CLIENT_SECRET}
+
+app:
+  encryption:
+    key: ${APP_ENCRYPTION_KEY:}
+
