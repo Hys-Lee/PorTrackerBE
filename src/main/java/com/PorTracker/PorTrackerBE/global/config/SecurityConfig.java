@@ -1,6 +1,7 @@
 package com.PorTracker.PorTrackerBE.global.config;
 
 import com.PorTracker.PorTrackerBE.global.auth.JwtAuthenticationFilter;
+import com.PorTracker.PorTrackerBE.global.auth.RateLimitingFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final RateLimitingFilter rateLimitingFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -41,7 +43,10 @@ public class SecurityConfig {
                         )
                 // 우리가 만든 JWT 필터를 시큐리티 필터 체인에 등록
                 .addFilterBefore(
-                        jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                        jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                // JWT 필터 직후에 Rate Limiting 필터 작동 연계
+                .addFilterAfter(
+                        rateLimitingFilter, JwtAuthenticationFilter.class);
 
         return http.build();
     }
