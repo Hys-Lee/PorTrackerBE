@@ -1,6 +1,7 @@
 package com.PorTracker.PorTrackerBE.global.infra.kafka;
 
 import com.PorTracker.PorTrackerBE.global.common.ReplayContextHolder;
+import com.PorTracker.PorTrackerBE.global.util.EncryptionUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.Method;
 import java.time.Duration;
@@ -30,6 +31,7 @@ public class KafkaReplayService {
     private final ConsumerFactory<String, String> consumerFactory;
     private final ApplicationContext applicationContext;
     private final ObjectMapper objectMapper;
+    private final EncryptionUtils encryptionUtils;
 
     private static final String TOPIC = "user-transaction-logs";
 
@@ -99,7 +101,8 @@ public class KafkaReplayService {
 
                     // 복원 데이터 파싱 및 리플렉션 실행
                     try {
-                        Map<String, Object> event = objectMapper.readValue(record.value(), Map.class);
+                        String decryptedValue = encryptionUtils.decrypt(record.value());
+                        Map<String, Object> event = objectMapper.readValue(decryptedValue, Map.class);
                         executeReplayEvent(event);
                         totalReplayed++;
                     } catch (Exception ex) {

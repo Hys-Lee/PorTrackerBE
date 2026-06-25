@@ -1,5 +1,6 @@
 package com.PorTracker.PorTrackerBE.global.infra.kafka;
 
+import com.PorTracker.PorTrackerBE.global.util.EncryptionUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,6 +16,7 @@ public class KafkaTransactionLogProducer {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
+    private final EncryptionUtils encryptionUtils;
 
     private static final String TOPIC = "user-transaction-logs";
 
@@ -31,10 +33,11 @@ public class KafkaTransactionLogProducer {
             messageMap.put("timestamp", System.currentTimeMillis());
 
             String payload = objectMapper.writeValueAsString(messageMap);
+            String encryptedPayload = encryptionUtils.encrypt(payload);
 
             // userId를 메시지 Key로 주어 동일 유저의 쿼리 순서(Partition FIFO) 보장
             // .get()을 호출하여 카프카 브로커의 적재 Ack를 기다리는 동기식 처리 수행
-            kafkaTemplate.send(TOPIC, userId, payload).get();
+            kafkaTemplate.send(TOPIC, userId, encryptedPayload).get();
             
             log.debug("[KafkaWAL] Sent transaction log for user: {}, action: {}", userId, actionType);
         } catch (Exception e) {
@@ -60,7 +63,9 @@ public class KafkaTransactionLogProducer {
             messageMap.put("timestamp", System.currentTimeMillis());
 
             String payload = objectMapper.writeValueAsString(messageMap);
-            kafkaTemplate.send(TOPIC, userId, payload).get();
+            String encryptedPayload = encryptionUtils.encrypt(payload);
+            
+            kafkaTemplate.send(TOPIC, userId, encryptedPayload).get();
 
             log.info("[KafkaWAL] Sent service event WAL for user: {}, method: {}.{}", userId, serviceName, methodName);
         } catch (Exception e) {
@@ -69,3 +74,4 @@ public class KafkaTransactionLogProducer {
         }
     }
 }
+
