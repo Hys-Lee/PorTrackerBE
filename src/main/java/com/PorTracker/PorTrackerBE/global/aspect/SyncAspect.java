@@ -1,8 +1,12 @@
 package com.PorTracker.PorTrackerBE.global.aspect;
 
+import com.PorTracker.PorTrackerBE.global.common.ReplayContextHolder;
 import com.PorTracker.PorTrackerBE.global.common.UserContextHolder;
+import com.PorTracker.PorTrackerBE.global.infra.kafka.KafkaTransactionLogProducer;
 import com.PorTracker.PorTrackerBE.global.service.SyncManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
@@ -10,14 +14,44 @@ import org.springframework.stereotype.Component;
 @Aspect
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class SyncAspect {
     private final SyncManager syncManager;
+    private final KafkaTransactionLogProducer kafkaProducer;
 
+    // 모든 도메인 서비스 메서드 호출 성공 후 Dirty 마크 지정
     @AfterReturning("execution(* com.PorTracker.PorTrackerBE.domain..*Service.*(..))")
     public void afterServiceMethod() {
         String userId = UserContextHolder.getUserId();
-        if (userId != null) {
+        if (userId != null && !ReplayContextHolder.isReplaying()) {
             syncManager.markDirty(userId);
+        }
+    }
+
+    // CUD(쓰기) 메서드 호출 성공 후 Kafka WAL 커밋 로그 동기 발행
+    @AfterReturning(
+            pointcut = "execution(* com.PorTracker.PorTrackerBE.domain..*Service.add*(..)) || " +
+                       "execution(* com.PorTracker.PorTrackerBE.domain..*Service.update*(..)) || " +
+                       "execution(* com.PorTracker.PorTrackerBE.domain..*Service.delete*(..)) || " +
+                       "execution(* com.PorTracker.PorTrackerBE.domain..*Service.patch*(..))"
+    )
+    public void afterCudMethod(JoinPoint joinPoint) {
+        String userId = UserContextHolder.getUserId();
+        if (userId != null && !ReplayContextHolder.isReplaying()) {
+            String serviceName = joinPoint.getTarget().getClass().getSimpleName();
+            // 프록시 객체일 경우 CGLIB 접미사 제거
+            if (serviceName.contains("$$")) {
+                serviceName = serviceName.substring(0, serviceName.indexOf("$$"));
+            }
+            String methodName = joinPoint.getSignature().getName();
+            Object[] args = joinPoint.getArgs();
+
+            try {
+                kafkaProducer.sendServiceEvent(userId, serviceName, methodName, args);
+            } catch (Exception e) {
+                log.error("[AOP] Failed to emit WAL transaction log", e);
+                throw e; // 트랜잭션 롤백 보장
+            }
         }
     }
 }
