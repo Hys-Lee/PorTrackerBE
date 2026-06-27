@@ -20,12 +20,14 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
+import com.PorTracker.PorTrackerBE.global.annotation.WalService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@WalService
 public class TargetPortfolioService {
     private final SqliteDatabaseManager sqliteManager;
     private final TargetPortfolioRepository targetPortfolioRepository;

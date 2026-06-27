@@ -58,8 +58,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 핵심: 검증된 진짜 ID를 컨텍스트에 저장
             UserContextHolder.setUserId(userId);
 
-            // 활동 시간 갱신하기
-            syncManager.updateAccessTime(userId);
+            // 활동 시간 갱신 및 LRU 유저 제어
+            syncManager.registerOrUpdateAccess(userId);
 
             userInitializationService.initializeUserDatabase(userId);
 

@@ -19,8 +19,8 @@ public class SyncAspect {
     private final SyncManager syncManager;
     private final KafkaTransactionLogProducer kafkaProducer;
 
-    // 모든 도메인 서비스 메서드 호출 성공 후 Dirty 마크 지정
-    @AfterReturning("execution(* com.PorTracker.PorTrackerBE.domain..*Service.*(..))")
+    // @WalService 어노테이션이 지정된 클래스의 모든 public 메서드 호출 성공 후 Dirty 마크 지정
+    @AfterReturning("@within(com.PorTracker.PorTrackerBE.global.annotation.WalService)")
     public void afterServiceMethod() {
         String userId = UserContextHolder.getUserId();
         if (userId != null && !ReplayContextHolder.isReplaying()) {
@@ -28,12 +28,14 @@ public class SyncAspect {
         }
     }
 
-    // CUD(쓰기) 메서드 호출 성공 후 Kafka WAL 커밋 로그 동기 발행
+    // @WalService 어노테이션이 지정된 클래스의 CUD(쓰기) 메서드 호출 성공 후 Kafka WAL 커밋 로그 동기 발행
     @AfterReturning(
-            pointcut = "execution(* com.PorTracker.PorTrackerBE.domain..*Service.add*(..)) || " +
-                       "execution(* com.PorTracker.PorTrackerBE.domain..*Service.update*(..)) || " +
-                       "execution(* com.PorTracker.PorTrackerBE.domain..*Service.delete*(..)) || " +
-                       "execution(* com.PorTracker.PorTrackerBE.domain..*Service.patch*(..))"
+            pointcut = "@within(com.PorTracker.PorTrackerBE.global.annotation.WalService) && (" +
+                       "execution(* add*(..)) || " +
+                       "execution(* update*(..)) || " +
+                       "execution(* delete*(..)) || " +
+                       "execution(* patch*(..))" +
+                       ")"
     )
     public void afterCudMethod(JoinPoint joinPoint) {
         String userId = UserContextHolder.getUserId();
