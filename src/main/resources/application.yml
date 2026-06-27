@@ -1,6 +1,9 @@
 spring:
   jpa:
     open-in-view: false
+  docker:
+    compose:
+      enabled: false
   datasource:
     url: jdbc:postgresql://aws-1-ap-south-1.pooler.supabase.com:6543/postgres?prepareThreshold=0
     username: postgres.rllybwrgpaajludglaih
