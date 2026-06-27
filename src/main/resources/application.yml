@@ -42,3 +42,14 @@ app:
   encryption:
     key: ${APP_ENCRYPTION_KEY:}
 
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        slowCallDurationThreshold: 3s
+        slowCallRateThreshold: 70
+
+
