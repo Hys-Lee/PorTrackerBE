@@ -10,6 +10,7 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Aspect
 @Component
@@ -28,16 +29,17 @@ public class SyncAspect {
         }
     }
 
-    // @WalService 어노테이션이 지정된 클래스의 CUD(쓰기) 메서드 호출 성공 후 Kafka WAL 커밋 로그 동기 발행
+    // @WalService가 지정된 클래스의 public 메서드 중, @Transactional의 readOnly가 false(쓰기 트랜잭션)인 메서드 실행 후 WAL 발행
     @AfterReturning(
-            pointcut = "@within(com.PorTracker.PorTrackerBE.global.annotation.WalService) && (" +
-                       "execution(* add*(..)) || " +
-                       "execution(* update*(..)) || " +
-                       "execution(* delete*(..)) || " +
-                       "execution(* patch*(..))" +
-                       ")"
+            pointcut = "@within(com.PorTracker.PorTrackerBE.global.annotation.WalService) && @annotation(transactional)",
+            argNames = "joinPoint,transactional"
     )
-    public void afterCudMethod(JoinPoint joinPoint) {
+    public void afterCudMethod(JoinPoint joinPoint, Transactional transactional) {
+        // readOnly = true인 조회 트랜잭션은 WAL 적재에서 제외
+        if (transactional.readOnly()) {
+            return;
+        }
+
         String userId = UserContextHolder.getUserId();
         if (userId != null && !ReplayContextHolder.isReplaying()) {
             Class<?> targetClass = org.springframework.util.ClassUtils.getUserClass(joinPoint.getTarget());
@@ -54,3 +56,5 @@ public class SyncAspect {
         }
     }
 }
+
+
