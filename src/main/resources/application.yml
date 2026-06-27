@@ -21,6 +21,23 @@ spring:
   jackson:
     deserialization:
       accept-float-as-int: false
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    properties:
+      security:
+        protocol: ${SPRING_KAFKA_SECURITY_PROTOCOL:}
+      sasl:
+        mechanism: ${SPRING_KAFKA_SASL_MECHANISM:}
+        jaas:
+          config: ${SPRING_KAFKA_SASL_JAAS_CONFIG:}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      group-id: portracker-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 logging:
   level:
     org.flywaydb: DEBUG
@@ -51,5 +68,3 @@ resilience4j:
         waitDurationInOpenState: 10s
         slowCallDurationThreshold: 3s
         slowCallRateThreshold: 70
-
-

@@ -10,25 +10,18 @@
         </encoder>
     </appender>
 
-    <!-- 2. 에러 파일 저장 (운영/디버깅용) -->
-    <!-- 에러 로그만 따로 모아서 logs/error.log에 저장합니다. -->
-    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>ERROR</level>
-        </filter>
-        <file>logs/error.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/error-%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>30</maxHistory> <!-- 30일간 보관 -->
-        </rollingPolicy>
-        <encoder>
-            <pattern>${LOG_PATTERN}</pattern>
-        </encoder>
+    <!-- 2. Sentry 전송 (운영/장애 분석용) -->
+    <!-- 로그 레벨이 WARN 이상인 에러/경고성 로그를 실시간 Sentry 클라우드로 전송합니다. -->
+    <appender name="SENTRY" class="io.sentry.logback.SentryAppender">
+        <options>
+            <minimumEventLevel>WARN</minimumEventLevel>
+            <minimumBreadcrumbLevel>INFO</minimumBreadcrumbLevel>
+        </options>
     </appender>
 
     <!-- 프로젝트 전체 로그 레벨 설정 -->
     <root level="INFO">
         <appender-ref ref="STDOUT" />
-        <appender-ref ref="ERROR_FILE" />
+        <appender-ref ref="SENTRY" />
     </root>
 </configuration>
