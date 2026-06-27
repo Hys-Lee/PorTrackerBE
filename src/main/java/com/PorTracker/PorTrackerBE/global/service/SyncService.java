@@ -6,21 +6,17 @@ import com.PorTracker.PorTrackerBE.domain.statistic.service.StatisticService;
 import com.PorTracker.PorTrackerBE.global.infra.google.GoogleAuthService;
 import com.PorTracker.PorTrackerBE.global.infra.google.GoogleDriveClient;
 import com.PorTracker.PorTrackerBE.global.infra.sqlite.SqliteDatabaseManager;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.util.UUID;
-import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.sqlite.SQLiteConnection;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import org.springframework.http.HttpStatus;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
@@ -109,8 +105,7 @@ public class SyncService {
     @Retryable(
             retryFor = {Exception.class},
             maxAttempts = 3,
-            backoff = @Backoff(delay = 2000, multiplier = 2.0)
-    )
+            backoff = @Backoff(delay = 2000, multiplier = 2.0))
     @CircuitBreaker(name = "gdriveUpload", fallbackMethod = "fallbackUpload")
     public void uploadToCloud(String userId) {
         Path tempPath = Paths.get("db/" + userId + ".db");
@@ -140,7 +135,8 @@ public class SyncService {
                             googleAuthService.refreshAccessToken(cred.getRefreshToken());
 
                     if (newAccessToken != null) {
-                        credentialRepository.updateAccessToken(UUID.fromString(userId), newAccessToken);
+                        credentialRepository.updateAccessToken(
+                                UUID.fromString(userId), newAccessToken);
                         googleDriveClient.syncToDrive(userId, newAccessToken);
                         log.info("[Sync] Uploaded successfully after token refreshed");
                     }
@@ -183,7 +179,7 @@ public class SyncService {
         if (parentDir != null && !Files.exists(parentDir)) {
             Files.createDirectories(parentDir);
         }
-        
+
         // 백업 대상 파일이 이미 존재할 경우 덮어쓰기 위해 사전 삭제
         Files.deleteIfExists(Paths.get(targetFilePath));
 
@@ -193,10 +189,16 @@ public class SyncService {
     }
 
     public void fallbackDownload(String userId, Throwable t) {
-        log.error("[Fallback] GDrive download circuit open or failed. serving from memory database if exists. user: {}, reason: {}", userId, t.getMessage());
+        log.error(
+                "[Fallback] GDrive download circuit open or failed. serving from memory database if exists. user: {}, reason: {}",
+                userId,
+                t.getMessage());
     }
 
     public void fallbackUpload(String userId, Throwable t) {
-        log.error("[Fallback] GDrive upload circuit open or failed after retries. WAL log is preserved. user: {}, reason: {}", userId, t.getMessage());
+        log.error(
+                "[Fallback] GDrive upload circuit open or failed after retries. WAL log is preserved. user: {}, reason: {}",
+                userId,
+                t.getMessage());
     }
 }

@@ -10,6 +10,7 @@ import com.PorTracker.PorTrackerBE.domain.asset.service.AssetService;
 import com.PorTracker.PorTrackerBE.domain.currency.entity.CurrencyTypeRecord;
 import com.PorTracker.PorTrackerBE.domain.currency.service.CurrencyService;
 import com.PorTracker.PorTrackerBE.domain.memo.repository.MemoRepository;
+import com.PorTracker.PorTrackerBE.global.annotation.WalService;
 import com.PorTracker.PorTrackerBE.global.common.UserContextHolder;
 import com.PorTracker.PorTrackerBE.global.error.BusinessException;
 import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
@@ -20,7 +21,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import com.PorTracker.PorTrackerBE.global.annotation.WalService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

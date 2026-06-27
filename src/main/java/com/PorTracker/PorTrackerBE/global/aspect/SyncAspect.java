@@ -31,9 +31,9 @@ public class SyncAspect {
 
     // @WalService가 지정된 클래스의 public 메서드 중, @Transactional의 readOnly가 false(쓰기 트랜잭션)인 메서드 실행 후 WAL 발행
     @AfterReturning(
-            pointcut = "@within(com.PorTracker.PorTrackerBE.global.annotation.WalService) && @annotation(transactional)",
-            argNames = "joinPoint,transactional"
-    )
+            pointcut =
+                    "@within(com.PorTracker.PorTrackerBE.global.annotation.WalService) && @annotation(transactional)",
+            argNames = "joinPoint,transactional")
     public void afterCudMethod(JoinPoint joinPoint, Transactional transactional) {
         // readOnly = true인 조회 트랜잭션은 WAL 적재에서 제외
         if (transactional.readOnly()) {
@@ -42,7 +42,8 @@ public class SyncAspect {
 
         String userId = UserContextHolder.getUserId();
         if (userId != null && !ReplayContextHolder.isReplaying()) {
-            Class<?> targetClass = org.springframework.util.ClassUtils.getUserClass(joinPoint.getTarget());
+            Class<?> targetClass =
+                    org.springframework.util.ClassUtils.getUserClass(joinPoint.getTarget());
             String serviceName = targetClass.getSimpleName();
             String methodName = joinPoint.getSignature().getName();
             Object[] args = joinPoint.getArgs();
@@ -56,5 +57,3 @@ public class SyncAspect {
         }
     }
 }
-
-

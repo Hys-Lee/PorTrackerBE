@@ -39,7 +39,9 @@ public class UserInitializationService {
             sqliteManager.getJdbcTemplate(userId).execute("SELECT 1 FROM currency_type LIMIT 1");
             cacheExists = true;
         } catch (Exception e) {
-            log.info("[Init] Memory database cache missing for user: {}. Restoring from Cloud...", userId);
+            log.info(
+                    "[Init] Memory database cache missing for user: {}. Restoring from Cloud...",
+                    userId);
         }
 
         if (!cacheExists) {
@@ -74,17 +76,26 @@ public class UserInitializationService {
 
         // 3. 버전 대조를 통한 Flyway 0ms 우회 기법 적용
         if (userVersion == appDbVersion && cacheExists) {
-            log.info("[Init] DB version matches ({}) for user: {}. Skipping Flyway validation.", appDbVersion, userId);
+            log.info(
+                    "[Init] DB version matches ({}) for user: {}. Skipping Flyway validation.",
+                    appDbVersion,
+                    userId);
         } else {
-            log.info("[Init] DB version mismatch (User: {}, App: {}). Executing Flyway migration...", userVersion, appDbVersion);
-            
+            log.info(
+                    "[Init] DB version mismatch (User: {}, App: {}). Executing Flyway migration...",
+                    userVersion,
+                    appDbVersion);
+
             // Flyway 마이그레이션 실행
             runFlywayMigration(userId);
 
             // Supabase에 최신 버전 업데이트
             try {
                 profileRepository.updateUserDbVersion(UUID.fromString(userId), appDbVersion);
-                log.info("[Init] Updated user_db_version to {} in Supabase for user: {}", appDbVersion, userId);
+                log.info(
+                        "[Init] Updated user_db_version to {} in Supabase for user: {}",
+                        appDbVersion,
+                        userId);
             } catch (Exception e) {
                 log.error("[Init] Failed to update user_db_version in Supabase", e);
             }

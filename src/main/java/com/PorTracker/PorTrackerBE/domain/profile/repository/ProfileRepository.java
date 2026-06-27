@@ -25,7 +25,10 @@ public class ProfileRepository {
                             .nickname(rs.getString("nickname"))
                             .baseCurrencyId(rs.getLong("base_currency_id"))
                             .userDbVersion(rs.getInt("user_db_version"))
-                            .createdAt(rs.getObject("createdAt" != null ? "created_at" : "created_at", OffsetDateTime.class))
+                            .createdAt(
+                                    rs.getObject(
+                                            "createdAt" != null ? "created_at" : "created_at",
+                                            OffsetDateTime.class))
                             .updatedAt(rs.getObject("updated_at", OffsetDateTime.class))
                             .build();
 
@@ -49,7 +52,8 @@ public class ProfileRepository {
     }
 
     public void updateUserDbVersion(UUID id, int version) {
-        String sql = "UPDATE public.profile SET user_db_version = ?, updated_at = NOW() WHERE id = ?";
+        String sql =
+                "UPDATE public.profile SET user_db_version = ?, updated_at = NOW() WHERE id = ?";
         jdbcTemplate.update(sql, version, id);
     }
 }

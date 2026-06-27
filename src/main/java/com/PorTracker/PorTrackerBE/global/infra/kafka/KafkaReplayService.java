@@ -35,11 +35,12 @@ public class KafkaReplayService {
 
     private static final String TOPIC = "user-transaction-logs";
 
-    /**
-     * 최종 동기화 시간(lastSyncAt) 이후의 변경 내용을 카프카 메시지로부터 복구(Replay)합니다.
-     */
+    /** 최종 동기화 시간(lastSyncAt) 이후의 변경 내용을 카프카 메시지로부터 복구(Replay)합니다. */
     public void replayUserEvents(String userId, Instant lastSyncAt) {
-        log.info("[Replay] Starting Kafka event replay for user: {} from time: {}", userId, lastSyncAt);
+        log.info(
+                "[Replay] Starting Kafka event replay for user: {} from time: {}",
+                userId,
+                lastSyncAt);
 
         // AOP 순환 호출 방지를 위한 ThreadLocal 플래그 설정
         ReplayContextHolder.setReplaying(true);
@@ -66,14 +67,18 @@ public class KafkaReplayService {
                 timestampsToSearch.put(tp, searchTimestamp);
             }
 
-            Map<TopicPartition, OffsetAndTimestamp> offsets = consumer.offsetsForTimes(timestampsToSearch);
+            Map<TopicPartition, OffsetAndTimestamp> offsets =
+                    consumer.offsetsForTimes(timestampsToSearch);
 
             // 검색된 오프셋으로 컨슈머 위치 강제 세팅 (seek)
             for (TopicPartition tp : topicPartitions) {
                 OffsetAndTimestamp offsetAndTimestamp = offsets.get(tp);
                 if (offsetAndTimestamp != null) {
                     consumer.seek(tp, offsetAndTimestamp.offset());
-                    log.info("[Replay] Partition {} seeked to offset: {}", tp.partition(), offsetAndTimestamp.offset());
+                    log.info(
+                            "[Replay] Partition {} seeked to offset: {}",
+                            tp.partition(),
+                            offsetAndTimestamp.offset());
                 } else {
                     // 해당 타임스탬프 이후 데이터가 없는 파티션은 끝으로 seek
                     consumer.seekToEnd(Collections.singletonList(tp));
@@ -102,11 +107,15 @@ public class KafkaReplayService {
                     // 복원 데이터 파싱 및 리플렉션 실행
                     try {
                         String decryptedValue = encryptionUtils.decrypt(record.value());
-                        Map<String, Object> event = objectMapper.readValue(decryptedValue, Map.class);
+                        Map<String, Object> event =
+                                objectMapper.readValue(decryptedValue, Map.class);
                         executeReplayEvent(event);
                         totalReplayed++;
                     } catch (Exception ex) {
-                        log.error("[Replay] Failed to replay event at offset {}", record.offset(), ex);
+                        log.error(
+                                "[Replay] Failed to replay event at offset {}",
+                                record.offset(),
+                                ex);
                     }
                 }
 
@@ -117,7 +126,7 @@ public class KafkaReplayService {
                     consumer.seekToEnd(Collections.singletonList(tp));
                     long endOffset = consumer.position(tp);
                     consumer.seek(tp, currentPosition);
-                    
+
                     if (currentPosition < endOffset) {
                         keepPolling = true;
                         break;
@@ -125,10 +134,16 @@ public class KafkaReplayService {
                 }
             }
 
-            log.info("[Replay] Successfully replayed {} transaction events for user: {}", totalReplayed, userId);
+            log.info(
+                    "[Replay] Successfully replayed {} transaction events for user: {}",
+                    totalReplayed,
+                    userId);
 
         } catch (Exception e) {
-            log.error("[Replay] Fatal error occurred during Kafka event replay for user: {}", userId, e);
+            log.error(
+                    "[Replay] Fatal error occurred during Kafka event replay for user: {}",
+                    userId,
+                    e);
         } finally {
             // AOP 플래그 해제
             ReplayContextHolder.clear();
@@ -166,11 +181,12 @@ public class KafkaReplayService {
         // 오버로딩 메서드가 있을 수 있으므로 getMethod로 시그니처 획득
         Method targetMethod = getCompatibleMethod(serviceBean.getClass(), methodName, paramClasses);
         targetMethod.invoke(serviceBean, typedArgs);
-        
+
         log.info("[Replay] Replayed transaction event: {}.{}", serviceName, methodName);
     }
 
-    private Method getCompatibleMethod(Class<?> clazz, String methodName, Class<?>[] paramTypes) throws NoSuchMethodException {
+    private Method getCompatibleMethod(Class<?> clazz, String methodName, Class<?>[] paramTypes)
+            throws NoSuchMethodException {
         try {
             return clazz.getMethod(methodName, paramTypes);
         } catch (NoSuchMethodException e) {
@@ -180,7 +196,8 @@ public class KafkaReplayService {
                     boolean compatible = true;
                     Class<?>[] methodParamTypes = m.getParameterTypes();
                     for (int i = 0; i < paramTypes.length; i++) {
-                        if (paramTypes[i] != Object.class && !methodParamTypes[i].isAssignableFrom(paramTypes[i])) {
+                        if (paramTypes[i] != Object.class
+                                && !methodParamTypes[i].isAssignableFrom(paramTypes[i])) {
                             compatible = false;
                             break;
                         }

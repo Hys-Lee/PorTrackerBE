@@ -86,7 +86,8 @@ public class CredentialRepository {
                                 .id(UUID.fromString(rs.getString("id")))
                                 .provider(rs.getString("provider"))
                                 .accessToken(encryptionUtils.decrypt(rs.getString("access_token")))
-                                .refreshToken(encryptionUtils.decrypt(rs.getString("refresh_token")))
+                                .refreshToken(
+                                        encryptionUtils.decrypt(rs.getString("refresh_token")))
                                 .updatedAt(rs.getObject("updated_at", OffsetDateTime.class))
                                 .build();
 
@@ -107,4 +108,3 @@ public class CredentialRepository {
         jdbcTemplate.update(sql, encryptedAccessToken, userId);
     }
 }
-

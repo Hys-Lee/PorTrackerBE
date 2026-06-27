@@ -45,8 +45,7 @@ public class SecurityConfig {
                 .addFilterBefore(
                         jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 // JWT 필터 직후에 Rate Limiting 필터 작동 연계
-                .addFilterAfter(
-                        rateLimitingFilter, JwtAuthenticationFilter.class);
+                .addFilterAfter(rateLimitingFilter, JwtAuthenticationFilter.class);
 
         return http.build();
     }

@@ -14,8 +14,7 @@ public class KafkaConfig {
     public NewTopic transactionLogsTopic() {
         return TopicBuilder.name("user-transaction-logs")
                 .partitions(3) // 유저 ID 기준 해시 분산을 위해 멀티 파티션 구성
-                .replicas(1)   // 개발/배포 환경에 맞춤
+                .replicas(1) // 개발/배포 환경에 맞춤
                 .build();
     }
 }
-

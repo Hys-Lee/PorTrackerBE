@@ -16,7 +16,8 @@ class CustomSpringELParserTest {
         String keyExpression = "'lock:' + #userId + ':' + #actionName";
 
         // when
-        Object parsedValue = CustomSpringELParser.getDynamicValue(parameterNames, args, keyExpression);
+        Object parsedValue =
+                CustomSpringELParser.getDynamicValue(parameterNames, args, keyExpression);
 
         // then
         assertThat(parsedValue).isEqualTo("lock:user-1234:backup");
@@ -31,7 +32,8 @@ class CustomSpringELParserTest {
         String invalidExpression = "invalid#expression%"; // 파싱 불가능한 구문
 
         // when
-        Object parsedValue = CustomSpringELParser.getDynamicValue(parameterNames, args, invalidExpression);
+        Object parsedValue =
+                CustomSpringELParser.getDynamicValue(parameterNames, args, invalidExpression);
 
         // then
         assertThat(parsedValue).isEqualTo(invalidExpression);

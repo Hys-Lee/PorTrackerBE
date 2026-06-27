@@ -15,7 +15,8 @@ class EncryptionUtilsTest {
     void setUp() {
         encryptionUtils = new EncryptionUtils();
         // 32바이트 대칭키 모의 설정
-        ReflectionTestUtils.setField(encryptionUtils, "rawKey", "my_secure_random_key_value_32bytes");
+        ReflectionTestUtils.setField(
+                encryptionUtils, "rawKey", "my_secure_random_key_value_32bytes");
         encryptionUtils.init();
     }
 
@@ -32,7 +33,7 @@ class EncryptionUtilsTest {
         // then
         assertThat(encryptedText).isNotNull();
         assertThat(encryptedText).isNotEqualTo(originalText); // 암호화되었으므로 달라야 함
-        assertThat(decryptedText).isEqualTo(originalText);    // 복호화 시 원본과 같아야 함
+        assertThat(decryptedText).isEqualTo(originalText); // 복호화 시 원본과 같아야 함
     }
 
     @Test

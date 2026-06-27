@@ -4,7 +4,6 @@ import com.PorTracker.PorTrackerBE.global.annotation.DistributedLock;
 import com.PorTracker.PorTrackerBE.global.error.BusinessException;
 import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
 import com.PorTracker.PorTrackerBE.global.util.CustomSpringELParser;
-import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,11 +30,17 @@ public class DistributedLockAspect {
         Object[] args = joinPoint.getArgs();
 
         // SpEL을 이용해 동적으로 락 키 획득 (예: lock:sync:user-123)
-        String dynamicKey = "lock:" + CustomSpringELParser.getDynamicValue(parameterNames, args, distributedLock.key());
+        String dynamicKey =
+                "lock:"
+                        + CustomSpringELParser.getDynamicValue(
+                                parameterNames, args, distributedLock.key());
         RLock lock = redissonClient.getLock(dynamicKey);
 
-        log.debug("[RedissonLock] Attempting to acquire lock for key: {}, waitTime: {}s, leaseTime: {}s",
-                dynamicKey, distributedLock.waitTime(), distributedLock.leaseTime());
+        log.debug(
+                "[RedissonLock] Attempting to acquire lock for key: {}, waitTime: {}s, leaseTime: {}s",
+                dynamicKey,
+                distributedLock.waitTime(),
+                distributedLock.leaseTime());
 
         try {
             boolean available =
@@ -45,7 +50,9 @@ public class DistributedLockAspect {
                             TimeUnit.SECONDS);
 
             if (!available) {
-                log.warn("[RedissonLock] Lock acquisition failed for key: {} (Conflict / Duplicate Request detected)", dynamicKey);
+                log.warn(
+                        "[RedissonLock] Lock acquisition failed for key: {} (Conflict / Duplicate Request detected)",
+                        dynamicKey);
                 throw new BusinessException(ErrorCode.TOO_MANY_REQUESTS);
             }
 
@@ -60,4 +67,3 @@ public class DistributedLockAspect {
         }
     }
 }
-

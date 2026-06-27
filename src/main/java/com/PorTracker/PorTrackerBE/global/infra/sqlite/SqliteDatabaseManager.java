@@ -1,13 +1,7 @@
 package com.PorTracker.PorTrackerBE.global.infra.sqlite;
 
-import com.PorTracker.PorTrackerBE.global.error.BusinessException;
-import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.sql.DataSource;
@@ -42,9 +36,9 @@ public class SqliteDatabaseManager {
         // Sqlite 최적화 및 풀 제한
         config.setMaximumPoolSize(1); // 동시성 격리 보장
         config.setConnectionTestQuery("SELECT 1");
-        
+
         // 메모리 DB이므로 WAL과 NORMAL 옵션은 크게 무의미하나 드라이버 프로퍼티 호환성 유지
-        config.addDataSourceProperty("journal_mode", "MEMORY"); 
+        config.addDataSourceProperty("journal_mode", "MEMORY");
         config.addDataSourceProperty("synchronous", "OFF");
 
         log.info("[SQLite] Created new In-Memory DataSource for User:{}", userId);

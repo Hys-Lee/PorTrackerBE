@@ -1,17 +1,16 @@
 package com.PorTracker.PorTrackerBE.global.util;
 
 import jakarta.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
-import javax.crypto.Cipher;
-import javax.crypto.spec.GCMParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Base64;
+import javax.crypto.Cipher;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
@@ -29,7 +28,8 @@ public class EncryptionUtils {
     @PostConstruct
     public void init() {
         if (rawKey == null || rawKey.trim().isEmpty()) {
-            log.warn("[Encryption] APP_ENCRYPTION_KEY is empty! Data encryption will not work properly.");
+            log.warn(
+                    "[Encryption] APP_ENCRYPTION_KEY is empty! Data encryption will not work properly.");
             return;
         }
         try {
@@ -42,10 +42,7 @@ public class EncryptionUtils {
         }
     }
 
-    /**
-     * 데이터를 AES-256-GCM으로 암호화합니다.
-     * 암호문 포맷: Base64([12-byte IV][GCM Ciphertext + 16-byte Tag])
-     */
+    /** 데이터를 AES-256-GCM으로 암호화합니다. 암호문 포맷: Base64([12-byte IV][GCM Ciphertext + 16-byte Tag]) */
     public String encrypt(String plainText) {
         if (plainText == null) {
             return null;
@@ -77,8 +74,7 @@ public class EncryptionUtils {
     }
 
     /**
-     * AES-256-GCM으로 암호화된 데이터를 복호화합니다.
-     * 복호화 실패 시 기존 평문 데이터를 위해 원본 데이터를 그대로 반환(Graceful Fallback)합니다.
+     * AES-256-GCM으로 암호화된 데이터를 복호화합니다. 복호화 실패 시 기존 평문 데이터를 위해 원본 데이터를 그대로 반환(Graceful Fallback)합니다.
      */
     public String decrypt(String cipherText) {
         if (cipherText == null) {

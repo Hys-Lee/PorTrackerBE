@@ -32,12 +32,10 @@ public class SyncManager {
         registerOrUpdateAccess(userId);
     }
 
-    /**
-     * 유저의 SQLite 메모리 세션 접근 시간을 갱신하고, 한도(MAX_ACTIVE_USERS) 초과 시 LRU 방출을 트리거합니다.
-     */
+    /** 유저의 SQLite 메모리 세션 접근 시간을 갱신하고, 한도(MAX_ACTIVE_USERS) 초과 시 LRU 방출을 트리거합니다. */
     public synchronized void registerOrUpdateAccess(String userId) {
         lastAccessMap.put(userId, Instant.now());
-        
+
         // 현재 활성화된 DB 커넥션 풀 수가 한계를 넘어서면, 가장 오랫동안 참조되지 않은 세션 방출
         if (lastAccessMap.size() > MAX_ACTIVE_USERS) {
             evictLeastRecentlyUsedUser(userId);
@@ -60,7 +58,10 @@ public class SyncManager {
         }
 
         if (lruUserId != null) {
-            log.info("[LRU Eviction] Active user limit ({}) reached. Evicting LRU user: {}", MAX_ACTIVE_USERS, lruUserId);
+            log.info(
+                    "[LRU Eviction] Active user limit ({}) reached. Evicting LRU user: {}",
+                    MAX_ACTIVE_USERS,
+                    lruUserId);
             evictUser(lruUserId);
         }
     }
@@ -112,4 +113,3 @@ public class SyncManager {
         }
     }
 }
-
