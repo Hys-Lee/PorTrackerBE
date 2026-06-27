@@ -1,3 +1,6 @@
+server:
+  port: ${PORT:8080}
+
 spring:
   jpa:
     open-in-view: false
@@ -50,7 +53,7 @@ logging:
     org.flywaydb: DEBUG
     org.springframework.boot.autoconfigure.flyway: DEBUG
 sentry:
-  dsn: ${SENTRY_DSN}
+  dsn: ${SENTRY_DSN:}
   send-default-pii: true
   traces-sample-rate: 1.0
   exception-resolver-order: -2147483648

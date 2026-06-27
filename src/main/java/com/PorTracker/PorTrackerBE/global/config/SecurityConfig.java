@@ -36,7 +36,7 @@ public class SecurityConfig {
                                                 "/swagger-resource/**",
                                                 "/webjars/**")
                                         .permitAll()
-                                        .requestMatchers("/api/v1/public/**")
+                                        .requestMatchers("/api/v1/public/**", "/api/v1/open/**")
                                         .permitAll() // 공개 API
                                         .anyRequest()
                                         .authenticated() // 나머지는 모두 인증 필요
