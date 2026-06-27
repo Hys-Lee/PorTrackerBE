@@ -30,6 +30,10 @@ spring:
         mechanism: ${SPRING_KAFKA_SASL_MECHANISM:}
         jaas:
           config: ${SPRING_KAFKA_SASL_JAAS_CONFIG:}
+      ssl:
+        truststore:
+          type: ${SPRING_KAFKA_SSL_TRUSTSTORE_TYPE:}
+          certificates: ${SPRING_KAFKA_SSL_TRUSTSTORE_CERTIFICATES:}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
