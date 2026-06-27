@@ -38,11 +38,8 @@ public class SyncAspect {
     public void afterCudMethod(JoinPoint joinPoint) {
         String userId = UserContextHolder.getUserId();
         if (userId != null && !ReplayContextHolder.isReplaying()) {
-            String serviceName = joinPoint.getTarget().getClass().getSimpleName();
-            // 프록시 객체일 경우 CGLIB 접미사 제거
-            if (serviceName.contains("$$")) {
-                serviceName = serviceName.substring(0, serviceName.indexOf("$$"));
-            }
+            Class<?> targetClass = org.springframework.util.ClassUtils.getUserClass(joinPoint.getTarget());
+            String serviceName = targetClass.getSimpleName();
             String methodName = joinPoint.getSignature().getName();
             Object[] args = joinPoint.getArgs();
 
