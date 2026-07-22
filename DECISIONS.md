@@ -128,4 +128,18 @@
   * `slowCallDurationThreshold: 3s` & `slowCallRateThreshold: 70`: 구글 I/O가 3초 이상 지체되는 느린 호출 비율이 70%를 넘으면, 스프링 스레드 풀 잠식(Thread Starvation)을 미연에 방어하기 위해 Fail-Fast 차단막을 가동합니다.
   * `waitDurationInOpenState: 10s`: OPEN 상태 유지 시간을 10초로 단축하여 사용자 불편 기간을 축소하고, 그동안 캐시/로컬 복구로 빠르게 우회 응답합니다.
 
+---
+
+### 💡 ADR-13. Redisson 분산 락 및 Redis를 이용한 단일 활성 세션(Single Active Session)과 초기화 동시성 방어
+* **결정 사항**: 다중 기기에서의 동시 API 요청으로 인한 SQLite 인메모리 세션 오염을 원천 예방하기 위해, JWT의 발급 시각(`issuedAt`)과 Redis를 연계한 단일 활성 세션(Single Active Session) 제어 아키텍처를 도입하고, 유저 DB 초기화 프로세스에 Redisson 분산 락을 적용합니다.
+* **이유 및 선정 배경**:
+  * 포트폴리오를 여러 기기에서 동시에 띄워두고 CUD 요청을 가동하면, 로컬 인메모리 SQLite의 동합성 체크포인트와 Kafka WAL의 이벤트 순서성이 파괴되어 데이터 정합성이 영구적으로 손상됩니다.
+  * 또한, 최초 로그인이나 세션 누락 시점에 수행되는 유저 DB 초기화(`initializeUserDatabase`) 동작 중, 사용자가 연타를 하거나 다중 요청이 거의 동시에 들어가면 데이터베이스 커넥션 풀을 해제하고 복원하는 로직이 꼬여 DB 파일 깨짐(Corrupted) 현상이 일어납니다.
+* **잠재적 이슈와 기술적 한계 극복**:
+  * *이슈 1. 단일 기기 세션 강제 아웃(Kick-out) 구현*: 별도의 로그인 API 호출 단 없이 Supabase JWT 토큰을 직접 전송받는 필터 구조에서 기기 간 선점 여부를 동적으로 판별해야 합니다.
+    * *극복*: `JwtAuthenticationFilter` 상에서 요청 토큰의 발급 시각(iat)을 Redis의 `active_session:{userId}` 저장값과 비교하여, 이후(미래)에 발급된 토큰이 들어오면 Redisson 락(`lock:session:{userId}`) 하에 최신 세션으로 갱신해 주어 진입을 허용하고, 반대로 과거 발급 토큰으로 접근 시에는 `401 Unauthorized` 예외를 즉각 차단 반환하여 이전 기기의 접속 권한을 실시간으로 차단시킵니다.
+  * *이슈 2. 초기화 Race Condition 차단*: 
+    * *극복*: `UserInitializationService.initializeUserDatabase` 메서드 시작부에 `@DistributedLock(key = "'init:' + #userId")` 어노테이션을 부여하여, 동시 인입 요청 시 락을 쥔 단 하나의 스레드만 안전하게 파일 복원 및 카프카 Replay 동작을 순서대로 완료할 수 있도록 세이프가드 처리를 완성하였습니다.
+
+
 
