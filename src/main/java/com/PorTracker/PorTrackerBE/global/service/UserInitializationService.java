@@ -5,6 +5,7 @@ import com.PorTracker.PorTrackerBE.global.error.BusinessException;
 import com.PorTracker.PorTrackerBE.global.error.ErrorCode;
 import com.PorTracker.PorTrackerBE.global.infra.kafka.KafkaReplayService;
 import com.PorTracker.PorTrackerBE.global.infra.sqlite.SqliteDatabaseManager;
+import com.PorTracker.PorTrackerBE.global.annotation.DistributedLock;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -30,6 +31,7 @@ public class UserInitializationService {
     @Value("${app.db.version:1}")
     private int appDbVersion;
 
+    @DistributedLock(key = "'init:' + #userId")
     public void initializeUserDatabase(String userId) {
         ensureDatabaseDirectoryExists();
 

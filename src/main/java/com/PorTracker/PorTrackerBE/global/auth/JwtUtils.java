@@ -31,6 +31,10 @@ public class JwtUtils {
         return getClaims(token).getSubject(); // JWT의 'sub' 필드가 유저의 UUID입니다.
     }
 
+    public java.util.Date extractIssuedAt(String token) {
+        return getClaims(token).getIssuedAt();
+    }
+
     public boolean validateToken(String token) {
         try {
             // getClaims(token);

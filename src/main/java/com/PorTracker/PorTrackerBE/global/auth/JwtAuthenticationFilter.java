@@ -9,8 +9,12 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -24,10 +28,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
-
     private final UserInitializationService userInitializationService;
-
     private final SyncManager syncManager;
+    private final StringRedisTemplate redisTemplate;
+    private final RedissonClient redissonClient;
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
@@ -47,7 +51,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (token != null && jwtUtils.validateToken(token)) {
             String userId = jwtUtils.extractUserId(token);
 
-            //
+            // 다중 기기 중복 접속 제어 (Single Active Session)
+            if (!validateActiveSession(userId, token, response)) {
+                return; // 중복 접속 차단 시 필터 체인 즉시 종료
+            }
+
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
 
@@ -72,6 +80,61 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 요청이 끝나면 ThreadLocal 청소 (메모리 누수 방지)
             UserContextHolder.clear();
             SecurityContextHolder.clearContext();
+        }
+    }
+
+    private boolean validateActiveSession(String userId, String token, HttpServletResponse response) throws IOException {
+        String sessionKey = "active_session:" + userId;
+        String activeToken = redisTemplate.opsForValue().get(sessionKey);
+
+        if (activeToken == null) {
+            // 최초 접속 혹은 만료 시 현재 세션을 등록
+            redisTemplate.opsForValue().set(sessionKey, token, 7, TimeUnit.DAYS);
+            return true;
+        }
+
+        // 기존 기기와 동일한 토큰인 경우 통과
+        if (activeToken.equals(token)) {
+            return true;
+        }
+
+        // 다른 기기의 신규/과거 로그인 분별을 위해 토큰 발급 시간(issuedAt) 비교
+        try {
+            java.util.Date currentIat = jwtUtils.extractIssuedAt(token);
+            java.util.Date activeIat = jwtUtils.extractIssuedAt(activeToken);
+
+            if (currentIat != null && activeIat != null && currentIat.after(activeIat)) {
+                // 들어온 토큰이 더 최근에 발급된 신규 로그인 기기 토큰일 경우
+                String lockKey = "lock:session:" + userId;
+                RLock lock = redissonClient.getLock(lockKey);
+                try {
+                    if (lock.tryLock(5, 10, TimeUnit.SECONDS)) {
+                        String recheckedToken = redisTemplate.opsForValue().get(sessionKey);
+                        if (recheckedToken == null || jwtUtils.extractIssuedAt(token).after(jwtUtils.extractIssuedAt(recheckedToken))) {
+                            redisTemplate.opsForValue().set(sessionKey, token, 7, TimeUnit.DAYS);
+                            log.info("[ActiveSession] User {} registered a newer session token from another device", userId);
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Session lock acquisition interrupted");
+                    return false;
+                } finally {
+                    if (lock.isHeldByCurrentThread()) {
+                        lock.unlock();
+                    }
+                }
+                return true;
+            } else {
+                // 들어온 토큰이 기존 활성화된 다른 기기 세션보다 과거인 경우 -> 차단
+                log.warn("[ActiveSession] Multiple device login detected for user: {}. Restricting access...", userId);
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Multiple device login detected. This session has been terminated.");
+                return false;
+            }
+        } catch (Exception e) {
+            log.error("[ActiveSession] Error validating active session for user: {}", userId, e);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid active session metadata.");
+            return false;
         }
     }
 
