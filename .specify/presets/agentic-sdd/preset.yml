@@ -1,0 +1,80 @@
+schema_version: "1.0"
+
+preset:
+  id: "agentic-sdd"
+  name: "Agentic SDD"
+  version: "0.1.0"
+  description: "명세(spec.md)·설계(design.md)·작업 목록(task.md)·구현. 규칙은 directives/ 에 있다"
+  author: "agentic-dev"
+  repository: "https://github.com/github/spec-kit"
+  license: "MIT"
+
+requires:
+  speckit_version: ">=0.6.0"
+
+provides:
+  templates:
+    - type: "command"
+      name: "speckit.specify"
+      file: "commands/speckit.specify.md"
+      description: "명세 — spec.md 를 쓰고 모르는 것을 모름 절에 드러낸다"
+      replaces: "speckit.specify"
+
+    - type: "command"
+      name: "speckit.plan"
+      file: "commands/speckit.plan.md"
+      description: "설계 — design.md 를 마일스톤으로 쓴다. 사람이 먼저 썼으면 빈 곳만 채운다"
+      replaces: "speckit.plan"
+
+    - type: "command"
+      name: "speckit.tasks"
+      file: "commands/speckit.tasks.md"
+      description: "작업 목록 — 사람의 지시대로, 없으면 알아서 task.md 를 쓴다"
+      replaces: "speckit.tasks"
+
+    - type: "command"
+      name: "speckit.acceptance"
+      file: "commands/speckit.acceptance.md"
+      description: "인수 시험 — 명세의 사용 장면마다 실패하는 시험을 구현 앞에 쓴다"
+
+    - type: "command"
+      name: "speckit.implement"
+      file: "commands/speckit.implement.md"
+      description: "구현 — task.md 의 마일스톤 하나를 짓는다"
+      replaces: "speckit.implement"
+
+    - type: "command"
+      name: "speckit.constitution"
+      file: "commands/speckit.constitution.md"
+      description: "이 프로젝트는 헌법 파일을 안 쓴다"
+      replaces: "speckit.constitution"
+
+    - type: "command"
+      name: "speckit.analyze"
+      file: "commands/speckit.analyze.md"
+      description: "아직 이 프로젝트의 단계에 안 맞췄다"
+      replaces: "speckit.analyze"
+
+    - type: "command"
+      name: "speckit.checklist"
+      file: "commands/speckit.checklist.md"
+      description: "아직 이 프로젝트의 단계에 안 맞췄다"
+      replaces: "speckit.checklist"
+
+    - type: "command"
+      name: "speckit.clarify"
+      file: "commands/speckit.clarify.md"
+      description: "아직 이 프로젝트의 단계에 안 맞췄다"
+      replaces: "speckit.clarify"
+
+    - type: "command"
+      name: "speckit.converge"
+      file: "commands/speckit.converge.md"
+      description: "아직 이 프로젝트의 단계에 안 맞췄다"
+      replaces: "speckit.converge"
+
+    - type: "command"
+      name: "speckit.taskstoissues"
+      file: "commands/speckit.taskstoissues.md"
+      description: "아직 이 프로젝트의 단계에 안 맞췄다"
+      replaces: "speckit.taskstoissues"

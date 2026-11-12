@@ -1,0 +1,43 @@
+---
+name: speckit-plan
+description: 설계 — 명세를 받아 design.md 를 마일스톤으로 쓴다. 사람이 먼저 썼으면 덮지 않고 빈 곳만 채운다.
+argument-hint: "Optional guidance for the planning phase"
+compatibility: Requires spec-kit project structure with .specify/ directory
+metadata:
+  author: github-spec-kit
+  source: preset:agentic-sdd
+user-invocable: true
+disable-model-invocation: false
+---
+
+# Speckit Plan Skill
+
+## 받은 글
+
+```text
+$ARGUMENTS
+```
+
+## 할 일
+
+1. **기능 폴더를 찾는다.** 받은 글의 첫 줄이 `폴더: <자리>` 면 그 자리이고, 아니면 `.specify/feature.json` 의 `feature_directory` 다. 둘 다 없으면 사람에게 묻는다.
+
+2. **읽는다.**
+   - `<자리>/spec.md`
+   - `directives/STRATEGY.md`·`directives/CONVENTION.md`, 있으면 `directives/POLICY.md`
+   - 이 기능이 건드릴 폴더와 그 위 폴더들의 `RULE.md`
+
+3. **명세에 답이 안 찬 모름이 남았으면 멈춘다.** 답은 모름 줄 끝의 `→ 답:` 뒤의 글이다. 그것이 없거나, 있어도 그 줄의 물음에 답하지 않으면(다른 줄의 답을 옮겨 온 것 같은 것) 답이 없는 것으로 본다. 그런 항목을 그대로 목록으로 보이고, 「이것들에 답을 채운 뒤 다시 부른다」고 알린다. 아무것도 쓰지 않는다 — 모름 위에 세운 설계는 짐작을 결정으로 바꾼다. 🔴 `design.md` 를 안 쓰고 끝나면 흐름이 그것을 보고 멈춘다.
+
+   답이 `설계에서 AI 가 정한다` 면 네가 정하고, 설계에 무엇을 왜 정했는지 표로 적는다. 사람이 뒤집을 수 있게.
+
+4. **`<자리>/design.md` 를 쓴다.**
+   - 파일이 **없으면** 새로 쓴다.
+   - 파일이 **있으면** 사람이 먼저 쓴 것이다. 🔴 사람이 쓴 글을 지우거나 고쳐 쓰지 않는다. 빈 곳만 채우고, 맨 끝에 `## AI 가 더한 것` 절을 두어 무엇을 어디에 더했는지 적는다. 사람의 설계가 명세와 어긋나 보이면 고치지 말고 그 절에 적는다.
+
+5. **설계의 꼴.**
+   - 경계부터 긋는다 — 무엇이 무엇을 부르고, 무엇을 받고 무엇을 내는가.
+   - `## 마일스톤` 절에 차례대로 쪼갠다. 마일스톤마다 「끝나면 무엇을 돌려 볼 수 있나」를 한 줄 적는다.
+   - `directives/STRATEGY.md` 에 이미 정한 기술 제약은 옮겨 적지 않고 그 파일을 가리킨다. 옮겨 적으면 전략을 고쳐도 여기가 낡은 채 남는다.
+
+6. 끝에 사람에게 알린다: 쓴 자리, 마일스톤 개수, 사람 글을 채운 경우면 더한 곳의 개수.

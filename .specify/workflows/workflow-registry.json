@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "workflows": {
+    "speckit": {
+      "name": "Full SDD Cycle",
+      "version": "1.0.1",
+      "description": "Runs specify \u2192 plan \u2192 tasks \u2192 implement with review gates",
+      "source": "bundled",
+      "installed_at": "2026-11-12T15:30:53.952871+00:00",
+      "updated_at": "2026-11-12T15:30:53.952874+00:00"
+    },
+    "agentic-sdd-claude": {
+      "name": "agentic-sdd (claude)",
+      "version": "0.1.0",
+      "description": "\uba85\uc138 \u2192 \uc124\uacc4 \u2192 \uc791\uc5c5 \ubaa9\ub85d \u2192 \uc778\uc218 \uc2dc\ud5d8 \u2192 \uad6c\ud604",
+      "source": "/var/folders/4c/wfs46dr149344c521_pmkh2c0000gn/T/agentic-sdd-OEpX9K/agentic-sdd-claude.yml",
+      "installed_at": "2026-11-12T15:30:54.385179+00:00",
+      "updated_at": "2026-11-12T15:30:54.385287+00:00"
+    }
+  }
+}

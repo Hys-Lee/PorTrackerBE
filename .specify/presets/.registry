@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "presets": {
+    "agentic-sdd": {
+      "version": "0.1.0",
+      "source": "local",
+      "manifest_hash": "sha256:7c8769bb49bf2ec43cea49e411d371b1685fed6dfd978145a449c50c6d24e98d",
+      "enabled": true,
+      "priority": 10,
+      "registered_commands": {
+        "claude": [
+          "speckit.specify",
+          "speckit.plan",
+          "speckit.tasks",
+          "speckit.acceptance",
+          "speckit.implement",
+          "speckit.constitution",
+          "speckit.analyze",
+          "speckit.checklist",
+          "speckit.clarify",
+          "speckit.converge",
+          "speckit.taskstoissues"
+        ]
+      },
+      "registered_skills": {
+        "claude": [
+          "speckit-specify",
+          "speckit-plan",
+          "speckit-tasks",
+          "speckit-acceptance",
+          "speckit-implement",
+          "speckit-constitution",
+          "speckit-analyze",
+          "speckit-checklist",
+          "speckit-clarify",
+          "speckit-converge",
+          "speckit-taskstoissues"
+        ]
+      },
+      "installed_at": "2026-11-12T15:30:54.163810+00:00"
+    }
+  }
+}
